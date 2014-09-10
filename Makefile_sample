@@ -1,0 +1,86 @@
+# Makefile created by mkmf $Id: Makefile_sample,v 1.1 2012/12/08 06:42:26 jdexter Exp $ 
+FC=gfortran
+AR=ar
+ARFLAGS=rcv
+LIBS=-lcfitsio -L/usr/local/lib
+OTHERFLAGS = -ffixed-line-length-132 -fopenmp -g -W -Wall
+.DEFAULT:
+	-echo $@ does not exist.
+
+all: grtrans
+lib: libgrtrans
+odepack_aux.o: ./odepack_aux.f
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./odepack_aux.f
+interpolate_aux.o: ./interpolate_aux.f
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./interpolate_aux.f
+geokerr_wrapper.o: ./geokerr_wrapper.f
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./geokerr_wrapper.f
+camera.o: ./camera.f90 fits.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./camera.f90
+chandra_tab24.o: ./chandra_tab24.f90 
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./chandra_tab24.f90
+fits.o: fits.f90
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fits.f90
+class_four_vector.o: ./class_four_vector.f90
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./class_four_vector.f90
+emis.o: ./emis.f90 math.o polsynchemis.o chandra_tab24.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./emis.f90
+fluid.o: ./fluid.f90 class_four_vector.o phys_constants.o interpolate.o kerr.o fluid_model_sphacc.o fluid_model_phatdisk.o fluid_model_thindisk.o fluid_model_toyjet.o fluid_model_numdisk.o fluid_model_hotspot.o fluid_model_hotspot_schnittman.o fluid_model_harm.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid.f90
+fluid_model_sphacc.o: ./fluid_model_sphacc.f90 class_four_vector.o phys_constants.o interpolate.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_sphacc.f90
+fluid_model_toyjet.o: ./fluid_model_toyjet.f90 class_four_vector.o phys_constants.o interpolate.o kerr.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_toyjet.f90
+fluid_model_thindisk.o: ./fluid_model_thindisk.f90 class_four_vector.o phys_constants.o 
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_thindisk.f90
+fluid_model_phatdisk.o: ./fluid_model_phatdisk.f90 fluid_model_thindisk.o class_four_vector.o phys_constants.o 
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_phatdisk.f90
+fluid_model_numdisk.o: ./fluid_model_numdisk.f90 fluid_model_thindisk.o class_four_vector.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_numdisk.f90
+fluid_model_hotspot.o: ./fluid_model_hotspot.f90 fluid_model_thindisk.o class_four_vector.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_hotspot.f90
+fluid_model_hotspot_schnittman.o: ./fluid_model_hotspot_schnittman.f90 class_four_vector.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_hotspot_schnittman.f90
+fluid_model_harm.o: ./fluid_model_harm.f90 class_four_vector.o interpolate.o kerr.o phys_constants.o math.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_harm.f90
+geodesics.o: ./geodesics.f90 class_four_vector.o interpolate.o kerr.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./geodesics.f90
+grtrans_driver.o: ./grtrans_driver.f90 fluid.o rad_trans.o geodesics.o emis.o odepack.o camera.o interpolate.o phys_constants.o kerr.o read_inputs.o chandra_tab24.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./grtrans_driver.f90
+grtrans.o: ./grtrans.f90 grtrans_driver.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./grtrans.f90
+grtrans_program.o: ./grtrans_program.f90 grtrans.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./grtrans_program.f90
+interpolate.o: ./interpolate.f90
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./interpolate.f90
+kerr.o: ./kerr.f90 class_four_vector.o math.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./kerr.f90
+math.o: ./math.f90
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./math.f90
+odepack.o: ./odepack.f90
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./odepack.f90
+phys_constants.o: ./phys_constants.f90
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./phys_constants.f90
+polsynchemis.o: ./polsynchemis.f phys_constants.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./polsynchemis.f
+rad_trans.o: ./rad_trans.f90 read_inputs.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./rad_trans.f90
+read_inputs.o: ./read_inputs.f90
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./read_inputs.f90
+SRC = ./odepack_aux.f ./interpolate_aux.f ./geokerr_wrapper.f ./interpolate.f90 ./read_inputs.f90 ./class_four_vector.f90 ./odepack.f90 ./emis.f90 ./rad_trans.f90 ./kerr.f90 ./fluid.f90 ./grtrans_driver.f90 ./fluid_model_sphacc.f90 ./fluid_model_thindisk.f90 ./fluid_model_phatdisk.f90 ./fluid_model_numdisk.f90 ./fluid_model_hotspot.f90 ./fluid_model_hotspot_schnittman.f90 ./fluid_model_harm.f90 ./fluid_model_toyjet.f90           \
+./polsynchemis.f90 ./geodesics.f90 ./math.f90 ./camera.f90 ./phys_constants.f90 ./grtrans.f90 ./grtrans_program.f90
+OBJ = odepack_aux.o interpolate_aux.o geokerr_wrapper.o interpolate.o read_inputs.o class_four_vector.o odepack.o emis.o rad_trans.o kerr.o fluid.o grtrans_driver.o fluid_model_sphacc.o  \
+polsynchemis.o geodesics.o math.o camera.o phys_constants.o fits.o fluid_model_thindisk.o fluid_model_phatdisk.o fluid_model_numdisk.o fluid_model_hotspot.o fluid_model_hotspot_schnittman.o fluid_model_toyjet.o fluid_model_harm.o grtrans.o grtrans_program.o chandra_tab24.o
+clean: neat
+	-rm -f .grtrans.cppdefs $(OBJ) *.mod grtrans
+neat:
+	-rm -f $(TMPFILES)
+TAGS: $(SRC)
+	etags $(SRC)
+tags: $(SRC)
+	ctags $(SRC)
+grtrans: $(OBJ) 
+	$(FC) $(OBJ) -fopenmp -o grtrans  $(LIBS)
+
+libgrtrans: $(OBJ)
+	$(AR) $(ARFLAGS) libgrtrans.a $(OBJ)

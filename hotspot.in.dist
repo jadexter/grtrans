@@ -1,0 +1,5 @@
+&hotspot
+ rspot=0.5,
+ r0spot=6.0,
+ n0spot=10000.0,
+/

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+export OMP_NUM_THREADS=1
+
+echo Starting `date`
+./grtrans
+echo Ending `date`
+rm grtrans.out
+
+export OMP_NUM_THREADS=2
+
+echo Starting `date`
+./grtrans
+echo Ending `date`
+rm grtrans.out
+
+export OMP_NUM_THREADS=4
+
+echo Starting `date`
+./grtrans
+echo Ending `date`
+rm grtrans.out
+
+export OMP_NUM_THREADS=8
+
+echo Starting `date`
+./grtrans
+echo Ending `date`
+rm grtrans.out

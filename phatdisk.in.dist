@@ -1,0 +1,12 @@
+&phatdisk
+ nw=500,
+ wmin=0.0001,
+ wmax=10000.0,
+ nfreq_tab=40,
+ fmin=2.41e+16,
+ fmax=7.23e+18,
+ rmax=10000.0,
+ nr=500,
+ sigt=0.5,
+ fcol=1.7,
+/

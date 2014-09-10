@@ -1,0 +1,9 @@
+&mb09
+ gfile='mb09dipolegrid.bin',
+ dfile='/Users/Jason/analyses/mb09/dipole_rout1000/fieldline',
+ nt=1,
+ nfiles=1,
+ indf=1500,
+ jonfix=1,
+ sim="dipole",
+/
