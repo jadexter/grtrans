@@ -1,0 +1,6 @@
+&harm
+ dfile='dump',
+ hfile='dump040',
+ nt=1,
+ indf=40,
+/
