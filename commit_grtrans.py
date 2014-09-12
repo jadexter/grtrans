@@ -7,7 +7,9 @@ nfailed, ufailed = run_unit_tests()
 if passed < max_passed or nfailed > 0: print 'ERROR -- grtrans tests failed!'
 else: 
     os.chdir('..')
-    os.system('cvs -d :ext:jdexter@grad16.phys.washington.edu:/phys/users/jdexter/cvs commit grtrans')
+#    os.system('cvs -d :ext:jdexter@grad16.phys.washington.edu:/phys/users/jdexter/cvs commit grtrans')
+    os.system('git commit -a')
+    
 
 #try:
 #    with open('tests_failed.p','rb') as f: print 'ERROR -- grtrans tests failed!'

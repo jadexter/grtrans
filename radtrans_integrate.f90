@@ -218,7 +218,7 @@
          !           s(i1:i2)=s(i2:i1:-1)
 !            write(6,*) 'lsoda basic'
            ! test I0:
-           I0(1) = jj(npts-i1,1)/KK(npts-i1,1)
+!           I0(1) = jj(npts-i1,1)/KK(npts-i1,1)
            call lsoda_basic(radtrans_lsoda_calc_rhs,I0(1:nequations), &
                 s(i1:i2),oatol, &
                 ortol,radtrans_lsoda_calc_jac,intensity(:,i1:i2), &
