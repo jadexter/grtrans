@@ -81,9 +81,9 @@
           do l=1,nt
 !       write(6,*) 'pre loop spin: ',spin,gargs%a
 !$omp parallel do private(i) shared(gargs,gunit,c,j,nt,l,spin,iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
-!             do i=1,c(1)%nx*c(1)%ny
+             do i=1,c(1)%nx*c(1)%ny
 !                write(6,*) 'i: ',i
-              do i=7128,7128
+!              do i=7128,7128
 !                 write(6,*) 'i: ',i
 !                write(6,*) 'after loop spin: ',mdots(1),mbh
                 call grtrans_driver(gargs,gunit,c,i,(j-1)*nt+l,iname,ename,fname, &

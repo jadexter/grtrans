@@ -23,7 +23,7 @@
 ! grtrans object is made up of fluid, geodesic, emissivity, and rad trans objects
 
 !        integer, parameter :: IS_LINEAR_STOKES=1
-        integer, parameter :: WRITE_GEO=1
+        integer, parameter :: WRITE_GEO=0
         integer :: EXTRA_QUANTS=0
 !        integer, dimension(3) :: stats
 !        double precision, parameter :: MAX_TAU = 10d0
