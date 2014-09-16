@@ -5,6 +5,7 @@
       use interpolate, only: interp, get_weight
       use kerr, only: kerr_metric, lnrf_frame, calc_rms, krolikc, calc_polvec
       use fluid_model_sphacc, only: sphacc_vals, init_sphacc, del_sphacc
+      use fluid_model_sariaf, only: sariaf_vals, init_sariaf, del_sariaf
       use fluid_model_constant, only: constant_vals, init_constant
       use fluid_model_toyjet, only: initialize_toyjet_model, del_toyjet_data, &
                                     toyjet_vals
@@ -27,6 +28,7 @@
       integer, parameter :: CONST=0,TAIL=1
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6,CONSTANT=7
       integer, parameter :: COSMOS=10,MB=11,HARM=12,TOYJET=13,NUMDISK=14,THICKDISK=15,MB09=16
+      integer, parameter :: SARIAF=17
 
       type fluid
         integer :: model, nfreq
@@ -101,6 +103,8 @@
         character(len=20), intent(in) :: fname
         if(fname=='COSMOS') then
 !          call initialize_cosmos_model(a)
+        elseif(fname=='SARIAF') then
+           call init_sariaf() !alwinremark
         elseif(fname=='MB') then
 !          call intiialize_mb_model(a)
         elseif(fname=='THICKDISK') then
@@ -195,6 +199,8 @@
                  f%model=SCHNITTMAN
               elseif(fname=='CONSTANT') then
                  f%model=CONSTANT
+              elseif(fname=='SARIAF') then
+                 f%model=SARIAF !alwinremark
               else
                  write(6,*) 'WARNING: Unsupported fluid model -- using DUMMY'
                  f%model=DUMMY
@@ -249,6 +255,8 @@
            call del_numdisk_data()
         elseif(fname=='SPHACC') then
            call del_sphacc()
+        elseif(fname=='SARIAF') then
+           call del_sariaf() !alwinremark does nothing so far
         endif
         end subroutine unload_fluid_model
 
@@ -320,6 +328,8 @@
 !            call initialize_toyjet_model(f)
           CASE (CONSTANT)
              call get_constant_fluidvars(x0,real(a),f)
+          CASE (SARIAF)
+             call get_sariaf_fluidvars(x0,real(a),f) !alwinremark this exists below
           CASE (DUMMY)
         END SELECT
         end subroutine get_fluid_vars_arr
@@ -354,6 +364,8 @@
              call convert_fluidvars_mb09(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (CONSTANT)
              call convert_fluidvars_constant(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+          CASE (SARIAF)
+             call convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp) !alwinremark exists below
 !          CASE (RIAF)
 !            call initialize_toyjet_model(f)
 !          CASE (DUMMY)
@@ -687,12 +699,12 @@
         f%bmag=B
 !        write(6,*) 'after sphacc u'
 !        write(6,'((E9.4,2X))') u
- !       write(6,*) 'T'
- !       write(6,'((E9.4,2X))') T
- !       write(6,*) 'n'
- !       write(6,'((E9.4,2X))') n
- !       write(6,*) 'B'
- !       write(6,'((E9.4,2X))') B
+!       write(6,*) 'T'
+!       write(6,'((E9.4,2X))') T
+!       write(6,*) 'n'
+!       write(6,'((E9.4,2X))') n
+!       write(6,*) 'B'
+!       write(6,'((E9.4,2X))') B
         end subroutine get_sphacc_fluidvars
 
         subroutine convert_fluidvars_sphacc(f,ncgs,ncgsnth,bcgs,tcgs,sp)
@@ -798,6 +810,213 @@
         tcgs=f%p
         end subroutine convert_fluidvars_constant
 
+        subroutine get_sariaf_fluidvars(x0,a,f)
+!Semi-analytic RIAF model currently in progress. Inputs
+        type (four_vector), intent(in), dimension(:) :: x0
+        type (fluid), intent(inout) :: f
+!inputs into sariaf_vals
+        real, intent(in) :: a
+        real, dimension(size(x0)) :: u,ctheta
+!        real, dimension(size(x0)) :: riaf_u,riaf_neth,riaf_te,riaf_B
+!outputs from sariaf_vals
+        real, dimension(size(x0)) :: riaf_vr,riaf_vth,riaf_omega,bmag,n,t
+!        real, dimension(size(x0)) :: g00,grr,ur
+!interim variables
+        real, dimension(size(x0)) :: gtt,gphi,gtphi,ub,aleph,bb
+        real, dimension(size(x0)) :: rr, rho2,psi4,stheta
+!rms related variables
+        real :: rms
+!r < rms intermediate variables
+        real :: lambdae,game 
+        real, dimension(size(x0)) :: delta,hhh 
+!checking variables
+        real :: checkacc
+        real, dimension(size(x0),10) :: metric
+        real, dimension(size(x0)) :: rrcompare, ferret, ferretbb, ferretub
+        integer :: i,alwingood,alwinbad,idlgood,idlbad
+
+        rr = x0%data(2)
+        rms = calc_rms(a)
+
+        lambdae = (rms**2. - 2.*a*sqrt(rms) + a**2.)/(rms**(3./2.)-2.*sqrt(rms)+a)
+        game = sqrt(1.-2./3./rms)
+        delta = rr*rr - 2.*rr + a*a
+        hhh = (2.*rr-a*lambdae)/delta
+
+        u=1./x0%data(2)
+        ctheta =cos(x0%data(3))
+        stheta = sin(x0%data(3))
+        rho2 = rr**2. + a**2. * (ctheta)**2.
+        psi4 = 2.*rr/rho2
+!kerr metric values copied from kerr.f90 kmetric_cov
+        gtt = -1.*(1.-psi4) !metric 1
+        gphi = (stheta*stheta) * (rho2 + a*a*(1.+2.*rr/rho2)*stheta*stheta) !metric 10
+        gtphi = -1.*psi4*a*stheta**2. !metric 4
+        call sariaf_vals(a,ctheta,u,n,t,bmag,riaf_vr,riaf_vth,riaf_omega)
+!       ! b = riaf_B
+!        n = riaf_neth
+!        t = riaf_te
+!        u = riaf_u
+!       ! Equipartition B field
+!        write(6,*) 'sphacc: ',B,size(x0)
+        
+!        gtt= -(1.-2.*u)!alwinremark
+!        gphi = !alwinremark
+        ub = gtt + riaf_omega*riaf_omega*gphi + 2.*riaf_omega*gtphi !&
+!             + grr*riaf_vr*riaf_vr + gtheta*riaf_vth*riaf_vth
+!ub * u0**2. = -1
+        where(rr.lt.rms)
+           f%u%data(1) = game*(1.+2.*(1.+hhh)/rr)
+           f%u%data(2) = -1.*sqrt(2./3./rms)*(rms/rr-1.)**(3./2.)
+           f%u%data(3) = 0d0
+           f%u%data(4) = game*(lambdae + a*hhh)/rr/rr
+        elsewhere
+           f%u%data(1) =  sqrt(-1./ub) !what sign?
+           f%u%data(2) = 0d0 ! vr*f%u%data(1)
+           f%u%data(3) = 0d0 ! vth*f%u%data(1)
+           f%u%data(4) = riaf_omega * f%u%data(1)
+        endwhere
+
+        aleph = -1.*(gtphi*f%u%data(1)+gphi*f%u%data(4)) &
+             /(gtt*f%u%data(1)+gtphi * f%u%data(4))
+!b0 = aleph*b_phi
+        bb = gtt*aleph*aleph + gphi + 2.*gtphi*aleph !I hope this is never negative
+!bb*b_phi**2. = Bmag**2.
+        f%b%data(4) = bmag/sqrt(bb) !what sign?
+        f%b%data(3) = 0d0
+        f%b%data(2) = 0d0
+        f%b%data(1) = aleph * f%b%data(4)
+        f%rho = n
+        f%p = t
+        f%bmag = bmag
+!testing dot product
+        where(rr.lt.rms)
+           rrcompare = 0.0
+        elsewhere
+           rrcompare = 1.0
+        endwhere
+        checkacc = 1e-5
+        metric=kerr_metric(real(x0%data(2)),real(x0%data(3)),a)
+!        if(maxval(abs(gtt - metric(:,1))).gt.1e-5) then
+!           write(6,*) 'ERROR: gtt Metric'
+!        elseif(maxval(abs(gphi - metric(:,10))).gt.2e-4) then
+!           write(6,*) 'ERROR: gphi Metric: ',maxval(abs(gphi-metric(:,10)))
+!        elseif(maxval(abs(gtphi - metric(:,4))).gt.1e-4) then
+!           write(6,*) 'ERROR: gtphi Metric'
+!        else
+!           write(6,*) 'METRIC GOOD'
+!        endif
+        call assign_metric(f%u,transpose(metric))
+        call assign_metric(f%b,transpose(metric))
+        ferret = abs(f%u * f%u + 1.0)
+        ferretub = abs(f%u * f%b)
+        ferretbb = abs(f%b * f%b - bmag**2.)
+        alwinbad = 0
+        alwingood = 0
+        idlbad = 0
+        idlgood = 0
+        do i=1,size(x0)
+           if(rrcompare(i).gt.(0.5)) then
+              !alwin stuff
+              if(ferret(i).gt.checkacc) then
+                 alwinbad = alwinbad + 1
+              else
+                 alwingood = alwingood + 1                
+                 if(ferretub(i).gt.checkacc) then
+                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
+                 elseif(ferretbb(i).gt.checkacc) then
+                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
+                 endif
+              endif
+           else
+              if(ferret(i).gt.checkacc) then
+                 idlbad = idlbad + 1
+!                 write(6,*) ferret(i)
+              else
+                 idlgood = idlgood + 1
+                 if(ferretub(i).gt.checkacc) then
+                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
+                 elseif(ferretbb(i).gt.checkacc) then
+                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
+                 endif
+              endif
+           endif
+        enddo
+        if((idlgood+idlbad).gt.0) then
+        if((1.0*alwingood/(1.0*alwingood+1.0*alwinbad)).lt.(1.0*idlgood/(1.0*idlgood+1.0*idlbad))) then
+           write(6,*) 'ALWIN',alwingood,alwinbad
+        else
+           write(6,*) 'IDL',idlgood,idlbad
+        endif
+        elseif(alwinbad.gt.0) then
+           write(6,*) 'When 0 points inside RMS, ERROR: ', alwingood,alwinbad
+        endif
+!        if(maxval(rrcompare*abs(f%u * f%u + 1.0)).gt.checkacc) then
+!           write(6,*) 'ALWIN WARNING: u dot u is wrong somewhere '
+!           write(6,*) 'Error size: ',maxval(rrcompare*abs(f%u * f%u + 1.0))
+!        endif
+!        if(maxval((1.0-rrcompare)*abs(f%u * f%u + 1.0)).gt.checkacc) then
+!           write(6,*) 'IDL WARNING: u dot u is wrong somewhere '
+!           write(6,*) 'Error size: ',maxval((1.0-rrcompare)*abs(f%u * f%u + 1.0))
+!        endif
+
+!        if(maxval(abs(f%u * f%b)).gt.checkacc) then
+!           write(6,*) 'WARNING: u dot b is wrong somewhere '
+!           write(6,*) 'Error size: ',maxval(abs(f%u * f%b))
+!        endif
+!        if(maxval(abs(f%b * f%b - bmag**2.)).gt.checkacc) then
+!           write(6,*) 'WARNING: b dot b is wrong somewhere ' 
+!           write(6,*) 'Error size: ',maxval(abs(f%b * f%b - bmag**2.))
+!        endif
+!        g00=-(1.-2.*u)
+!        grr=-1d0/g00
+!        f%u%data(2)=-ur
+!        f%u%data(3)=0d0
+!        f%u%data(4)=0d0
+!        write(6,*) 'sphacc u: '!,-(grr*f%u%data(2)*f%u%data(2)+1)/g00
+!        f%u%data(1)=sqrt((-grr*f%u%data(2)*f%u%data(2)-1)/g00)
+!        f%b%data(3)=0d0
+!        f%b%data(4)=0d0
+! use u dot b = 0, b dot b = B^2 to get components:
+!        f%b%data(1)=sqrt(f%u%data(2)**2*grr*B**2/ &
+!        (f%u%data(2)**2*g00*grr+f%u%data(1)**2*g00*g00))
+!        f%b%data(2)=-sqrt(B**2/grr-f%b%data(1)**2*g00/grr)
+!        f%rho=n
+!        f%p=T
+!        f%bmag=B
+!        write(6,*) 'after sphacc u'
+!        write(6,'((E9.4,2X))') u
+ !       write(6,*) 'T'
+ !       write(6,'((E9.4,2X))') T
+ !       write(6,*) 'n'
+ !       write(6,'((E9.4,2X))') n
+ !       write(6,*) 'B'
+ !       write(6,'((E9.4,2X))') B
+        end subroutine get_sariaf_fluidvars
+
+        subroutine convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+        type (fluid), intent(in) :: f
+        double precision :: riaf_n0, riaf_t0, riaf_beta
+        double precision, dimension(size(f%rho)), &
+             intent(out) :: ncgs,ncgsnth,bcgs,tcgs
+        type (source_params), intent(in) :: sp
+        riaf_n0 = 4.e7 ! either non-unity here or in fluid_model_sariaf.f90
+        riaf_t0 = 1.6e11 !these will change to be based on sp, I think.
+        riaf_beta = 10.
+
+        ncgs= riaf_n0 * f%rho
+        bcgs= sqrt(riaf_n0 / riaf_beta) * f%bmag
+        ncgsnth= riaf_n0 * f%rho
+        tcgs=riaf_t0 * f%p
+!        f%b%data(1) = sqrt(riaf_n0 / riaf_beta) * f%b%data(1)
+!        f%b%data(4) = sqrt(riaf_n0 / riaf_beta) * f%b%data(4)
+!        not necessary to scale f%b because f%b is only used for an angle
+        end subroutine convert_fluidvars_sariaf
+
+
+
+
+
 ! source param routines
         subroutine assign_source_params_type(sp,type)
           character(len=20), intent(in) :: type
@@ -830,7 +1049,7 @@
           type (source_params), intent(inout) :: sp
           double precision, dimension(:), intent(in) :: ncgs,tcgs
           double precision, dimension(:), intent(inout) :: ncgsnth
-          double precision, dimension(size(ncgs)) :: x,one,gmin,gmax,zero
+          double precision, dimension(size(ncgs)) :: x,one,gmin,gmax,zero,factor
           zero=0d0
           one=1d0
           gmax=sp%gmax
@@ -843,8 +1062,13 @@
                 sp%jetalpha=sp%jetalphaval
                 sp%mu=sp%muval
                 call calc_gmin_subroutine(sp%p2,k*tcgs/m/c/c,sp%jetalpha,gmin,x)
-                sp%gmin=merge(merge(gmin,one,gmin.ge.1d0),gmax/2d0,gmin.le.gmax)
-                ncgsnth=merge(x*ncgs*sp%gmin**(1.-sp%p2),zero,x.gt.0d0)
+!                sp%gmin=merge(merge(gmin,one,gmin.ge.1d0),gmax/2d0,gmin.le.gmax)
+!                trust calc_gmin to merge gmin < 1 now
+                sp%gmin=merge(gmin,gmax/2d0,gmin.le.gmax)
+                factor=merge(one,(gmax/2d0/gmin)**(sp%p2 - 2.),gmin.le.gmax)
+!when gmin is corrected for being too large, multiply ncgsnth by a corrective factor. The correction (1-p) is already applied, so the correction p-2 is needed.
+                ncgsnth=factor * merge(x*ncgs*sp%gmin**(1.-sp%p2),zero,x.gt.0d0)
+!ncgsnth proportional to gamma**-1
 !                sp%gmin=gmin
 !                where(ncgsnth.ne.ncgsnth)
 !                   ncgsnth=-1e8
