@@ -371,7 +371,13 @@
 !          CASE (DUMMY)
         END SELECT
 ! call source_params stuff here?
-        call assign_source_params(sp,ncgs,tcgs,ncgsnth)
+! sariaf unique assign source params case
+        if(f%model==SARIAF) then
+           call assign_source_params(sp,ncgs,sp%muval*tcgs,ncgsnth)
+        else
+           call assign_source_params(sp,ncgs,tcgs,ncgsnth)
+        endif
+
 !        write(6,*) 'after convert'
         end subroutine convert_fluid_vars_arr
 
@@ -830,10 +836,10 @@
         real :: lambdae,game 
         real, dimension(size(x0)) :: delta,hhh 
 !checking variables
-        real :: checkacc
+!        real :: checkacc
         real, dimension(size(x0),10) :: metric
-        real, dimension(size(x0)) :: rrcompare, ferret, ferretbb, ferretub
-        integer :: i,alwingood,alwinbad,idlgood,idlbad
+!        real, dimension(size(x0)) :: rrcompare, ferret, ferretbb, ferretub
+!        integer :: i,alwingood,alwinbad,idlgood,idlbad
 
         rr = x0%data(2)
         rms = calc_rms(a)
@@ -889,13 +895,14 @@
         f%rho = n
         f%p = t
         f%bmag = bmag
+!BEGIN TESTING 4 VECTOR ROUTINES
 !testing dot product
-        where(rr.lt.rms)
-           rrcompare = 0.0
-        elsewhere
-           rrcompare = 1.0
-        endwhere
-        checkacc = 1e-5
+!        where(rr.lt.rms)
+!           rrcompare = 0.0
+!        elsewhere
+!           rrcompare = 1.0
+!        endwhere
+!        checkacc = 1e-5
         metric=kerr_metric(real(x0%data(2)),real(x0%data(3)),a)
 !        if(maxval(abs(gtt - metric(:,1))).gt.1e-5) then
 !           write(6,*) 'ERROR: gtt Metric'
@@ -908,49 +915,50 @@
 !        endif
         call assign_metric(f%u,transpose(metric))
         call assign_metric(f%b,transpose(metric))
-        ferret = abs(f%u * f%u + 1.0)
-        ferretub = abs(f%u * f%b)
-        ferretbb = abs(f%b * f%b - bmag**2.)
-        alwinbad = 0
-        alwingood = 0
-        idlbad = 0
-        idlgood = 0
-        do i=1,size(x0)
-           if(rrcompare(i).gt.(0.5)) then
+!        ferret = abs(f%u * f%u + 1.0)
+!        ferretub = abs(f%u * f%b)
+!        ferretbb = abs(f%b * f%b - bmag**2.)
+!        alwinbad = 0
+!        alwingood = 0
+!        idlbad = 0
+!        idlgood = 0
+!        do i=1,size(x0)
+!           if(rrcompare(i).gt.(0.5)) then
               !alwin stuff
-              if(ferret(i).gt.checkacc) then
-                 alwinbad = alwinbad + 1
-              else
-                 alwingood = alwingood + 1                
-                 if(ferretub(i).gt.checkacc) then
-                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
-                 elseif(ferretbb(i).gt.checkacc) then
-                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
-                 endif
-              endif
-           else
-              if(ferret(i).gt.checkacc) then
-                 idlbad = idlbad + 1
+!              if(ferret(i).gt.checkacc) then
+!                 alwinbad = alwinbad + 1
+!              else
+!                 alwingood = alwingood + 1                
+!                 if(ferretub(i).gt.checkacc) then
+!                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
+!                 elseif(ferretbb(i).gt.checkacc) then
+!                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
+!                 endif
+!              endif
+!           else
+!              if(ferret(i).gt.checkacc) then
+!                 idlbad = idlbad + 1
 !                 write(6,*) ferret(i)
-              else
-                 idlgood = idlgood + 1
-                 if(ferretub(i).gt.checkacc) then
-                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
-                 elseif(ferretbb(i).gt.checkacc) then
-                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
-                 endif
-              endif
-           endif
-        enddo
-        if((idlgood+idlbad).gt.0) then
-        if((1.0*alwingood/(1.0*alwingood+1.0*alwinbad)).lt.(1.0*idlgood/(1.0*idlgood+1.0*idlbad))) then
-           write(6,*) 'ALWIN',alwingood,alwinbad
-        else
-           write(6,*) 'IDL',idlgood,idlbad
-        endif
-        elseif(alwinbad.gt.0) then
-           write(6,*) 'When 0 points inside RMS, ERROR: ', alwingood,alwinbad
-        endif
+!              else
+!                 idlgood = idlgood + 1
+!                 if(ferretub(i).gt.checkacc) then
+!                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
+!                 elseif(ferretbb(i).gt.checkacc) then
+!                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
+!                 endif
+!              endif
+!           endif
+!        enddo
+!        if((idlgood+idlbad).gt.0) then
+!        if((1.0*alwingood/(1.0*alwingood+1.0*alwinbad)).lt.(1.0*idlgood/(1.0*idlgood+1.0*idlbad))) then
+!           write(6,*) 'ALWIN',alwingood,alwinbad
+!        else
+!           write(6,*) 'IDL',idlgood,idlbad
+!        endif
+!        elseif(alwinbad.gt.0) then
+!           write(6,*) 'When 0 points inside RMS, ERROR: ', alwingood,alwinbad
+!        endif
+!END 4 VECTOR CHECKING ROUTINES
 !        if(maxval(rrcompare*abs(f%u * f%u + 1.0)).gt.checkacc) then
 !           write(6,*) 'ALWIN WARNING: u dot u is wrong somewhere '
 !           write(6,*) 'Error size: ',maxval(rrcompare*abs(f%u * f%u + 1.0))
@@ -967,47 +975,28 @@
 !        if(maxval(abs(f%b * f%b - bmag**2.)).gt.checkacc) then
 !           write(6,*) 'WARNING: b dot b is wrong somewhere ' 
 !           write(6,*) 'Error size: ',maxval(abs(f%b * f%b - bmag**2.))
-!        endif
-!        g00=-(1.-2.*u)
-!        grr=-1d0/g00
-!        f%u%data(2)=-ur
-!        f%u%data(3)=0d0
-!        f%u%data(4)=0d0
-!        write(6,*) 'sphacc u: '!,-(grr*f%u%data(2)*f%u%data(2)+1)/g00
-!        f%u%data(1)=sqrt((-grr*f%u%data(2)*f%u%data(2)-1)/g00)
-!        f%b%data(3)=0d0
-!        f%b%data(4)=0d0
-! use u dot b = 0, b dot b = B^2 to get components:
-!        f%b%data(1)=sqrt(f%u%data(2)**2*grr*B**2/ &
-!        (f%u%data(2)**2*g00*grr+f%u%data(1)**2*g00*g00))
-!        f%b%data(2)=-sqrt(B**2/grr-f%b%data(1)**2*g00/grr)
-!        f%rho=n
-!        f%p=T
-!        f%bmag=B
-!        write(6,*) 'after sphacc u'
-!        write(6,'((E9.4,2X))') u
- !       write(6,*) 'T'
- !       write(6,'((E9.4,2X))') T
- !       write(6,*) 'n'
- !       write(6,'((E9.4,2X))') n
- !       write(6,*) 'B'
- !       write(6,'((E9.4,2X))') B
         end subroutine get_sariaf_fluidvars
 
         subroutine convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        double precision :: riaf_n0, riaf_t0, riaf_beta
+        double precision :: riaf_n0, riaf_beta
+!        double precision :: riaf_t0 !no longer used
         double precision, dimension(size(f%rho)), &
              intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
-        riaf_n0 = 4.e7 ! either non-unity here or in fluid_model_sariaf.f90
-        riaf_t0 = 1.6e11 !these will change to be based on sp, I think.
-        riaf_beta = 10.
-
+        riaf_n0 = sp%mdot !4.e7 
+!        riaf_t0 = 1.6d11
+! either non-unity here or in fluid_model_sariaf.f90
+!riaf_t0 = 1.0 because for sariaf muval = t 
+!and it gets changed in emis!sp%muval so not here
+!to avoid double counting 
+!Old value was 1.6e11 !these will change to be based on sp, I think.
+        riaf_beta = 1d1
         ncgs= riaf_n0 * f%rho
         bcgs= sqrt(riaf_n0 / riaf_beta) * f%bmag
         ncgsnth= riaf_n0 * f%rho
-        tcgs=riaf_t0 * f%p
+
+        tcgs= f%p !* riaf_t0
 !        f%b%data(1) = sqrt(riaf_n0 / riaf_beta) * f%b%data(1)
 !        f%b%data(4) = sqrt(riaf_n0 / riaf_beta) * f%b%data(4)
 !        not necessary to scale f%b because f%b is only used for an angle
