@@ -10,7 +10,12 @@
       namelist /fluiddata/ fname, dt, nt, nload, nmdot, mdotmin, mdotmax
       namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, stype
       namelist /general/   use_geokerr, nvals, iname, cflag, extra
-
+! namelists for fluid models
+      namelist /harm/  fdfile, fgfile, fhfile, fnt, fnfiles, findf, fjonfix, &
+           foffset, fsim, fdindf, fmagcrit
+      namelist /analytic/ fnw, fwmin, fwmax, fnfreq_tab, ffmin, ffmax, frmax, fnr, fsigt, ffcol, &
+           frspot,fr0spot,fn0spot,ftscl,frscl,fmdot
+      
       integer :: standard,nrotype,nro,nphi,nup,nvals,nfreq,nmu,cflag, nt,nmdot,nload,extra
       logical :: use_geokerr
       double precision :: mumax,mumin,spin,rcut,a1,a2,b1,b2,mbh,uout,uin, & 
@@ -19,6 +24,12 @@
       double precision, dimension(:), allocatable :: freqs,mdots,mu0
       double precision, dimension(4) :: gridvals
       integer, dimension(3) :: nn
+      ! fluid arguments
+      character(len=40) :: fdfile,fhfile,fgfile,fsim
+      integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
+           fnr,foffset,fdindf,fmagcrit
+      real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
+           ffmax,frmax,fsigt,ffcol,fmdot
 
       interface read_inputs
         module procedure read_inputs
@@ -37,6 +48,8 @@
 !          write(6,*) 'model: ',fname
           read(8,nml=emisdata)
           read(8,nml=general)
+          read(8,nml=harm)
+          read(8,nml=analytic)
 !          write(6,*) 'general: ',iname
           close(unit=8)
           a1=dble(gridvals(1))

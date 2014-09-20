@@ -33,13 +33,20 @@
 !    write(6,*) 'hotspot: ',r0spot,rspot,n0spot
     end subroutine read_schnittman_hotspot_inputs
 
-    subroutine init_schnittman_hotspot(ifile)
+    subroutine init_schnittman_hotspot(ifile,rs,r0,n0)
     character(len=20), intent(in), optional :: ifile
     character(len=20) :: default_ifile='hotspot.in'
-    if (present(ifile)) then
-       call read_schnittman_hotspot_inputs(ifile)
+    real, intent(in), optional :: rs,r0,n0
+    if (present(rs)) then
+       rspot = rs
+       r0spot = r0
+       n0spot = n0
     else
-       call read_schnittman_hotspot_inputs(default_ifile)
+       if (present(ifile)) then
+          call read_schnittman_hotspot_inputs(ifile)
+       else
+          call read_schnittman_hotspot_inputs(default_ifile)
+       endif
     endif
     tspot=0d0
     end subroutine init_schnittman_hotspot
