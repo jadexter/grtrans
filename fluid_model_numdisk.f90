@@ -174,16 +174,24 @@
         close(unit=8)
         end subroutine read_numdisk_inputs
 
-        subroutine initialize_numdisk_model(ifile)
+        subroutine initialize_numdisk_model(ifile,df,ts,rs)
 !        double precision, intent(in) :: a
         real :: aa
         real, dimension(:), allocatable :: b
         character(len=20), intent(in), optional :: ifile
         character(len=20) :: default_ifile='numdisk.in', status
-        if (present(ifile)) then
-           call read_numdisk_inputs(ifile)
+        real, intent(in), optional :: ts,rs
+        character(len=40), intent(in), optional :: df
+        if (present(df)) then
+           dfile = df
+           tscl = ts
+           rscl = rs
         else
-           call read_numdisk_inputs(default_ifile)
+           if (present(ifile)) then
+              call read_numdisk_inputs(ifile)
+           else
+              call read_numdisk_inputs(default_ifile)
+           endif
         endif
 !        write(6,*) 'init numdisk ', dfile
         open(unit=8,file=dfile,form='unformatted',status='old')

@@ -9,11 +9,12 @@
        contains
 
           subroutine grtrans_main(standard,mumin,mumax,nmu,phi0,spin,&
-            uout,uin, rcut, nrotype, gridvals, nn, &
-            fname, dt, nt, nload, nmdot, mdotmin, mdotmax, &
-            ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&
-            p1, p2, jetalpha, stype, &
-            use_geokerr, nvals, iname, cflag, extra)
+            uout,uin, rcut, nrotype, gridvals, nn,fname, dt, nt, nload, &
+            nmdot, mdotmin, mdotmax,ename, mbh, nfreq, fmin, fmax, muval,&
+            gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
+            cflag, extra,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+            fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot)
 
 !             grtrans_main(ifile,outfile)
              use omp_lib
@@ -21,14 +22,15 @@
              use grtrans, only: grtrans_driver
              use ray_trace
              use fluid_model, only: load_fluid_model, unload_fluid_model, &
-                  advance_fluid_timestep, source_params, assign_source_params_type
+                  advance_fluid_timestep, source_params, assign_source_params_type, &
+                  fluid_args, assign_fluid_args
              use emissivity, only: emis_params
              use geodesics, only: initialize_pixels, geokerr_args, &
                   del_geokerr_args,initialize_geokerr_args, initialize_geo_tabs
              use chandra_tab24, only: load_chandra_tab24, del_chandra_tab24
 
 !INPUTS=====================
-            integer, intent(in) :: standard,nrotype,nvals,nfreq,nmu,cflag, nt,nmdot,nload,extra
+            integer, intent(in) :: standard,nrotype,nvals,nfreq,nmu,cflag,nt,nmdot,nload,extra
             integer :: nro,nphi,nup,tempi
             logical, intent(in) :: use_geokerr
             double precision, intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
@@ -40,6 +42,12 @@
             double precision, dimension(4),intent(in) :: gridvals
             double precision :: spin
             integer, dimension(3), intent(in) :: nn
+! FLUID ARGUMENTS
+            character(len=40), intent(in) :: fdfile,fhfile,fgfile,fsim
+            integer, intent(in) :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
+                 fnr,foffset,fdindf,fmagcrit
+            real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
+                 ffmax,frmax,fsigt,ffcol,fmdot
             !INPUTS====================
 !            character(len=40), intent(in) :: outfile !,ifile
             !       character(len=40) :: outfile,ifile
@@ -48,6 +56,7 @@
 !            double precision, dimension(2,nn(1)*nn(2),nmdot*nt*nfreq*nmu), intent(out) :: ab
 !            double precision, dimension(nvals,nn(1)*nn(2),nmdot*nt*nfreq*nmu), intent(out) :: ivals
             type (geokerr_args) :: gargs
+            type (fluid_args) :: fargs
             type (source_params), dimension(:), allocatable :: sparams
             type (emis_params) :: eparams
             character(len=20), dimension(3) :: knames,kdescs
@@ -112,7 +121,10 @@
                call initialize_raytrace_camera(c(m),nro,nphi,nvals,nextra)
             enddo
             !      write(6,*) 'spin: ',spin
-            call load_fluid_model(fname,spin)
+            call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+            fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh)
+            call load_fluid_model(fname,spin,fargs)
             !       do l=1,1
             !          do j=1,1
             if(nup.eq.1.and.nvals.eq.4) call load_chandra_tab24()
