@@ -279,10 +279,10 @@ class grtrans:
     def run_phat(self,**kwargs):
         os.system('./phat')
     
-    def write_grtrans_inputs(self,iname,oname='grtrans.out',**kwargs):
+    def write_grtrans_inputs(self,ifile,oname='grtrans.out',**kwargs):
         self.inputs=grtrans_inputs(**kwargs)
-        self.inputs.write(iname)
-        self.set_grtrans_input_file(iname,oname)
+        self.inputs.write(ifile)
+        self.set_grtrans_input_file(ifile,oname)
         print oname
 
     def set_grtrans_input_file(self,fname,oname):
