@@ -308,6 +308,7 @@ class grtrans:
         self.nu = pgrtrans.freqs.copy()
         self.nx = self.inputs.nn[0]
         self.ny = self.inputs.nn[1]
+        self.del_pgrtrans_data()
 
     def del_pgrtrans_data(self):
         if len(np.shape(pgrtrans.ivals))==0:
