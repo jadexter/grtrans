@@ -31,7 +31,7 @@ class grtrans_inputs:
         self.rcut=1.
         self.nrotype=2
         self.gridvals=[-25.,25.,-25.,25.]
-        self.nn='100,100,1'
+        self.nn=[100,100,1]
         self.fname='THINDISK'
         self.dt=5.
         self.nt=1
@@ -96,6 +96,34 @@ class grtrans_inputs:
         self.mindf=1500
         self.msim='dipole'
         self.extra=0
+# fluid arguments
+        self.fdfile='fieldline'
+        self.fgfile='dump0000rr2.bin'
+        self.fhfile='dump040'
+        self.fnt=1
+        self.fnfiles=1
+        self.findf=5206
+        self.fjonfix=1
+        self.foffset=0
+        self.fsim='thickdiskrr2'
+        self.fdindf=1
+        self.fmagcrit=0
+        self.fnw=500
+        self.fwmin=1e-4
+        self.fwmax=1e4
+        self.fnfreq_tab=100
+        self.ffmin=3.33e16
+        self.ffmax=9e19
+        self.frmax=1e4
+        self.fnr=500
+        self.fsigt=0.4
+        self.ffcol=1.7
+        self.frspot=1.5
+        self.fr0spot=6.0
+        self.fn0spot=1e4
+        self.ftscl=30.
+        self.frscl=6.
+        self.fmdot=0.1
 
     def __init__(self,**kwargs):
         self.init()
@@ -135,33 +163,33 @@ class grtrans_inputs:
         vals.extend([self.use_geokerr,self.nvals,"'"+self.iname+"'",self.cflag])
         print self.fname
 # default values for fluid arguments that can change depending on model, work with thickdisk
-        fdfile = self.tdfile; fgfile = self.tgfile; fhfile = self.hhfile
-        fnt = self.tnt; fnfiles = self.tnfiles; findf = self.tindf
-        fjonfix = self.tjonfix; foffset = self.toff; fsim = self.tsim
-        fdindf = self.tdindf; fmagcrit = self.tmagcrit
+        self.fdfile = self.tdfile; self.fgfile = self.tgfile; self.fhfile = self.hhfile
+        self.fnt = self.tnt; self.fnfiles = self.tnfiles; self.findf = self.tindf
+        self.fjonfix = self.tjonfix; self.foffset = self.toff; self.fsim = self.tsim
+        self.fdindf = self.tdindf; self.fmagcrit = self.tmagcrit
         if self.fname=='MB09':
             namesmb09=['mb09']
             valsmb09=["'"+self.mgfile+"'","'"+self.mdfile+"'",self.mnt,self.mnfiles,self.mindf,self.mjonfix,self.msim]
             nargsmb09=[len(argsmb09)]
             nm.write_namelist('mb09.in',namesmb09,argsmb09,valsmb09,nargsmb09)
         # assign mb09 fluid arguments
-            fdfile = self.mdfile
-            fgfile = self.mgfile
-            fnt = self.mnt
-            findf = self.mindf
-            fjonfix = self.mjonfix
-            fsim = self.msim
-            fnfiles = self.mnfiles
+            self.fdfile = self.mdfile
+            self.fgfile = self.mgfile
+            self.fnt = self.mnt
+            self.findf = self.mindf
+            self.fjonfix = self.mjonfix
+            self.fsim = self.msim
+            self.fnfiles = self.mnfiles
         if self.fname=='HARM':
             namesharm=['harm']
             valsharm=["'"+self.hdfile+"'","'"+self.hhfile+"'",self.hnt,self.hindf]
             nargsharm=[len(argsharm)]
             nm.write_namelist('harm.in',namesharm,argsharm,valsharm,nargsharm)
         # assign harm fluid arguments
-            fdfile = self.hdfile
-            fhfile = self.hhfile
-            fnt = self.hnt
-            findf = self.hindf
+            self.fdfile = self.hdfile
+            self.fhfile = self.hhfile
+            self.fnt = self.hnt
+            self.findf = self.hindf
         if self.fname=='THICKDISK':
             namesthick=['thickdisk']
             valsthick=["'"+self.tgfile+"'","'"+self.tdfile+"'",self.tnt,self.tnfiles,self.tindf,self.tjonfix,self.toff,"'"+self.tsim+"'",self.tdindf,self.tmagcrit]
@@ -186,7 +214,7 @@ class grtrans_inputs:
             valsj=["'"+self.jdfile+"'"]
             nargsj=[len(argsj)]
             nm.write_namelist('toyjet.in',namesj,argsj,valsj,nargsj)
-            fdfile = self.jdfile
+            self.fdfile = self.jdfile
         elif self.fname=='NUMDISK':
             namesn=['numdisk']
             valsn=["'"+self.ndfile+"'",self.ntscl,self.nrscl]
@@ -207,7 +235,7 @@ class grtrans_inputs:
 #        print args
 #        print vals
 #        print nargs
-        vals.extend(["'"+fdfile+"'","'"+fgfile+"'","'"+fhfile+"'",fnt,fnfiles,findf,fjonfix,foffset,"'"+fsim+"'",fdindf,fmagcrit])
+        vals.extend(["'"+self.fdfile+"'","'"+self.fgfile+"'","'"+self.fhfile+"'",self.fnt,self.fnfiles,self.findf,self.fjonfix,self.foffset,"'"+self.fsim+"'",self.fdindf,self.fmagcrit])
         vals.extend([self.pnw,self.pwmin,self.pwmax,self.pnfreq_tab,self.pfmin,self.pfmax,self.prmax,self.pnr,self.psigt,self.pfcol,self.hrspot,self.hr0spot,self.hn0spot,self.ntscl,self.nrscl,self.tmdot])
         nm.write_namelist(fname,names,args,vals,nargs)
 
@@ -242,6 +270,9 @@ class grtrans:
     def compile_grtrans(self,**kwargs):
         os.system('make')
 
+    def compile_pgrtrans(self,**kwargs):
+        os.system('make pgrtrans')
+
     def compile_phat(self,**kwargs):
         os.system('./compilephat')
 
@@ -270,7 +301,7 @@ class grtrans:
 # set arguments
         self.inputs=grtrans_inputs(**kwargs)
 # call pgrtrans routine with arguments:
-        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix,self.pnw,self.pnfreq_tab,self.pnr,foffset,fdindf,fmagcrit,self.hrspot,self.hr0spot,self.hn0spot,self.ntscl,self.nrscl,self.pwmin,self.pwmax,self.pfmin,self.pfmax,self.prmax,self.psigt,self.pfcol,self.tmdot)
+        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot)
 # read output        
         self.ivals = pgrtrans.ivals.copy()
         self.ab = pgrtrans.ab.copy()
@@ -347,7 +378,7 @@ class grtrans:
         self.nx=nx
         self.ny=ny
         self.nvals=nvals
-        self.calc_spec(n)
+        self.calc_spec(n-1)
 
     def calc_spec(self,n):
 #        print 'test',np.shape(self.ab),np.shape(self.ivals)
@@ -358,12 +389,28 @@ class grtrans:
         else:
             da=self.ab[1,0]-self.ab[0,0]
             db=0.
-            spec=np.empty([n-1,int(self.nvals)])
-            for i in range(n-1):
-                for j in range(int(self.nvals)):
+            spec=np.empty([n,int(self.inputs.nvals)])
+            for i in range(n):
+                for j in range(int(self.inputs.nvals)):
                     spec[i,j]=np.sum(self.ivals[:,j,i]*self.ab[:,0],0)*da*2.*3.14
     
         self.spec=spec
+
+    def calc_spec_pgrtrans(self,n):
+#       version for pgrtrans where array ordering is different
+        if self.ny != 1:
+            da=self.ab[0,self.nx]-self.ab[0,0]
+            db=self.ab[1,1]-self.ab[1,0]
+            spec=np.sum(self.ivals,1)*da*db
+        else:
+            da=self.ab[0,1]-self.ab[0,0]
+            db=0.
+            spec=np.empty([n,int(self.inputs.nvals)])
+            for i in range(n):
+                for j in range(int(self.inputs.nvals)):
+                    spec[i,j]=np.sum(self.ivals[j,:,i]*self.ab[0,:],0)*da*2.*np.arccos(-1.)
+        self.spec = spec
+
 
     def disp_grtrans_image(self,idex):
         if self.ivals.ndim < 3:

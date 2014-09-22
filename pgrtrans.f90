@@ -3,7 +3,8 @@
 
        implicit none
 
-       double precision, allocatable, dimension(:,:,:) :: ab,ivals
+       double precision, allocatable, dimension(:,:,:) :: ivals!,ab
+       double precision, allocatable, dimension(:,:) :: ab
        double precision, allocatable, dimension(:) :: freqs
 
        contains
@@ -176,7 +177,9 @@
             if(nup.eq.1.and.nvals.eq.4) call del_chandra_tab24()
             !       write(6,*) 'Write camera'
             allocate(ivals(nvals,nro*nphi,NCAMS))
-            allocate(ab(2,nro*nphi,NCAMS))
+!            allocate(ab(2,nro*nphi,NCAMS))
+            allocate(ab(2,nro*nphi))
+            ab(:,:) = c(1)%pixloc
             do m=1,ncams
 !         call write_raytrace_camera(c(m),12,outfile,cflag,m,ncams,size(knames), &
 !         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),real(FREQS(1+mod(m-1,nfreq))) &
@@ -191,7 +194,7 @@
 !         use_geokerr, nvals, iname, extra)
 
                ivals(:,:,m)=c(m)%pixvals
-               ab(:,:,m)=c(m)%pixloc
+!               ab(:,:,m)=c(m)%pixloc
                call del_raytrace_camera(c(m))
             enddo
             call unload_fluid_model(fname)
