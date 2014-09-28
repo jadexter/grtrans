@@ -13,7 +13,7 @@
             fname, dt, nt, nload, nmdot, mdotmin, mdotmax, &
             ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&
             p1, p2, jetalpha, stype, &
-            use_geokerr, nvals, iname, cflag, extra)
+            use_geokerr, nvals, iname, cflag, extra,outfile)
 
 !             grtrans_main(ifile,outfile)
              use omp_lib
@@ -34,7 +34,7 @@
             double precision, intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
                  fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
             double precision :: a1,a2,b1,b2
-            character(len=100), intent(in) :: ename,fname,iname,stype
+            character(len=100), intent(in) :: ename,fname,iname,stype,outfile
             double precision, dimension(:), allocatable :: mdots,mu0
 !            double precision, dimension(nfreq), intent(out) :: freqs
             double precision, dimension(4),intent(in) :: gridvals
@@ -107,7 +107,7 @@
             enddo
             NCAMS=nparams*nfreq*nmu*nt
             allocate(c(NCAMS))
-!            write(6,*) 'outfile grtrans: ',outfile, NCAMS
+            if(outfile.ne."") write(6,*) 'outfile grtrans: ',outfile, NCAMS
             do m=1,NCAMS
                call initialize_raytrace_camera(c(m),nro,nphi,nvals,nextra)
             enddo
@@ -169,14 +169,16 @@
 !         call write_raytrace_camera(c(m),12,outfile,cflag,m,ncams,size(knames), &
 !         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),real(FREQS(1+mod(m-1,nfreq))) &
 !         /))
-!          call kwrite_raytrace_camera(c(m),12,outfile,cflag,m,ncams,size(knames), &
-!         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),real(FREQS(1+mod(m-1,nfreq)))/), &
-!         standard,mumin,mumax,nmu,phi0,spin,&
-!         uout,uin, rcut, nrotype, gridvals, nn, &
-!         fname, dt, nt, nload, nmdot, mdotmin, mdotmax, &
-!         ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&
-!         p1, p2, jetalpha, stype, &
-!         use_geokerr, nvals, iname, extra)
+         if(outfile.ne."") call kwrite_raytrace_camera(c(m),&
+         12,outfile,cflag,m,ncams,size(knames), &
+         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),&
+         real(FREQS(1+mod(m-1,nfreq)))/), &
+         standard,mumin,mumax,nmu,phi0,spin,&
+         uout,uin, rcut, nrotype, gridvals, nn, &
+         fname, dt, nt, nload, nmdot, mdotmin, mdotmax, &
+         ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&
+         p1, p2, jetalpha, stype, &
+         use_geokerr, nvals, iname, extra)
 
                ivals(:,:,m)=c(m)%pixvals
                ab(:,:,m)=c(m)%pixloc
