@@ -11,7 +11,7 @@
                   ESYNCHPL=3,EPOLSYNCHPL=4,EBREMS=5,ELINE=6, &
                   EIRON=7,EBB=8,EBBPOL=9,EINTERP=10,EFBB=11,ERHO=12, &
                   ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20, &
-                  EHYBRIDTH = 21, EHYBRIDPL = 22
+                  EHYBRIDTH=21, EHYBRIDPL=22
 
        type emis
          double precision, dimension(:,:), allocatable :: j,K
@@ -177,16 +177,16 @@
          type (emis), intent(out) :: e
          character(len=20), intent(in) :: ename
          if(ename=='POLSYNCHTH') then
-           e%type=EPOLSYNCHTH
-           e%neq=4
-         elseif(ename=='HYBRIDTHPL') then
-            e%type=EHYBRIDTHPL 
+            e%type=EPOLSYNCHTH
             e%neq=4
-         elseif(ename=='HYBRIDTH') then
+         elseif(ename.eq.'HYBRIDTH') then
             e%type=EHYBRIDTH 
             e%neq=4
-         elseif(ename=='HYBRIDPL') then
+         elseif(ename.eq.'HYBRIDPL') then
             e%type=EHYBRIDPL 
+            e%neq=4
+         elseif(ename=='HYBRIDTHPL') then
+            e%type=EHYBRIDTHPL 
             e%neq=4
          elseif(ename=='SYNCHTHAV') then
             e%type=ESYNCHTHAV
