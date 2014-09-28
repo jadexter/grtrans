@@ -73,6 +73,7 @@ class grtrans_inputs:
         self.hr0spot=6.0
         self.hn0spot=1e4
         self.ofile='grtrans.out'
+        self.outfile = ''
         self.ifile='inputs.in'
         self.hhfile='dump040'
         self.hdfile='dump'
@@ -248,7 +249,7 @@ class grtrans:
 # set arguments
         self.inputs=grtrans_inputs(pgrtrans=1,**kwargs)
 # call pgrtrans routine with arguments:
-        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra)
+        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.outfile)
 # read output        
         self.ivals = pgrtrans.ivals.copy()
         self.ab = pgrtrans.ab.copy()
