@@ -77,6 +77,7 @@ class grtrans_inputs:
         self.hr0spot=6.0
         self.hn0spot=1e4
         self.ofile='grtrans.out'
+        self.outfile=''
         self.ifile='inputs.in'
         self.hhfile='dump040'
         self.hdfile='dump'
@@ -305,7 +306,7 @@ class grtrans:
 # set arguments
         self.inputs=grtrans_inputs(**kwargs)
 # call pgrtrans routine with arguments:
-        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot,self.inputs.snscl,self.inputs.snnthscl,self.inputs.snnthp,self.inputs.sbeta)
+        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs,outfile,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot,self.inputs.snscl,self.inputs.snnthscl,self.inputs.snnthp,self.inputs.sbeta)
 # read output        
         self.ivals = pgrtrans.ivals.copy()
         self.ab = pgrtrans.ab.copy()
