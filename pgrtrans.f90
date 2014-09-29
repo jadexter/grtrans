@@ -15,7 +15,7 @@
             gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
             cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
-            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot)
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta)
 
 !             grtrans_main(ifile,outfile)
              use omp_lib
@@ -48,7 +48,7 @@
             integer, intent(in) :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
                  fnr,foffset,fdindf,fmagcrit
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
-                 ffmax,frmax,fsigt,ffcol,fmdot
+                 ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta
             !INPUTS====================
             character(len=40), intent(in) :: outfile !,ifile
             !       character(len=40) :: outfile,ifile
@@ -124,7 +124,7 @@
             !      write(6,*) 'spin: ',spin
             call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
-            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh)
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta)
             call load_fluid_model(fname,spin,fargs)
             !       do l=1,1
             !          do j=1,1

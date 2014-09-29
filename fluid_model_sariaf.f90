@@ -8,12 +8,11 @@
 
   implicit none
 
-  namelist /sariaf/ rspot, r0spot, n0spot !confused
+  real :: riaf_pnth, riaf_n0, riaf_t0, riaf_nnth0, riaf_beta
   
-  real :: rspot,r0spot,n0spot,tspot
-  interface read_sariaf_inputs
-     module procedure read_sariaf_inputs
-  end interface
+!  interface read_sariaf_inputs
+!     module procedure read_sariaf_inputs
+!  end interface
 
   interface sariaf_vals
     module procedure sariaf_vals
@@ -27,40 +26,41 @@
      module procedure del_sariaf
   end interface
 
-! FROM HOTSPOT CODE
-!  interface advance_hotspot_timestep
-!     module procedure advance_hotspot_timestep
-!  end interface
-!
   contains
 
-    subroutine read_sariaf_inputs(ifile)
-    character(len=20), intent(in) :: ifile
-    open(unit=8,file=ifile,form='formatted',status='old')
-    read(8,nml=sariaf) !change from nml = hotspot
-    close(unit=8)
-!    write(6,*) 'hotspot: ',r0spot,rspot,n0spot !change
-    end subroutine read_sariaf_inputs
-
-    subroutine init_sariaf(ifile)
-!do nothing
-    character(len=20), intent(in), optional :: ifile
-!    character(len=20) :: default_ifile='sariaf.in'
-!    if (present(ifile)) then
-!       call read_sariaf_inputs(ifile)
-!    else
-!       call read_sariaf_inputs(default_ifile)
-!    endif
-!    tspot=0d0 !change
+    subroutine init_sariaf(n0,t0,nnth0,pnth,beta)
+! assign inputs, defaults for a = 0 from Broderick & Loeb 2006 Table 1
+      real, intent(in), optional :: n0,t0,nnth0,pnth,beta
+      if(present(pnth)) then
+         riaf_pnth = pnth
+      else
+         riaf_pnth = 2.9
+      endif
+      if(present(n0)) then
+         riaf_n0 = n0
+      else
+         riaf_n0 = 3e7
+      endif
+      if(present(t0)) then
+         riaf_t0 = t0
+      else
+         riaf_t0 = 1.7e11
+      endif
+      if(present(nnth0)) then
+         riaf_nnth0 = nnth0
+      else
+         riaf_nnth0 = 8e4
+      endif
+      if(present(beta)) then
+         riaf_beta = beta
+      else
+         riaf_beta = 10.
+      endif
+      write(6,*) 'fluid model sariaf inputs: ',riaf_pnth,riaf_n0,riaf_t0,riaf_nnth0,riaf_beta
     end subroutine init_sariaf
-!    FROM HOTSPOT  
-!    subroutine advance_hotspot_timestep(dt)
-!    real, intent(in) :: dt
-!    tspot=tspot+dt
-!    end subroutine advance_hotspot_timestep
-!
-    subroutine sariaf_vals(a,mu,riaf_u,riaf_neth,riaf_te,riaf_B,riaf_vr,riaf_vth,riaf_omega)
-      real :: riaf_n0, riaf_t0,riaf_beta
+
+    subroutine sariaf_vals(a,mu,riaf_u,riaf_neth,riaf_te,riaf_B,riaf_vr,riaf_vth,riaf_omega,riaf_nenth)
+!      real :: riaf_n0, riaf_t0,riaf_beta
       real, intent(in) :: a
       real, dimension(:), intent(in) :: riaf_u,mu
       real, dimension(size(riaf_u)) :: riaf_r, riaf_rs,riaf_z,riaf_a2
@@ -68,16 +68,17 @@
 !      real, dimension(size(riaf_u)) :: riaf_urimsarg,riaf_urims,riaf_utims,riaf_uphims
       real :: riaf_a
       real, dimension(size(mu)) :: riaf_mu
-      real, dimension(size(riaf_u)), intent(out) :: riaf_neth, riaf_te, riaf_B, riaf_vr, riaf_omega, riaf_vth
+      real, dimension(size(riaf_u)), intent(out) :: riaf_neth, riaf_te, riaf_B, riaf_vr, riaf_omega, &
+           riaf_vth, riaf_nenth
 
 !      write(6,*) 'hotspot sizes: ',size(x0), size(u)
 !r,mu,a,z,a2,rms,lambdae,delta,game,H,urimsarg,urims,utims,uphims,n0,t0,beta,rs
 !compare,neth,te,B,vr
 !c2 and mp from phys_constants      
 !parameters
-      riaf_n0 = 1.0 !4.e7
-      riaf_t0 = 1.0 !1.6e11
-      riaf_beta = 1.0 !10.
+!      riaf_n0 = 1.0 !4.e7
+!      riaf_t0 = 1.0 !1.6e11
+!      riaf_beta = 1.0 !10.
 
 !seems like x0 is only useful for the r.
       riaf_r = 1./riaf_u!what is geoData.r?
@@ -107,6 +108,7 @@
 !      riaf_uphims = (riaf_game/riaf_r**2.)*(riaf_lambdae+riaf_a*riaf_H)
 !From Broderick et al. (2009)
       riaf_neth = riaf_n0 * ((riaf_rs)**(-1.1))*exp(-.5*(riaf_z/riaf_a2)**2.) !will return rho0 eq
+      riaf_nenth = riaf_nnth0 * ((riaf_rs)**(-riaf_pnth))*exp(-.5*(riaf_z/riaf_a2)**2.)
       riaf_te = riaf_t0 * (riaf_rs)**(-0.84) !will return p0 eq
       riaf_B = sqrt(8.*pi* riaf_neth * mp * c2 / riaf_rs / 12. / riaf_beta)
       riaf_vr = 0.*riaf_r!riaf_compare*riaf_urims/riaf_utims  !what is vr?
