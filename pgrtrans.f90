@@ -13,7 +13,7 @@
             uout,uin, rcut, nrotype, gridvals, nn,fname, dt, nt, nload, &
             nmdot, mdotmin, mdotmax,ename, mbh, nfreq, fmin, fmax, muval,&
             gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
-            cflag, extra,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+            cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot)
 
@@ -50,7 +50,7 @@
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
                  ffmax,frmax,fsigt,ffcol,fmdot
             !INPUTS====================
-!            character(len=40), intent(in) :: outfile !,ifile
+            character(len=40), intent(in) :: outfile !,ifile
             !       character(len=40) :: outfile,ifile
             integer :: nextra=0, inum, gunit, i, ncams, j, m, l, nparams
             type (ray_set), dimension(:), allocatable :: c
@@ -181,9 +181,16 @@
             allocate(ab(2,nro*nphi))
             ab(:,:) = c(1)%pixloc
             do m=1,ncams
-!         call write_raytrace_camera(c(m),12,outfile,cflag,m,ncams,size(knames), &
-!         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),real(FREQS(1+mod(m-1,nfreq))) &
-!         /))
+        if(outfile.ne."") call kwrite_raytrace_camera(c(m),&                           
+         12,outfile,cflag,m,ncams,size(knames), &                                      
+         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),&                                 
+         real(FREQS(1+mod(m-1,nfreq)))/), &                                            
+         standard,mumin,mumax,nmu,phi0,spin,&                                          
+         uout,uin, rcut, nrotype, gridvals, nn, &                                      
+         fname, dt, nt, nload, nmdot, mdotmin, mdotmax, &                              
+         ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&                            
+         p1, p2, jetalpha, stype, &                                                    
+         use_geokerr, nvals, iname, extra)     
 !          call kwrite_raytrace_camera(c(m),12,outfile,cflag,m,ncams,size(knames), &
 !         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),real(FREQS(1+mod(m-1,nfreq)))/), &
 !         standard,mumin,mumax,nmu,phi0,spin,&
