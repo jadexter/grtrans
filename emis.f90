@@ -179,7 +179,7 @@
            e%type=EPOLSYNCHTH
            e%neq=4
          elseif(ename=='HYBRIDTHPL') then
-            e%type=EHYBRIDTHPL 
+            e%type=EHYBRIDTHPL
             e%neq=4
          elseif(ename=='SYNCHTHAV') then
             e%type=ESYNCHTHAV
