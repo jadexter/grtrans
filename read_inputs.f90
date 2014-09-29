@@ -14,7 +14,7 @@
       namelist /harm/  fdfile, fgfile, fhfile, fnt, fnfiles, findf, fjonfix, &
            foffset, fsim, fdindf, fmagcrit
       namelist /analytic/ fnw, fwmin, fwmax, fnfreq_tab, ffmin, ffmax, frmax, fnr, fsigt, ffcol, &
-           frspot,fr0spot,fn0spot,ftscl,frscl,fmdot
+           frspot,fr0spot,fn0spot,ftscl,frscl,fmdot,fnscl,fnnthscl,fnnthp,fbeta
       
       integer :: standard,nrotype,nro,nphi,nup,nvals,nfreq,nmu,cflag, nt,nmdot,nload,extra
       logical :: use_geokerr
@@ -29,7 +29,7 @@
       integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
            fnr,foffset,fdindf,fmagcrit
       real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
-           ffmax,frmax,fsigt,ffcol,fmdot
+           ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta
 
       interface read_inputs
         module procedure read_inputs

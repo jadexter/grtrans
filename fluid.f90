@@ -33,7 +33,7 @@
       type fluid
         integer :: model, nfreq
         real :: rin
-        real, dimension(:), allocatable :: rho,p,bmag
+        real, dimension(:), allocatable :: rho,p,bmag,rho2
         real, dimension(:,:), allocatable :: fnu
         type (four_vector), dimension(:), allocatable :: u,b
       end type
@@ -42,7 +42,7 @@
          character(len=40) :: dfile,hfile,gfile,sim
          integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf,magcrit
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
-              fmax,rmax,sigt,fcol,mdot,mbh
+              fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta
       end type
 
       type source_params
@@ -111,12 +111,12 @@
 
         subroutine assign_fluid_args(fargs,dfile,hfile,gfile,sim,nt,indf,nfiles,jonfix, &
              nw,nfreq_tab,nr,offset,dindf,magcrit,rspot,r0spot,n0spot,tscl,rscl, &
-             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh)
+             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta)
           type (fluid_args), intent(inout) :: fargs
           character(len=40), intent(in) :: dfile,hfile,gfile,sim
           integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf,magcrit
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
-               fmax,rmax,sigt,fcol,mdot,mbh
+               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
           write(6,*) 'assign fluid args: ',fargs%dfile
           fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
@@ -127,6 +127,9 @@
           fargs%wmin = wmin; fargs%wmax = wmax; fargs%fmin = fmin
           fargs%fmax = fmax; fargs%rmax = rmax; fargs%sigt = sigt
           fargs%mbh = mbh; fargs%fcol = fcol; fargs%mdot = mdot
+          fargs%nscl = nscl; fargs%nnthscl = nnthscl; fargs%nnthp = nnthp
+          fargs%beta = beta
+          write(6,*) 'assign fluid args: ',beta,nnthp,nnthscl,nscl
         end subroutine assign_fluid_args
 
         subroutine load_fluid_model(fname,a,fargs)
@@ -137,7 +140,9 @@
         if(fname=='COSMOS') then
 !          call initialize_cosmos_model(a,fargs)
         elseif(fname=='SARIAF') then
-           call init_sariaf() !alwinremark
+!           call init_sariaf(real(fargs%nscl),real(fargs%tscl),real(fargs%nnthscl), &
+!                real(fargs%nnthp),real(fargs%beta)) !alwinremark
+           call init_sariaf()
         elseif(fname=='MB') then
 !          call intiialize_mb_model(a)
         elseif(fname=='THICKDISK') then
@@ -242,6 +247,7 @@
               elseif(fname=='CONSTANT') then
                  f%model=CONSTANT
               elseif(fname=='SARIAF') then
+                 allocate(f%rho2(nup))
                  f%model=SARIAF !alwinremark
               else
                  write(6,*) 'WARNING: Unsupported fluid model -- using DUMMY'
@@ -314,6 +320,7 @@
               deallocate(f%p)
               deallocate(f%bmag)
            endif
+           if(f%model==SARIAF) deallocate(f%rho2)
         endif
         f%model=-1
         end subroutine del_fluid_model
@@ -414,11 +421,12 @@
         END SELECT
 ! call source_params stuff here?
 ! sariaf unique assign source params case
-        if(f%model==SARIAF) then
-           call assign_source_params(sp,ncgs,sp%muval*tcgs,ncgsnth)
-        else
-           call assign_source_params(sp,ncgs,tcgs,ncgsnth)
-        endif
+!        if(f%model==SARIAF) then
+!           call assign_source_params(sp,ncgs,tcgs,ncgsnth)
+!        else
+!           call assign_source_params(sp,ncgs,tcgs,ncgsnth)
+!        endif
+        call assign_source_params(sp,ncgs,tcgs,ncgsnth)
 
 !        write(6,*) 'after convert'
         end subroutine convert_fluid_vars_arr
@@ -867,7 +875,8 @@
         real, dimension(size(x0)) :: u,ctheta
 !        real, dimension(size(x0)) :: riaf_u,riaf_neth,riaf_te,riaf_B
 !outputs from sariaf_vals
-        real, dimension(size(x0)) :: riaf_vr,riaf_vth,riaf_omega,bmag,n,t
+        real, dimension(size(x0)) :: riaf_vr,riaf_vth,riaf_omega, &
+             bmag,n,t,nnth
 !        real, dimension(size(x0)) :: g00,grr,ur
 !interim variables
         real, dimension(size(x0)) :: gtt,gphi,gtphi,ub,aleph,bb
@@ -900,7 +909,7 @@
         gtt = -1.*(1.-psi4) !metric 1
         gphi = (stheta*stheta) * (rho2 + a*a*(1.+2.*rr/rho2)*stheta*stheta) !metric 10
         gtphi = -1.*psi4*a*stheta**2. !metric 4
-        call sariaf_vals(a,ctheta,u,n,t,bmag,riaf_vr,riaf_vth,riaf_omega)
+        call sariaf_vals(a,ctheta,u,n,t,bmag,riaf_vr,riaf_vth,riaf_omega,nnth)
 !       ! b = riaf_B
 !        n = riaf_neth
 !        t = riaf_te
@@ -937,6 +946,7 @@
         f%rho = n
         f%p = t
         f%bmag = bmag
+        f%rho2 = nnth
 !BEGIN TESTING 4 VECTOR ROUTINES
 !testing dot product
 !        where(rr.lt.rms)
@@ -1026,18 +1036,20 @@
         double precision, dimension(size(f%rho)), &
              intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
-        riaf_n0 = sp%mdot !4.e7 
+!        riaf_n0 = sp%mdot !4.e7 
 !        riaf_t0 = 1.6d11
 ! either non-unity here or in fluid_model_sariaf.f90
 !riaf_t0 = 1.0 because for sariaf muval = t 
 !and it gets changed in emis!sp%muval so not here
 !to avoid double counting 
 !Old value was 1.6e11 !these will change to be based on sp, I think.
-        riaf_beta = 1d1
-        ncgs= riaf_n0 * f%rho
-        bcgs= sqrt(riaf_n0 / riaf_beta) * f%bmag
-        ncgsnth= riaf_n0 * f%rho
-
+!        riaf_beta = 1d1
+!        ncgs= riaf_n0 * f%rho
+        ncgs = f%rho
+!        bcgs= sqrt(riaf_n0 / riaf_beta) * f%bmag
+        bcgs = f%bmag
+! new var rho2 is used to hold a second density, in this non-thermal e-
+        ncgsnth= f%rho2
         tcgs= f%p !* riaf_t0
 !        f%b%data(1) = sqrt(riaf_n0 / riaf_beta) * f%b%data(1)
 !        f%b%data(4) = sqrt(riaf_n0 / riaf_beta) * f%b%data(4)

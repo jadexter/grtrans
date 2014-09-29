@@ -55,7 +55,7 @@
  !      write(6,*) 'spin: ',spin
        call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
-            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh)
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta)
        call load_fluid_model(fname,spin,fargs)
 !       do l=1,1
 !          do j=1,1
