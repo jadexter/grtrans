@@ -69,6 +69,10 @@ class grtrans_inputs:
         self.ndfile='phatdiskm8st25.bin'
         self.ntscl=30.
         self.nrscl=6.
+        self.snscl=3e7
+        self.snnthscl=8e4
+        self.snnthp=2.9
+        self.sbeta=10.
         self.hrspot=1.5
         self.hr0spot=6.0
         self.hn0spot=1e4
@@ -149,7 +153,7 @@ class grtrans_inputs:
         nargs.append(len(args3))
         args4=['fdfile','fgfile','fhfile','fnt','fnfiles','findf','fjonfix','foffset','fsim','fdindf','fmagcrit']
         nargs.append(len(args4))
-        args5=['fnw','fwmin','fwmax','fnfreq_tab','ffmin','ffmax','frmax','fnr','fsigt','ffcol','frspot','fr0spot','fn0spot','ftscl','frscl','fmdot']
+        args5=['fnw','fwmin','fwmax','fnfreq_tab','ffmin','ffmax','frmax','fnr','fsigt','ffcol','frspot','fr0spot','fn0spot','ftscl','frscl','fmdot','fnscl','fnnthscl','fnnthp','fbeta']
         nargs.append(len(args5))
         args=args
         args.extend(args1)
@@ -171,7 +175,7 @@ class grtrans_inputs:
             namesmb09=['mb09']
             valsmb09=["'"+self.mgfile+"'","'"+self.mdfile+"'",self.mnt,self.mnfiles,self.mindf,self.mjonfix,self.msim]
             nargsmb09=[len(argsmb09)]
-            nm.write_namelist('mb09.in',namesmb09,argsmb09,valsmb09,nargsmb09)
+#            nm.write_namelist('mb09.in',namesmb09,argsmb09,valsmb09,nargsmb09)
         # assign mb09 fluid arguments
             self.fdfile = self.mdfile
             self.fgfile = self.mgfile
@@ -184,7 +188,7 @@ class grtrans_inputs:
             namesharm=['harm']
             valsharm=["'"+self.hdfile+"'","'"+self.hhfile+"'",self.hnt,self.hindf]
             nargsharm=[len(argsharm)]
-            nm.write_namelist('harm.in',namesharm,argsharm,valsharm,nargsharm)
+#            nm.write_namelist('harm.in',namesharm,argsharm,valsharm,nargsharm)
         # assign harm fluid arguments
             self.fdfile = self.hdfile
             self.fhfile = self.hhfile
@@ -194,12 +198,12 @@ class grtrans_inputs:
             namesthick=['thickdisk']
             valsthick=["'"+self.tgfile+"'","'"+self.tdfile+"'",self.tnt,self.tnfiles,self.tindf,self.tjonfix,self.toff,"'"+self.tsim+"'",self.tdindf,self.tmagcrit]
             nargsthick=[len(argsthick)]
-            nm.write_namelist('thickdisk.in',namesthick,argsthick,valsthick,nargsthick)
+#            nm.write_namelist('thickdisk.in',namesthick,argsthick,valsthick,nargsthick)
         if self.fname=='THINDISK':
             namest=['thindisk']
             valst=[self.tmdot,self.mbh]
             nargst=[len(argst)]
-            nm.write_namelist('thindisk.in',namest,argst,valst,nargst)
+#            nm.write_namelist('thindisk.in',namest,argst,valst,nargst)
         elif self.fname=='PHATDISK':
             namesp=['phatdisk']
             namest=['thindisk']
@@ -207,36 +211,36 @@ class grtrans_inputs:
             valsp=[self.pnw,self.pwmin,self.pwmax,self.pnfreq_tab,self.pfmin,self.pfmax,self.prmax,self.pnr,self.psigt,self.pfcol]
             nargst=[len(argst)]
             nargsp=[len(argsp)]
-            nm.write_namelist('thindisk.in',namest,argst,valst,nargst)
-            nm.write_namelist('phatdisk.in',namesp,argsp,valsp,nargsp)
+#            nm.write_namelist('thindisk.in',namest,argst,valst,nargst)
+#            nm.write_namelist('phatdisk.in',namesp,argsp,valsp,nargsp)
         elif self.fname=='TOYJET':
             namesj=['toyjet']
             valsj=["'"+self.jdfile+"'"]
             nargsj=[len(argsj)]
-            nm.write_namelist('toyjet.in',namesj,argsj,valsj,nargsj)
+#            nm.write_namelist('toyjet.in',namesj,argsj,valsj,nargsj)
             self.fdfile = self.jdfile
         elif self.fname=='NUMDISK':
             namesn=['numdisk']
             valsn=["'"+self.ndfile+"'",self.ntscl,self.nrscl]
             nargsn=[len(argsn)]
-            nm.write_namelist('numdisk.in',namesn,argsn,valsn,nargsn)
+#            nm.write_namelist('numdisk.in',namesn,argsn,valsn,nargsn)
         elif self.fname=='HOTSPOT':
             namesh=['hotspot']
             valsh=[self.hrspot,self.hr0spot,self.hn0spot]
             nargsh=[len(argsh)]
-            nm.write_namelist('hotspot.in',namesh,argsh,valsh,nargsh)
+#            nm.write_namelist('hotspot.in',namesh,argsh,valsh,nargsh)
         elif self.fname=='SCHNITTMAN':
             namesh=['hotspot']
             valsh=[self.hrspot,self.hr0spot,self.hn0spot]
             nargsh=[len(argsh)]
-            nm.write_namelist('hotspot.in',namesh,argsh,valsh,nargsh)
+#            nm.write_namelist('hotspot.in',namesh,argsh,valsh,nargsh)
 #        else:
 #            print 'ERROR -- Unrecognized fluid name in grtrans_batch: ', self.fname
 #        print args
 #        print vals
 #        print nargs
         vals.extend(["'"+self.fdfile+"'","'"+self.fgfile+"'","'"+self.fhfile+"'",self.fnt,self.fnfiles,self.findf,self.fjonfix,self.foffset,"'"+self.fsim+"'",self.fdindf,self.fmagcrit])
-        vals.extend([self.pnw,self.pwmin,self.pwmax,self.pnfreq_tab,self.pfmin,self.pfmax,self.prmax,self.pnr,self.psigt,self.pfcol,self.hrspot,self.hr0spot,self.hn0spot,self.ntscl,self.nrscl,self.tmdot])
+        vals.extend([self.pnw,self.pwmin,self.pwmax,self.pnfreq_tab,self.pfmin,self.pfmax,self.prmax,self.pnr,self.psigt,self.pfcol,self.hrspot,self.hr0spot,self.hn0spot,self.ntscl,self.nrscl,self.tmdot,self.snscl,self.snnthscl,self.snnthp,self.sbeta])
         nm.write_namelist(fname,names,args,vals,nargs)
 
 class grtrans:
@@ -301,7 +305,7 @@ class grtrans:
 # set arguments
         self.inputs=grtrans_inputs(**kwargs)
 # call pgrtrans routine with arguments:
-        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot)
+        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot,self.inputs.snscl,self.inputs.snnthscl,self.inputs.snnthp,self.inputs.sbeta)
 # read output        
         self.ivals = pgrtrans.ivals.copy()
         self.ab = pgrtrans.ab.copy()
