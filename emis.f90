@@ -10,7 +10,8 @@
        integer,parameter :: ELAMBDA=0,ESYNCHTH=1,EPOLSYNCHTH=2, &
                   ESYNCHPL=3,EPOLSYNCHPL=4,EBREMS=5,ELINE=6, &
                   EIRON=7,EBB=8,EBBPOL=9,EINTERP=10,EFBB=11,ERHO=12, &
-                  ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20
+                  ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20, &
+                  EHYBRIDTH=21, EHYBRIDPL=22
 
        type emis
          double precision, dimension(:,:), allocatable :: j,K
@@ -176,10 +177,16 @@
          type (emis), intent(out) :: e
          character(len=20), intent(in) :: ename
          if(ename=='POLSYNCHTH') then
-           e%type=EPOLSYNCHTH
-           e%neq=4
+            e%type=EPOLSYNCHTH
+            e%neq=4
+         elseif(ename.eq.'HYBRIDTH') then
+            e%type=EHYBRIDTH 
+            e%neq=4
+         elseif(ename.eq.'HYBRIDPL') then
+            e%type=EHYBRIDPL 
+            e%neq=4
          elseif(ename=='HYBRIDTHPL') then
-            e%type=EHYBRIDTHPL
+            e%type=EHYBRIDTHPL 
             e%neq=4
          elseif(ename=='SYNCHTHAV') then
             e%type=ESYNCHTHAV
@@ -235,6 +242,16 @@
              allocate(e%bcgs(npts))
              allocate(e%ncgsnth(npts)); allocate(e%p(npts))
              call initialize_polsynchpl(e%neq) !I guess this is right?
+           CASE (EHYBRIDTH) !Thermal decomposition of the Hybrid Image
+             allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
+             allocate(e%bcgs(npts))
+             allocate(e%ncgsnth(npts)); allocate(e%p(npts))
+             call initialize_polsynchpl(e%neq) !I guess this is right?
+           CASE (EHYBRIDPL) !Power Law decomposition of the Hybrid Image
+             allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
+             allocate(e%bcgs(npts))
+             allocate(e%ncgsnth(npts)); allocate(e%p(npts))
+             call initialize_polsynchpl(e%neq) !I guess this is right?
            CASE (EPOLSYNCHTH)
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
              allocate(e%bcgs(npts))
@@ -283,6 +300,18 @@
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
                e%gmax,Kpl)
               K = Kth + Kpl
+           case(ehybridth)
+              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
+              call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
+               e%gmax,Kpl)
+              K = Kth !get thermal emission
+              K(:,5:11) = Kth(:,5:11) + Kpl(:,5:11) !and total absorption
+           case(ehybridpl)
+              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
+              call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
+               e%gmax,Kpl)
+              K = Kpl !get power law emission
+              K(:,5:11) = Kth(:,5:11) + Kpl(:,5:11) !and total absorption
            case(epolsynchth)
 !              write(6,*) 'polsynchth ncgs: ',allocated(e%ncgs),size(e%ncgs)
 !              write(6,*) 'polsynchth bcgs: ',e%bcgs
@@ -338,6 +367,10 @@
          SELECT CASE (e%type)
            CASE (EHYBRIDTHPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth 
+           CASE (EHYBRIDTH)
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth 
+           CASE (EHYBRIDPL)
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth 
            CASE (EPOLSYNCHTH)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
            CASE (EPOLSYNCHPL)
@@ -388,6 +421,19 @@
              call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
               e%gmax,Kpl)
              K = Kth + Kpl
+           case(ehybridth)
+             call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
+             call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
+              e%gmax,Kpl)
+             K = Kth
+             K(:,5:11) = Kth(:,5:11) + Kpl(:,5:11)
+
+           case(ehybridpl)
+             call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
+             call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
+              e%gmax,Kpl)
+             K = Kpl
+             K(:,5:11) = Kth(:,5:11) + Kpl(:,5:11)
 
            case(epolsynchth)
               write(6,*) 'polsynchth nu: ',nu
@@ -426,6 +472,16 @@
          deallocate(e%cosne); deallocate(e%gmin)
          SELECT CASE (e%type)
            CASE (EHYBRIDTHPL)
+             deallocate(e%ncgs); deallocate(e%tcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
+             deallocate(e%ncgsnth); deallocate(e%p)
+             call del_polsynchpl(e%neq)              
+           CASE (EHYBRIDTH)
+             deallocate(e%ncgs); deallocate(e%tcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
+             deallocate(e%ncgsnth); deallocate(e%p)
+             call del_polsynchpl(e%neq)              
+           CASE (EHYBRIDPL)
              deallocate(e%ncgs); deallocate(e%tcgs)
              deallocate(e%bcgs); deallocate(e%incang)
              deallocate(e%ncgsnth); deallocate(e%p)
@@ -515,6 +571,12 @@
          type (emis_params), intent(in) :: ep
          SELECT CASE (e%type)
            CASE (EHYBRIDTHPL)
+             call emis_model_synchth(e,ep%mu)
+             call emis_model_synchpl(e,ep%gmin,ep%gmax,ep%p1)
+           CASE (EHYBRIDTH) !alwinnote
+             call emis_model_synchth(e,ep%mu)
+             call emis_model_synchpl(e,ep%gmin,ep%gmax,ep%p1)
+           CASE (EHYBRIDPL) !alwinnote
              call emis_model_synchth(e,ep%mu)
              call emis_model_synchpl(e,ep%gmin,ep%gmax,ep%p1)
            CASE (EPOLSYNCHTH)
