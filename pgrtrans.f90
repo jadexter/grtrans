@@ -19,7 +19,8 @@
              use omp_lib
        !       use grtrans_inputs
              use grtrans, only: grtrans_driver
-             use ray_trace
+             use ray_trace, only: ray_set, initialize_raytrace_camera, &
+                  kwrite_raytrace_camera, del_raytrace_camera
              use fluid_model, only: load_fluid_model, unload_fluid_model, &
                   advance_fluid_timestep, source_params, assign_source_params_type
              use emissivity, only: emis_params

@@ -6,7 +6,8 @@ from time import time
 x = gr.grtrans()
 x.compile_grtrans()
 x.write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn="10000,1,100",gridvals="0.,400.,0.,0.",uout=.0025,oname='sphacc_abs.out')
-threads = ['1','2','4','8','16','32','64']; t = []
+#threads = ['1','2','4','8','16','32','64','128']; t = []
+threads=['144','192','224']; t = []
 for i in range(len(threads)):
 #    os.system('export OMP_NUM_THREADS='+threads[i])
     start = time()
