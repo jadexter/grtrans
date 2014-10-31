@@ -630,8 +630,16 @@
         bpdotbp=dot_product(bphat,bphat)
         bpdotbb=dot_product(bphat,bbhat)
 ! Now compute angle between polarization basis and magnetic field:
-        sxi=aadotbp/sqrt(bpdotbp)
-        cxi=-bpdotbb/sqrt(bpdotbp)
+! if field is zero, emissivity = 0 so arbitrary angles to prevent NaNs
+        where(bpdotbp.gt.0d0)
+           sxi=aadotbp/sqrt(bpdotbp)
+           cxi=-bpdotbb/sqrt(bpdotbp)
+           angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
+        elsewhere
+           sxi=0d0
+           cxi=one
+           angnorm=0.5d0
+        endwhere
  !       write(6,*) 'bperp: ',bpdotbp,bdotb
 !        write(6,*) 'unit vectors: ',dot_product(bbhat,bbhat),dot_product(aahat,aahat),sqrt(knorm)
 !        write(6,*) 'orthogonal: ',dot_product(aahat,bbhat),(aahat(:,1)*khatr+aahat(:,2)*khatm+aahat(:,3)*khatp)/sqrt(knorm), &
@@ -846,14 +854,19 @@
   !   &   maxval(abs(dot_product(bbhat,bbhat)-1))
   !      write(6,*) 'dot: ',maxval(aadotbp),bpdotbp,bpdotbb
 ! Now compute angle between polarization basis and magnetic field:
-        sxi=aadotbp/sqrt(bpdotbp)
-!        write(6,*) 'sxi: ',sxi
-        cxi=-bpdotbb/sqrt(bpdotbp)
+        one=1d0; mone=-one; angmin=-.9999d0; angmax=-1d0*angmin
+        where(bpdotbp.gt.0d0)
+           sxi=aadotbp/sqrt(bpdotbp)
+           cxi=-bpdotbb/sqrt(bpdotbp)
+           angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
+        elsewhere
+           sxi=0d0
+           cxi=one
+           angnorm=0.5d0
+        endwhere
 !        write(6,*) 'cxi: ',cxi
         s2xi=2.*sxi*cxi; c2xi=cxi*cxi-sxi*sxi
-        angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
 !        write(6,*) 'angnorm', angnorm
-        one=1d0; mone=-one; angmin=-.9999d0; angmax=-1d0*angmin
 !        write(6,*) 'bdotk: ',bdotk/sqrt(knorm)/sqrt(bdotb)
 !        write(6,*) 'knorm: ',knorm
 !        write(6,*) 'bdotb: ',bdotb

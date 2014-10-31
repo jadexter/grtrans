@@ -19,11 +19,10 @@
 
        implicit none
 
-! For now make it global till I figure out how to pass through ODEPACK...
 ! grtrans object is made up of fluid, geodesic, emissivity, and rad trans objects
 
 !        integer, parameter :: IS_LINEAR_STOKES=1
-        integer, parameter :: WRITE_GEO=0
+        integer, parameter :: WRITE_GEO=1
         integer :: EXTRA_QUANTS=0
 !        integer, dimension(3) :: stats
 !        double precision, parameter :: MAX_TAU = 10d0
@@ -64,7 +63,7 @@
          type (emis_params) :: ep
 !         double precision, intent(in) :: mbh1,mdot
          double precision, intent(in), dimension(:) :: freqs
-         integer, intent(in) :: gunit, i,l,nup, nfreq, nparams, extra
+         integer, intent(in) :: gunit,i,l,nup, nfreq, nparams, extra
          character(len=20), intent(in) :: iname,fname,ename
          double precision :: fac
          double precision, dimension(:), allocatable :: s2xi,c2xi, &
@@ -151,7 +150,15 @@
 !                  write(6,*) 'init rad trans'
                   call initialize_rad_trans(r,iname,g%npts,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals,extra)
 !                  write(6,*) 'calc_emissivity',m,k,nfreq,nparams
+!                  write(6,*) 'i: ',i
                   call calc_emissivity(nu,e)
+!                  write(6,*) 'ej1: ',e%j(:,1)
+!                  write(6,*) 'ej2: ',e%j(:,2)
+!                  write(6,*) 'ej4: ',e%j(:,4)
+                  if(any(isnan(e%j))) then
+                     write(6,*) 'NaN in emissivity at i: ',i
+                     write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
+                  endif
 !               write(6,*) 'emis j: ',e%j(:,1)
 !               write(6,*) 'emis n: ',e%ncgsnth
 !               write(6,*) 'emis b: ',e%bcgs
@@ -163,6 +170,10 @@
                      if(e%neq.eq.4) call rotate_emis(e,s2xi,c2xi)
 ! Call integration routine:
 !                     write(6,*) 'integrate'
+                     if(any(isnan(e%j))) then
+                        write(6,*) 'NaN in emissivity after rotate at i: ',i
+                        write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
+                     endif
                      if(g%npts.ne.1) then
                         call invariant_emis(e,rshift)
 !                     write(6,*) 'integrate: ',e%j(:,1)

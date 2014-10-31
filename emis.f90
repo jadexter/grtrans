@@ -537,6 +537,13 @@
 ! Based on Shcherbakov & Huang (2011) and Mathematica rotate_emis.nb
          jq=e%j(:,2); ju=e%j(:,3); aq=e%K(:,2); au=e%K(:,3)
          rhoq=e%K(:,5); rhou=e%K(:,6)
+!         write(6,*) 'c2xi: ',c2xi
+!         write(6,*) 's2xi: ',s2xi
+! if bcgs = 0, get NaN s2xi,c2xi. set to arbitrary angle.
+!         where(e%bcgs.eq.0d0)
+!            c2xi=1d0
+!            s2xi=0d0
+!         endwhere
          e%j(:,2)=c2xi*jq-s2xi*ju
          e%j(:,3)=s2xi*jq+c2xi*ju
          e%K(:,2)=c2xi*aq-s2xi*au
@@ -546,6 +553,13 @@
 !         e%j(:,3)=s2xi*e%j(:,2); e%j(:,2)=c2xi*e%j(:,2)
 !         e%K(:,3)=s2xi*e%K(:,2)+c2xi*e%K(:,3); e%K(:,2)=c2xi*e%K(:,2)-s2xi*e%K(:,3)
 !         e%K(:,6)=s2xi*e%K(:,5); e%K(:,5)=c2xi*e%K(:,5)
+         if(any(isnan(e%j))) then
+            write(6,*) 'NaN in rotate_emis!'
+            write(6,*) 's2xi: ',s2xi
+            write(6,*) 'c2xi: ',c2xi
+            write(6,*) 'jq: ',jq
+            write(6,*) 'ej2: ',e%j(:,2)
+         endif
          end subroutine rotate_emis
 
          subroutine invariant_emis(e,g)
