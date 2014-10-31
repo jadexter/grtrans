@@ -48,10 +48,13 @@
     endif
     end subroutine read_phatdisk_inputs
 
-    subroutine init_phatdisk(a,ifile)
+    subroutine init_phatdisk(a,ifile,nwt,wmint,wmaxt,nft,fmint,fmaxt, &
+         nrt,sigtt,fcolt)
     real, intent(in) :: a
     character(len=20), intent(in), optional :: ifile
     character(len=20) :: default_ifile='phatdisk.in'
+    integer, intent(in), optional :: nwt,nft,nrt
+    real, intent(in), optional :: wmint,wmaxt,fmint,fmaxt,sigtt,fcolt
     real :: rh,l10sigt
     real, dimension(:), allocatable :: x, fw, zero, denom
     real, dimension(:), allocatable :: z, T, tsum_arr,igrand
@@ -59,11 +62,23 @@
 !    write(6,*) 'init phat'
 !    write(6,*) 'init phat: ',a
     call init_thindisk(a,ifile)
-    if (present(ifile)) then
-       call read_phatdisk_inputs(ifile)
+    if (present(nwt)) then
+       nw = nwt
+       wmin = wmint
+       wmax = wmaxt
+       nfreq_tab = nft
+       fmin = fmint
+       fmax = fmaxt
+       nr = nrt
+       sigt = sigtt
+       fcol = fcolt
     else
-       call read_phatdisk_inputs(default_ifile)
-    end if
+       if (present(ifile)) then
+          call read_phatdisk_inputs(ifile)
+       else
+          call read_phatdisk_inputs(default_ifile)
+       end if
+    endif
     allocate(z(nr)); allocate(T(nr)); allocate(x(nw)); allocate(fw(nw))
     allocate(tsum_arr(nw)); allocate(zero(nw)); allocate(igrand(nw))
     allocate(denom(nw))

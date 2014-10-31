@@ -23,6 +23,7 @@
       real, dimension(:), allocatable :: rho_arr, p_arr, u0_arr, vrl_arr, &
         vpl_arr, vtl_arr
       real, dimension(:), allocatable :: b0_arr, br_arr, bth_arr, bph_arr
+
       interface init_mb09_data
         module procedure init_mb09_data
       end interface
@@ -687,18 +688,31 @@
 !        rin=
 !        end subroutine calc_mb09_inner_edge
 
-        subroutine initialize_mb09_model(a,transform,ifile)
+        subroutine initialize_mb09_model(a,transform,ifile,gf,df,ntt,nft, &
+             indft,jf,simt)
         real(8), intent(in) :: a
         real(8) :: tcur, tstep_test
         integer :: nx, status
         integer, intent(in) :: transform
-        character(len=20), intent(in), optional :: ifile
+        character(len=20), intent(in), optional :: ifile,simt
         character(len=20) :: default_ifile='mb09.in', append
+        character(len=40), intent(in), optional :: gf,df
+        integer, intent(in), optional :: ntt,nft,indft,jf
         character(len=120) :: header_file
-        if (present(ifile)) then
-           call read_mb09_inputs(ifile)
+        if (present(gf)) then
+           dfile = df
+           gfile = gf
+           nt = ntt
+           nfiles = nft
+           indf = indft
+           jonfix = jf
+           sim = simt
         else
-           call read_mb09_inputs(default_ifile)
+           if (present(ifile)) then
+              call read_mb09_inputs(ifile)
+           else
+              call read_mb09_inputs(default_ifile)
+           endif
         endif
         write(6,*) 'inputs read: ',allocated(ph_arr)
 !        dfile='m87bl09rfp10xi5a998fluidvars.bin'

@@ -6,7 +6,8 @@
        use ray_trace, only: ray_set,initialize_raytrace_camera, &
             kwrite_raytrace_camera, del_raytrace_camera
        use fluid_model, only: load_fluid_model, unload_fluid_model, &
-            advance_fluid_timestep, source_params, assign_source_params_type
+            advance_fluid_timestep, source_params, assign_source_params_type, &
+            fluid_args, assign_fluid_args
        use emissivity, only: emis_params
        use geodesics, only: initialize_pixels, geokerr_args, &
          del_geokerr_args,initialize_geokerr_args, initialize_geo_tabs
@@ -21,6 +22,7 @@
 !       integer, dimension(:), allocatable :: indx
        type (ray_set), dimension(:), allocatable :: c
        type (geokerr_args) :: gargs
+       type (fluid_args) :: fargs
        type (source_params), dimension(:), allocatable :: sparams
        type (emis_params) :: eparams
        character(len=20), dimension(3) :: knames,kdescs
@@ -29,7 +31,11 @@
        knames(3)='nu'; kdescs(3)='Frequency (Hz)'
        gunit=12
        call read_inputs(ifile)
+<<<<<<< HEAD
 !       allocate(indx(nro*nphi))
+=======
+       write(6,*) 'dfile: ',fdfile
+>>>>>>> fluidinputs
        if(extra==1) nextra=13
 ! these can later be added to a loop over emis parameter structures
 !       eparams%gmin=gmin; 
@@ -55,7 +61,10 @@
          call initialize_raytrace_camera(c(m),nro,nphi,nvals,nextra)
        enddo
  !      write(6,*) 'spin: ',spin
-       call load_fluid_model(fname,spin)
+       call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+            fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh)
+       call load_fluid_model(fname,spin,fargs)
 !       do l=1,1
 !          do j=1,1
        if(nup.eq.1.and.nvals.eq.4) call load_chandra_tab24()

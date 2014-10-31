@@ -1165,19 +1165,31 @@
         write(6,*) 'shell smri'
         end subroutine calc_thickdisk_shellavg_properties
 
-        subroutine initialize_thickdisk_model(a,transform,ifile)
+        subroutine initialize_thickdisk_model(a,transform,ifile,gf,df,ntt,nft,indft,jf, &
+             off,simt,dindft,mct)
         real(8), intent(in) :: a
         real(8) :: tcur, tstep_test
         integer :: nx, status, writeall
         integer, intent(in) :: transform
         character(len=20), intent(in), optional :: ifile
+        character(len=40), intent(in), optional :: simt,gf,df
+        integer, intent(in), optional :: nft,indft,jf,off,ntt,dindft,mct
         character(len=20) :: default_ifile='thickdisk.in', append
         character(len=file_len) :: header_file
         writeall=0
-        if (present(ifile)) then
-           call read_thickdisk_inputs(ifile)
+        if (present(gf)) then
+           gfile = gf
+           dfile = df
+           nt = ntt
+           nfiles = nft
+           indf = indft
+           jonfix = jf
         else
-           call read_thickdisk_inputs(default_ifile)
+           if (present(ifile)) then
+              call read_thickdisk_inputs(ifile)
+           else
+              call read_thickdisk_inputs(default_ifile)
+           endif
         endif
         write(6,*) 'inputs read: ',allocated(ph_arr)
 !        dfile='m87bl09rfp10xi5a998fluidvars.bin'

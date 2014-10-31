@@ -374,17 +374,27 @@
         end subroutine read_harm_data_file
 
 
-        subroutine initialize_harm_model(a,ifile)
+        subroutine initialize_harm_model(a,ifile,df,hf,ntt,indft)
         double precision, intent(in) :: a
         integer :: nx, status, nhead
 !        integer, intent(in) :: nsteps
         character(len=20), intent(in), optional :: ifile
         character(len=20) :: default_ifile='harm.in'
+        character(len=40), intent(in), optional :: df,hf
+        integer, intent(in), optional :: ntt,indft
         nhead=26
-        if (present(ifile)) then
-           call read_harm_inputs(ifile)
+! if all inputs are given, assign variables rather than reading from file
+        if (present(df)) then
+           dfile = df
+           hfile = hf
+           nt = ntt
+           indf = indft
         else
-           call read_harm_inputs(default_ifile)
+           if (present(ifile)) then
+              call read_harm_inputs(ifile)
+           else
+              call read_harm_inputs(default_ifile)
+           endif
         endif
 !        dfile='m87bl09rfp10xi5a998fluidvars.bin'
 !        write(6,*) 'init harm'

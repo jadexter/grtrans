@@ -28,15 +28,21 @@
     close(unit=8)
     end subroutine read_thindisk_inputs
 
-    subroutine init_thindisk(a,ifile)
+    subroutine init_thindisk(a,ifile,mdott,mbht)
     real, intent(in) :: a
     character(len=20), intent(in), optional :: ifile
     character(len=20) :: default_ifile='thindisk.in'
+    real, intent(in), optional :: mdott,mbht
     write(6,*) 'init thindisk spin: ',a
-    if (present(ifile)) then
-       call read_thindisk_inputs(ifile)
+    if (present(mdott)) then
+       mdot = mdott
+       mbh = mbht
     else
-       call read_thindisk_inputs(default_ifile)
+       if (present(ifile)) then
+          call read_thindisk_inputs(ifile)
+       else
+          call read_thindisk_inputs(default_ifile)
+       endif
     endif
     end subroutine init_thindisk
 
