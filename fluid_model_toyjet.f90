@@ -175,17 +175,22 @@
         close(unit=8)
         end subroutine read_toyjet_inputs
 
-        subroutine initialize_toyjet_model(a,ifile)
+        subroutine initialize_toyjet_model(a,ifile,df)
         double precision, intent(in) :: a
         real :: aa
         integer :: nx, status
         real, dimension(:), allocatable :: b
         character(len=20), intent(in), optional :: ifile
+        character(len=40), intent(in), optional :: df
         character(len=20) :: default_ifile='toyjet.in'
-        if (present(ifile)) then
-           call read_toyjet_inputs(ifile)
+        if (present(df)) then
+           dfile = df
         else
-           call read_toyjet_inputs(default_ifile)
+           if (present(ifile)) then
+              call read_toyjet_inputs(ifile)
+           else
+              call read_toyjet_inputs(default_ifile)
+           endif
         endif
 !        dfile='m87bl09rfp10xi5a998fluidvars.bin'
        write(6,*) 'init toyjet', dfile

@@ -38,6 +38,13 @@
         type (four_vector), dimension(:), allocatable :: u,b
       end type
 
+      type fluid_args
+         character(len=40) :: dfile,hfile,gfile,sim
+         integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf,magcrit
+         real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
+              fmax,rmax,sigt,fcol,mdot,mbh
+      end type
+
       type source_params
 !        double precision, dimension(:), allocatable :: mdot,lleddeta,mu
         double precision :: nfac,bfac,mbh,mdot,p1,p2,gmax,gminval,jetalphaval,muval
@@ -71,6 +78,10 @@
       interface initialize_fluid_model
         module procedure initialize_fluid_model
       end interface
+
+      interface assign_fluid_args
+         module procedure assign_fluid_args
+      end interface
  
 !      interface del_fluid_model
 !        module procedure del_fluid_model
@@ -98,36 +109,67 @@
 
       contains
 
-        subroutine load_fluid_model(fname,a)
+        subroutine assign_fluid_args(fargs,dfile,hfile,gfile,sim,nt,indf,nfiles,jonfix, &
+             nw,nfreq_tab,nr,offset,dindf,magcrit,rspot,r0spot,n0spot,tscl,rscl, &
+             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh)
+          type (fluid_args), intent(inout) :: fargs
+          character(len=40), intent(in) :: dfile,hfile,gfile,sim
+          integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf,magcrit
+          real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
+               fmax,rmax,sigt,fcol,mdot,mbh
+          fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
+          write(6,*) 'assign fluid args: ',fargs%dfile
+          fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
+          fargs%jonfix = jonfix; fargs%nw = nw; fargs%nfreq_tab = nfreq_tab
+          fargs%nr = nr; fargs%offset = offset; fargs%dindf = dindf
+          fargs%magcrit = magcrit; fargs%rspot = rspot; fargs%r0spot = r0spot
+          fargs%n0spot = n0spot; fargs%tscl = tscl; fargs%rscl = rscl
+          fargs%wmin = wmin; fargs%wmax = wmax; fargs%fmin = fmin
+          fargs%fmax = fmax; fargs%rmax = rmax; fargs%sigt = sigt
+          fargs%mbh = mbh; fargs%fcol = fcol; fargs%mdot = mdot
+        end subroutine assign_fluid_args
+
+        subroutine load_fluid_model(fname,a,fargs)
         double precision, intent(in) :: a
         character(len=20), intent(in) :: fname
+        character(len=20) :: ifile
+        type (fluid_args) :: fargs
         if(fname=='COSMOS') then
-!          call initialize_cosmos_model(a)
+!          call initialize_cosmos_model(a,fargs)
         elseif(fname=='SARIAF') then
            call init_sariaf() !alwinremark
         elseif(fname=='MB') then
 !          call intiialize_mb_model(a)
         elseif(fname=='THICKDISK') then
-           call initialize_thickdisk_model(a,1)
+           call initialize_thickdisk_model(a,1,ifile,fargs%gfile,fargs%dfile,fargs%nt, &
+                fargs%nfiles,fargs%indf,fargs%jonfix,fargs%offset,fargs%sim, &
+                fargs%dindf,fargs%magcrit)
         elseif(fname=='MB09') then
-           call initialize_mb09_model(a,1)
+           call initialize_mb09_model(a,1,ifile,fargs%gfile,fargs%dfile,fargs%nt, &
+                fargs%nfiles,fargs%indf,fargs%jonfix,fargs%sim)
         elseif(fname=='HARM') then
-          call initialize_harm_model(a)
+          call initialize_harm_model(a,ifile,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf)
         elseif(fname=='SPHACC') then
            call init_sphacc()
         elseif(fname=='TOYJET') then
     !      write(6,*) 'load'
-          call initialize_toyjet_model(a)
+          call initialize_toyjet_model(a,ifile,fargs%dfile)
         elseif(fname=='THINDISK') then
-          call init_thindisk(real(a))
+          call init_thindisk(real(a),ifile,real(fargs%mdot),real(fargs%mbh))
         elseif(fname=='PHATDISK') then
-          call init_phatdisk(real(a))
+          call init_phatdisk(real(a),ifile,fargs%nw,real(fargs%wmin), &
+               real(fargs%wmax),fargs%nfreq_tab,real(fargs%fmin), &
+               real(fargs%fmax),fargs%nr, real(fargs%sigt), &
+               real(fargs%fcol))
         elseif(fname=='NUMDISK') then
-          call initialize_numdisk_model()
+          call initialize_numdisk_model(ifile,fargs%dfile,real(fargs%tscl),&
+               real(fargs%rscl))
         elseif(fname=='HOTSPOT') then
-           call init_hotspot()
+           call init_hotspot(ifile,real(fargs%rspot),real(fargs%r0spot), &
+                real(fargs%n0spot))
         elseif(fname=='SCHNITTMAN') then
-           call init_schnittman_hotspot()
+           call init_schnittman_hotspot(ifile,real(fargs%rspot),real(fargs%r0spot) &
+                ,real(fargs%n0spot))
         elseif(fname=='CONSTANT') then
            call init_constant()
         endif
