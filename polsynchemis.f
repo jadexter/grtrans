@@ -545,7 +545,7 @@
  !     write(6,*) 'poln: ',nnth
  !     write(6,*) 'polnu: ',nu
  !     write(6,*) 'polp: ',p
-      nub=ec*b/m/c/2./pi+1e-10; nubperp=nub*sin(th)
+      nub=ec*b/m/c/2./pi+1d0; nubperp=nub*sin(th)
       nucmin=3./2.*nub*gmin**2 ; nucmax=3./2.*nub*gmax**2
       omega0=nub*2.*pi ; omega=nu*2.*pi
       xmin=nu/nucmin ; xmax=nu/nucmax
@@ -698,14 +698,17 @@
      & rhoq,rhov,xarg,eps11m22,eps12
       double precision, dimension(size(n)) :: tm,tp,targ,
      & omega0,wp2
+      double precision :: nucminval = 1d0
+      double precision :: thetaemin = 1d-16
 !      write(*,*) 'vars: ',size(B),size(T),size(n),size(nu)
-      thetae=k*T/m/c/c
+      thetae=k*T/m/c/c+thetaemin
       ! Critical frequency for synchrotron emission:
-      nuc=3d0*ec*B*sin(theta)/4d0/pi/m/c*thetae**2
+      nuc=3d0*ec*B*sin(theta)/4d0/pi/m/c*thetae**2+nucminval
       xm=nu/nuc
       ji=ec**2/c/sqrt(3d0)/2d0*n/thetae**2*nu*iix(xm)
       jq=ec**2/c/sqrt(3d0)/2d0*n/thetae**2*nu*iqx(xm)
-      jv=4d0*ec**2/c/3d0/sqrt(3d0)/tan(theta)*n/2d0/thetae**3*nu*ivx(xm)
+      jv=4d0*ec**2/c/3d0/sqrt(3d0)/tan(theta)*n/2d0/thetae**3d0*nu*
+     &    ivx(xm)
       ju=0d0
 !      write(6,*) 'vars'
 !      write(6,'(3E9.4)') n,B,T
@@ -745,6 +748,13 @@
      & rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
 !      write(6,*) 'ai: ',ai, e(:,5), e(:,1), ji
  !     write(6,*) 'reshape: ',maxval(emis(:,1)), maxval(emis(:,5))
+      if(any(isnan(jq))) then
+         write(6,*) 'NaN in polsynchemis.f'
+         write(6,*) 'xm: ',xm
+         write(6,*) 'iqx: ',iqx(xm)
+         write(6,*) 'bnutnu: ',bnutnu
+         write(6,*) 'theta: ',theta
+      endif
 
       contains
 
@@ -794,7 +804,7 @@
 
        function ivx(x)
        ! Fitting function for polarized synchrotron emissivity function
-       ! I_V(x) fit using asymptotic dexpansions to integral in Huang et al
+       ! I_V(x) fit using asymptotic expansions to integral in Huang et al
        ! (2009)
        ! JAD 1/28/2010
        double precision, intent(in), dimension(:) :: x

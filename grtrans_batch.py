@@ -176,7 +176,6 @@ class grtrans_inputs:
             namesmb09=['mb09']
             valsmb09=["'"+self.mgfile+"'","'"+self.mdfile+"'",self.mnt,self.mnfiles,self.mindf,self.mjonfix,self.msim]
             nargsmb09=[len(argsmb09)]
-#            nm.write_namelist('mb09.in',namesmb09,argsmb09,valsmb09,nargsmb09)
         # assign mb09 fluid arguments
             self.fdfile = self.mdfile
             self.fgfile = self.mgfile
@@ -189,7 +188,6 @@ class grtrans_inputs:
             namesharm=['harm']
             valsharm=["'"+self.hdfile+"'","'"+self.hhfile+"'",self.hnt,self.hindf]
             nargsharm=[len(argsharm)]
-#            nm.write_namelist('harm.in',namesharm,argsharm,valsharm,nargsharm)
         # assign harm fluid arguments
             self.fdfile = self.hdfile
             self.fhfile = self.hhfile
@@ -199,7 +197,6 @@ class grtrans_inputs:
             namesthick=['thickdisk']
             valsthick=["'"+self.tgfile+"'","'"+self.tdfile+"'",self.tnt,self.tnfiles,self.tindf,self.tjonfix,self.toff,"'"+self.tsim+"'",self.tdindf,self.tmagcrit]
             nargsthick=[len(argsthick)]
-#            nm.write_namelist('thickdisk.in',namesthick,argsthick,valsthick,nargsthick)
         if self.fname=='THINDISK':
             namest=['thindisk']
             valst=[self.tmdot,self.mbh]
@@ -422,4 +419,8 @@ class grtrans:
             imgplot = plt.imshow(np.transpose(self.ivals[:,0].reshape((self.nx,self.ny))),origin='lower')
         else:
             imgplot = plt.imshow(np.transpose(self.ivals[:,0,idex].reshape((self.nx,self.ny))),origin='lower')
+        plt.show()
+
+    def disp_pgrtrans_image(self,idex):
+        imgplot = plt.imshow(np.transpose(self.ivals[0,:,idex].reshape((self.nx,self.ny))),origin='lower')
         plt.show()

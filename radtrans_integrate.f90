@@ -128,6 +128,13 @@
         tau = tauin
 !        write(6,*) 'made it to integrate'
         jj=ej; KK=eK
+        if(any(isnan(jj))) then
+           write(6,*) 'nan in radtrans_integrate j'
+           write(6,*) 'radtrans_integrate j1: ',jj(:,1)
+           write(6,*) 'radtrans_integrate j2: ',jj(:,2)
+        endif
+        !write(6,*) 'jj: ',jj
+        !write(6,*) 'KK: ',KK
         if (iflag==0) then
            call radtrans_integrate_lsoda()
         elseif (iflag==1) then
