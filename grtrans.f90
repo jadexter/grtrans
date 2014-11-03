@@ -3,7 +3,8 @@
        use omp_lib
        use grtrans_inputs
        use grtrans, only: grtrans_driver
-       use ray_trace
+       use ray_trace, only: ray_set,initialize_raytrace_camera, &
+            kwrite_raytrace_camera, del_raytrace_camera
        use fluid_model, only: load_fluid_model, unload_fluid_model, &
             advance_fluid_timestep, source_params, assign_source_params_type, &
             fluid_args, assign_fluid_args
@@ -13,9 +14,12 @@
        use chandra_tab24, only: load_chandra_tab24, del_chandra_tab24
 
        implicit none
-       character(len=40), intent(in) :: outfile,ifile
+       character(len=100), intent(in) :: outfile,ifile
 !       character(len=40) :: outfile,ifile
-       integer :: nextra=0, inum, gunit, i, ncams, j, m, l, nparams
+       integer :: nextra=0, inum, gunit, i, indx, ii, ncams, j, m, l, nparams, &
+            nthreads, threadnum
+       real (kind=8) :: wtime
+!       integer, dimension(:), allocatable :: indx
        type (ray_set), dimension(:), allocatable :: c
        type (geokerr_args) :: gargs
        type (fluid_args) :: fargs
@@ -67,31 +71,38 @@
           if(nload.gt.1) then
           ! loop over geodesics calculating first point to get t0 for everything
              gargs%nup=1
-             write(6,*) 'grtrans nload gt 1 loop',size(gargs%t0),allocated(gargs%t0),gargs%nup
+!             write(6,*) 'grtrans nload gt 1 loop',size(gargs%t0),allocated(gargs%t0),gargs%nup
 !$omp parallel do private(i) shared(gargs)
              do i=1,c(1)%nx*c(1)%ny
                 call initialize_geo_tabs(gargs,i)
+                nthreads = omp_get_num_threads()
+!                threadnum = omp_get_thread_num()
              enddo
 !$omp end parallel do
-             write(6,*) 'grtrans after init geo tabs',minval(gargs%t0),maxval(gargs%t0)
+!             write(6,*) 'grtrans after init geo tabs',minval(gargs%t0),maxval(gargs%t0)
              where(gargs%t0.gt.0.)
                 gargs%t0=gargs%t0-minval(gargs%t0)
              elsewhere
                 gargs%t0=0.
              endwhere
              gargs%nup=nup
-             write(6,*) 'grtrans after init geo tabs',minval(gargs%t0),maxval(gargs%t0)
+!             write(6,*) 'grtrans after init geo tabs',minval(gargs%t0),maxval(gargs%t0)
           else
              gargs%t0=0.
           endif
+          wtime = omp_get_wtime()
           do l=1,nt
 !       write(6,*) 'pre loop spin: ',spin,gargs%a
-!$omp parallel do private(i) shared(gargs,gunit,c,j,nt,l,spin,iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
+!$omp parallel do schedule(static,1) private(i,indx) shared(gargs,gunit,c,j,nt,l,spin, &
+!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
              do i=1,c(1)%nx*c(1)%ny
 !                write(6,*) 'i: ',i
-!              do i=7128,7128
+!              do i=12826,12826
 !                 write(6,*) 'i: ',i
 !                write(6,*) 'after loop spin: ',mdots(1),mbh
+!                threadnum = omp_get_thread_num()
+!                indx = (i-1-((nro*nphi)/nthreads)*threadnum)*nthreads+threadnum+1
+!                write(6,*) 'omp threads, thread_num: ', i,threadnum,nthreads
                 call grtrans_driver(gargs,gunit,c,i,(j-1)*nt+l,iname,ename,fname, &
                   sparams,eparams,nfreq,nparams,freqs,nup,extra)
              enddo
@@ -100,6 +111,7 @@
 !       write(6,*) 'del geokerr args before'
              if(l.lt.nt) call advance_fluid_timestep(fname,dt)
           enddo
+          write(6,*) 'grtrans wall time elapsed: ', omp_get_wtime() - wtime
           spin=gargs%a
           call del_geokerr_args(gargs)
 !       write(6,*) 'spin after: ',spin
@@ -128,7 +140,7 @@
 !       do i=1,nparams
 !          deallocate(sparams(i)%gmin)
 !       enddo
-       deallocate(sparams)
+       deallocate(sparams)!; deallocate(indx)
        call delete_inputs()
        return
        end subroutine grtrans_main
