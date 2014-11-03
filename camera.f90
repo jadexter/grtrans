@@ -177,7 +177,7 @@
         character(len=20), dimension(:), intent(in), optional :: &
          kdescs,knames
         real, dimension(:), intent(in), optional:: kvals
-        character(len=40), intent(in) :: outfile
+        character(len=100), intent(in) :: outfile
         integer, dimension(2) :: naxes
         integer :: unit, status, k, nkeyz
         if(cflag==1) then

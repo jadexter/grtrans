@@ -70,27 +70,28 @@
         enddo
         end subroutine transformbl2mksh
 
-        function umksh2uks(fum,r,x2,h) result(uks)
+        function umksh2uks(fum,r,x2,hin) result(uks)
           ! Converts a Kerr-Schild spherical 4-velocity to a Boyer-Lindquist one.
           ! JAD 11/10/2008
           ! Do simple transformation first:
           real, dimension(:), intent(in) :: r, x2
           type (four_vector), dimension(:), intent(in) :: fum
-          type (four_vector), dimension(size(fum)) :: uks
-          real, intent(in), optional :: h
+          type (four_vector), dimension(size(r)) :: uks
+          real, intent(in), optional :: hin
           real :: hval
-          double precision, dimension(size(fum)) :: ur, uth
-          real, dimension(size(fum)) :: dthdx2
-          if (present(h)) then
-             hval=h
+          double precision, dimension(size(r)) :: ur, uth
+          real, dimension(size(r)) :: dthdx2
+          write(6,*) 'read harm umksh2uks present h'
+          if (present(hin)) then
+             hval=hin
           else
              hval=0.3
           endif
-          write(6,*) 'hval: ',present(h), hval
-          ur=r*fum%data(2)
+          write(6,*) 'hval: ',present(hin), hval
+          ur=dble(r)*fum%data(2)
           ! Compute partial derivatives:
           dthdx2=pi*(1.+(1.-hval)*cos(2.*pi*x2))
-          uth=fum%data(3)*dthdx2
+          uth=fum%data(3)*dble(dthdx2)
           uks=fum
           uks%data(2)=ur
           uks%data(3)=uth
@@ -263,6 +264,7 @@
         ! Read HARM header file
         ! JAD 11/24/2012 based on previous IDL codes
         ! header format from HARM dump.c
+        write(6,*) 'read harm header: ',nhead
         open(unit=8,file=hfile,form='formatted',status='old')
         read(8,*) header
         nx1=header(2)
@@ -306,10 +308,11 @@
           allocate(grid(nx1*nx2,4)); allocate(p(nx1*nx2)); allocate(rho(nx1*nx2))
           allocate(u(nx1*nx2)); allocate(b(nx1*nx2)); allocate(gdet(nx1*nx2))
           allocate(uks(nx1*nx2)); allocate(bks(nx1*nx2))
-!          write(6,*) 'read harm sizes', dlen, nx2, size(data)
+          write(6,*) 'read harm sizes', dlen, nx2, size(data)
           read(8,*) header
           tcur=header(1)
           deallocate(header)
+          write(6,*) 'read harm past header: ',nx1,nx2,nelem,dlen
           do i=0,(nx1*nx2)/nelem-1
              read(8,*) data
 !             if (i.eq.0) write(6,*) 'harm data: ', data(:,1)
@@ -337,9 +340,9 @@
 !          write(6,*) 'after read loop'
           close(unit=8)
           deallocate(data)
-!          write(6,*) 'grid sizes', size(x1_arr), size(x2_arr), size(r_arr), size(th_arr)
+          write(6,*) 'read harm grid sizes', size(x1_arr), size(x2_arr), size(r_arr), size(th_arr)
           x1_arr=grid(:,1); x2_arr=grid(:,2); r_arr=grid(:,3); th_arr=grid(:,4)
-!          write(6,*) 'assign grid'
+          write(6,*) 'read harm assign grid'
           deallocate(grid)
           if (present(mdot)) then
              ! Calculate accretion rate in code units:
@@ -348,14 +351,22 @@
 !             mdotarr=-1.*sum(sum(reform(gdet*rho*v(:,1),nx1,nx2,nz),3),2)*dx2*dx3
           endif
           ! Transform velocities, magnetic fields from MKS to KS and then BL:
- !         write(6,*) 'transform coords'
+          write(6,*) 'read harm transform coords u ', minval(r_arr), maxval(r_arr), asim
+          write(6,*) 'read harm transform coords u ',minval(x2_arr), maxval(x2_arr), h
+          write(6,*) 'read harm transform coords u ',minval(u%data(1)),minval(u%data(2))
+!          write(6,*) 'read harm transform coords u ',u%data(1)
+!          write(6,*) 'read harm transform coords u ',u%data(2)
+!          write(6,*) 'read harm transform coords u ',u%data(3)
+!          write(6,*) 'read harm transform coords u ',u%data(4)
+          write(6,*) 'read harm transform coords u size ',size(u),h
           uks = umksh2uks(u,r_arr,x2_arr,h)
+          write(6,*) 'after uks ',minval(uks%data(1))
           u = uks2ubl(uks,dble(r_arr),dble(asim))
+          write(6,*) 'read harm transform cords b', minval(u%data(3)),maxval(u%data(2)),&
+               minval(b%data(1)),maxval(b%data(4))
           bks = umksh2uks(b,r_arr,x2_arr,h)
           b   = uks2ubl(bks,dble(r_arr),dble(asim))
 ! test code...
-!          allocate(tmetric(10,n))
-!          tmetric = transpose(kerr_metric(r_arr,th_arr,real(a)))
           allocate(bdotu(n)); allocate(udotu(n))
           call assign_metric(u,transpose(kerr_metric(r_arr,th_arr,real(asim))))
           call assign_metric(b,transpose(kerr_metric(r_arr,th_arr,real(asim))))
@@ -369,7 +380,6 @@
           write(6,*) 'after transform', rho(1:4), p(1:4)
           write(6,*) 'after transform',p(5*nx1+23), rho(7*nx1+131), &
                maxval(udotu), maxval(bdotu)
-!          deallocate(tmetric)
           deallocate(udotu); deallocate(bdotu)
         end subroutine read_harm_data_file
 
@@ -377,7 +387,6 @@
         subroutine initialize_harm_model(a,ifile,df,hf,ntt,indft)
         double precision, intent(in) :: a
         integer :: nx, status, nhead
-!        integer, intent(in) :: nsteps
         character(len=20), intent(in), optional :: ifile
         character(len=20) :: default_ifile='harm.in'
         character(len=40), intent(in), optional :: df,hf

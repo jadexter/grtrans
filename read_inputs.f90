@@ -38,7 +38,7 @@
       contains
 
         subroutine read_inputs(file)
-        character(len=20), intent(in) :: file
+        character(len=100), intent(in) :: file
         integer :: i
           open(unit=8,file=file)
           read(8,nml=geodata)

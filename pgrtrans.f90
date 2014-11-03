@@ -13,7 +13,7 @@
             uout,uin, rcut, nrotype, gridvals, nn,fname, dt, nt, nload, &
             nmdot, mdotmin, mdotmax,ename, mbh, nfreq, fmin, fmax, muval,&
             gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
-            cflag, extra,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+            cflag, extra,outfile,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot)
 

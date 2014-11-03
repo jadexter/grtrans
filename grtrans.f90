@@ -14,7 +14,7 @@
        use chandra_tab24, only: load_chandra_tab24, del_chandra_tab24
 
        implicit none
-       character(len=40), intent(in) :: outfile,ifile
+       character(len=100), intent(in) :: outfile,ifile
 !       character(len=40) :: outfile,ifile
        integer :: nextra=0, inum, gunit, i, indx, ii, ncams, j, m, l, nparams, &
             nthreads, threadnum
@@ -31,11 +31,7 @@
        knames(3)='nu'; kdescs(3)='Frequency (Hz)'
        gunit=12
        call read_inputs(ifile)
-<<<<<<< HEAD
-!       allocate(indx(nro*nphi))
-=======
        write(6,*) 'dfile: ',fdfile
->>>>>>> fluidinputs
        if(extra==1) nextra=13
 ! these can later be added to a loop over emis parameter structures
 !       eparams%gmin=gmin; 
@@ -97,7 +93,8 @@
           wtime = omp_get_wtime()
           do l=1,nt
 !       write(6,*) 'pre loop spin: ',spin,gargs%a
-!$omp parallel do schedule(static,1) private(i,indx) shared(gargs,gunit,c,j,nt,l,spin,iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
+!$omp parallel do schedule(static,1) private(i,indx) shared(gargs,gunit,c,j,nt,l,spin, &
+!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
              do i=1,c(1)%nx*c(1)%ny
 !                write(6,*) 'i: ',i
 !              do i=12826,12826
