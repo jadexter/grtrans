@@ -82,6 +82,7 @@ def run_test_problems(save=0,pgrtrans=0):
 #        x2.del_pgrtrans_data()
         x2.run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='delo')
         x2.calc_spec_pgrtrans((np.shape(x2.ivals))[2])
+    terr=10.
     terr = np.max(np.abs(x2.spec - x.spec)/x.spec)
     if terr < 0.05: passed += 1
     else: failed.append('delo')
