@@ -570,7 +570,7 @@
         mdot=.0013
         ! Now convert density using black hole to scale length/time, 
         ! accretion rate to scale torus mass:
-!        write(6,*) 'convert mdot: ',mdot,sp%mdot
+        write(6,*) 'convert mdot: ',mdot,sp%mdot
         rhocgs=sp%mdot/mdot/lcgs**3*tcgs*f%rho; ncgs=rhocgs/mp
 !        write(6,*) 'n: ',sp%mdot/mdot/lcgs**3.*tcgs/mp
         ! Use this to convert pressure:
