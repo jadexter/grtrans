@@ -33,7 +33,7 @@
       type fluid
         integer :: model, nfreq
         real :: rin
-        real, dimension(:), allocatable :: rho,p,bmag,rho2
+        real, dimension(:), allocatable :: rho,p,bmag,rho2 ! new rho2 variable
         real, dimension(:,:), allocatable :: fnu
         type (four_vector), dimension(:), allocatable :: u,b
       end type
