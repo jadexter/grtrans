@@ -14,10 +14,10 @@ OMP = -openmp
 OMPLIB = -liomp5
 FCNAME=intelem
 ifeq ($(DEBUG),1)
-OTHERFLAGS = -g -extend-source 132
+OTHERFLAGS = -g -extend-source 132 -heap-arrays -fp-model strict
 #OMP=
 else
-OTHERFLAGS = -fast $(OMP) -extend-source 132
+OTHERFLAGS = $(OMP) -extend-source 132 -fast -fp-model strict
 endif
 endif
 
@@ -37,7 +37,6 @@ else
 OTHERFLAGS = -ffixed-line-length-132 -fopenmp -O3 -W -Wall -fPIC
 endif
 endif
-
 
 # compile for co-processor
 ifeq ($(XEONPHI),1)

@@ -932,7 +932,7 @@
                maxuu0high=50.
                allocate(rinterp(n)); allocate(one(n)); allocate(zero(n))
                one=1d0; zero=0d0
-               allocate(condmaxbsqorhorhs(n))
+               allocate(condmaxbsqorhorhs(n)); allocate(bsqorho(n))
                rinterp=(calcrmks(x1_arr,xbr)-9d0)*(1d0-0d0)/(0d0-9d0) ! gives 0 for use near 9   gives 1 for use near 0
 !               write(6,*) 'fluid model thickdisk rmks: ', calcrmks(x1_arr,xbr), xbr
 !               write(6,*) 'fluid model thickdisk rinterp: ',rinterp
@@ -941,14 +941,14 @@
                !    rinterp(rinterp>1.0)=1.0
                !    rinterp(rinterp<0.0)=0.0
                condmaxbsqorhorhs=rinterp*maxbsqorhonear + (1d0-rinterp)*maxbsqorhofar
-               bsqorho=b*b/rho!normu(bbl,bbl,((calcrmks(x1_arr,xbr)],(thcenters]],a,/bl)/rho
-!               condmaxbsqorho=(bsqorho lt condmaxbsqorhorhs)
+               bsqorho=(b*b)/rho
                write(6,*) 'bsqrho: ',maxval(bsqorho),minval(bsqorho)
                where((bsqorho.gt.maxbsqorhonear).or.(bsqorho.ge.condmaxbsqorhorhs))
                   rho=1e-18
                   p=1e-18
                endwhere
                deallocate(rinterp); deallocate(one); deallocate(zero); deallocate(condmaxbsqorhorhs)
+               deallocate(bsqorho)
             endif
             if(present(test)) then
                write(6,*) 'vals: ',xbr,rout,b(1)%data,u(1)%data,x1_arr(1),x2_arr(1),x3_arr(1)
