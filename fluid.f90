@@ -33,7 +33,7 @@
       type fluid
         integer :: model, nfreq
         real :: rin
-        real, dimension(:), allocatable :: rho,p,bmag,rho2 ! new rho2 variable
+        real, dimension(:), allocatable :: rho,p,bmag,rho2
         real, dimension(:,:), allocatable :: fnu
         type (four_vector), dimension(:), allocatable :: u,b
       end type
@@ -129,7 +129,7 @@
           fargs%mbh = mbh; fargs%fcol = fcol; fargs%mdot = mdot
           fargs%nscl = nscl; fargs%nnthscl = nnthscl; fargs%nnthp = nnthp
           fargs%beta = beta
-          write(6,*) 'assign fluid args: ',beta,nnthp,nnthscl,nscl
+          write(6,*) 'assign fluid args: ',jonfix,offset
         end subroutine assign_fluid_args
 
         subroutine load_fluid_model(fname,a,fargs)
@@ -578,7 +578,7 @@
         mdot=.0013
         ! Now convert density using black hole to scale length/time, 
         ! accretion rate to scale torus mass:
-        write(6,*) 'convert mdot: ',mdot,sp%mdot
+        !write(6,*) 'convert mdot: ',mdot,sp%mdot
         rhocgs=sp%mdot/mdot/lcgs**3*tcgs*f%rho; ncgs=rhocgs/mp
 !        write(6,*) 'n: ',sp%mdot/mdot/lcgs**3.*tcgs/mp
         ! Use this to convert pressure:
@@ -600,7 +600,7 @@
 !        write(6,*) 'convert n: ',ncgs/1e7
 !        write(6,*) 'convert temp: ',tempcgs/1e10
 !        write(6,*) 'convert temp 2: ',f%p/f%rho*mp/k*c**2./1e10
-!        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh
+!        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh, sp%muval, sp%gmin, sp%jetalpha, sp%p1
 !        write(6,*) 'convert bh: ',tcgs,lcgs
         end subroutine convert_fluidvars_thickdisk
 
