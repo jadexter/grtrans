@@ -16,8 +16,8 @@
        implicit none
        character(len=100), intent(in) :: outfile,ifile
 !       character(len=40) :: outfile,ifile
-       integer :: nextra=0, inum, gunit, i, indx, ii, ncams, j, m, l, nparams, &
-            nthreads, threadnum
+       integer :: nextra=0, inum, gunit, i, indx, ncams, j, m, l, nparams, &
+            nthreads, threadnum, iii
        real (kind=8) :: wtime
 !       integer, dimension(:), allocatable :: indx
        type (ray_set), dimension(:), allocatable :: c
@@ -40,15 +40,15 @@
 !       eparams%mu=muval
        nparams=size(mdots)
        allocate(sparams(nparams))
-       do i=1,nparams
-          sparams(i)%mdot=mdots(i); sparams(i)%mbh=mbh
-          sparams(i)%nfac=2.; sparams(i)%bfac=70.
-          sparams(i)%jetalphaval=jetalpha
-          sparams(i)%gminval=gmin; sparams(i)%muval=muval
-          sparams(i)%gmax=gmax
-          sparams(i)%p1=p1
-          sparams(i)%p2=p2
-          call assign_source_params_type(sparams(i),stype)
+       do iii=1,nparams
+          sparams(iii)%mdot=mdots(iii); sparams(iii)%mbh=mbh
+          sparams(iii)%nfac=2.; sparams(iii)%bfac=70.
+          sparams(iii)%jetalphaval=jetalpha
+          sparams(iii)%gminval=gmin; sparams(iii)%muval=muval
+          sparams(iii)%gmax=gmax
+          sparams(iii)%p1=p1
+          sparams(iii)%p2=p2
+          call assign_source_params_type(sparams(iii),stype)
        enddo
        NCAMS=nparams*nfreq*nmu*nt
        allocate(c(NCAMS))

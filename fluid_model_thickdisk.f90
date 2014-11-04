@@ -923,19 +923,24 @@
             call assign_metric(b,transpose(kerr_metric(r_arr,th_arr,asim)))
             call assign_metric(u,transpose(kerr_metric(r_arr,th_arr,asim)))
             ! Apply Jon's approximate fix for the density/energy floors if desired:
+            write(6,*) 'fluid model thickdisk jonfix: ',jonfix
             if(jonfix.eq.1) then
+               write(6,*) 'fluid model thickdisk performing jonfix'
                maxbsqorhohigh=45.
-               maxbsqorhonear=40.
+               maxbsqorhonear=30.
                maxbsqorhofar=10.
                maxuu0high=50.
                allocate(rinterp(n)); allocate(one(n)); allocate(zero(n))
+               one=1d0; zero=0d0
                allocate(condmaxbsqorhorhs(n))
-               rinterp=(calcrmks(x1_arr,xbr)-9.0)*(1.0-0.0)/(0.0-9.0) ! gives 0 for use near 9   gives 1 for use near 0
+               rinterp=(calcrmks(x1_arr,xbr)-9d0)*(1d0-0d0)/(0d0-9d0) ! gives 0 for use near 9   gives 1 for use near 0
+!               write(6,*) 'fluid model thickdisk rmks: ', calcrmks(x1_arr,xbr), xbr
+!               write(6,*) 'fluid model thickdisk rinterp: ',rinterp
                rinterp = merge(merge(rinterp,one,rinterp.le.one),zero,rinterp.ge.zero)
                write(6,*) 'rinterp: ',minval(rinterp),maxval(rinterp)
                !    rinterp(rinterp>1.0)=1.0
                !    rinterp(rinterp<0.0)=0.0
-               condmaxbsqorhorhs=rinterp*maxbsqorhonear + (1.0-rinterp)*maxbsqorhofar
+               condmaxbsqorhorhs=rinterp*maxbsqorhonear + (1d0-rinterp)*maxbsqorhofar
                bsqorho=b*b/rho!normu(bbl,bbl,((calcrmks(x1_arr,xbr)],(thcenters]],a,/bl)/rho
 !               condmaxbsqorho=(bsqorho lt condmaxbsqorhorhs)
                write(6,*) 'bsqrho: ',maxval(bsqorho),minval(bsqorho)
@@ -1191,7 +1196,7 @@
               call read_thickdisk_inputs(default_ifile)
            endif
         endif
-        write(6,*) 'inputs read: ',allocated(ph_arr)
+        write(6,*) 'inputs read: ',gfile,dfile,nt,nfiles,indf,jonfix
 !        dfile='m87bl09rfp10xi5a998fluidvars.bin'
 !        write(6,*) 'init thickdisk'
 ! length of header at start of thickdisk files (these should be determined by Python)

@@ -652,7 +652,7 @@
         !write(6,*) 'sxitest: ',sxi,sxitest
         s2xi=2d0*sxi*cxi; c2xi=cxi*cxi-sxi*sxi
 !        s2xi=sin(2d0*xi); c2xi=cos(2d0*xi)
-        angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
+        !angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
 !        write(6,*) 'cdot: ',b(1)%data,u(1)%data,k(1)%data
 !        write(6,*) 'cdot: ',bdotk,bdotb,om*om
 !        write(6,*) 'ang: ',angnorm, bdotk/sqrt(om2)/sqrt(bdotb)

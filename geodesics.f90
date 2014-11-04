@@ -78,13 +78,8 @@
               geargs%phit=1
               if(nup.gt.1) then
                  geargs%mufill=1
-                 if(nup.lt.800) then
-                    geargs%kext=3
-                    geargs%next=60
-                 else
-                    geargs%kext=12
-                    geargs%next=240
-                 endif
+                 geargs%kext=3
+                 geargs%next=60
               else
                  geargs%mufill=0
                  geargs%kext=0
