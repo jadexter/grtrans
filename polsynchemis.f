@@ -743,7 +743,7 @@
 ! test unpolarized
 !      jq=0.; jv=0.; aq=0.; av=0.; rhoq=0.; rhov=0.
 ! w/o Faraday:
-!      rhoq=0.; rhov=0
+      rhoq=0.; rhov=0
       e=reshape((/ji,jq,ju,jv,ai,aq,au,av,
      & rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
 !      write(6,*) 'ai: ',ai, e(:,5), e(:,1), ji

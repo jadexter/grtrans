@@ -15,7 +15,8 @@
             gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
             cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
-            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta)
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
+            fbl06)
            
              use omp_lib
        !       use grtrans_inputs
@@ -46,7 +47,7 @@
 ! FLUID ARGUMENTS
             character(len=40), intent(in) :: fdfile,fhfile,fgfile,fsim
             integer, intent(in) :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
-                 fnr,foffset,fdindf,fmagcrit
+                 fnr,foffset,fdindf,fmagcrit,fbl06
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
                  ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta
             !INPUTS====================
@@ -123,7 +124,7 @@
             write(6,*) 'fluid args 2: ',fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit
             write(6,*) 'fluid args 3: ',frspot,fr0spot,fn0spot,ftscl,frscl
             write(6,*) 'fluid args 4: ',fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol
-            write(6,*) 'fluid args 5: ',fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta
+            write(6,*) 'fluid args 5: ',fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta,fbl06
             write(6,*) 'args: ',mu0,muval,mdots
             write(6,*) 'args 1: ',freqs
             write(6,*) 'args 2: ',ename,mbh,uout
@@ -135,7 +136,8 @@
             
             call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
-            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta)
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta, &
+            fbl06)
             call load_fluid_model(fname,spin,fargs)
             if(nup.eq.1.and.nvals.eq.4) call load_chandra_tab24()
             do j=1,nmu
