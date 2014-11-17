@@ -40,7 +40,8 @@
 
       type fluid_args
          character(len=40) :: dfile,hfile,gfile,sim
-         integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf,magcrit
+         integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset, &
+              dindf,magcrit,bl06
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta
       end type
@@ -111,10 +112,11 @@
 
         subroutine assign_fluid_args(fargs,dfile,hfile,gfile,sim,nt,indf,nfiles,jonfix, &
              nw,nfreq_tab,nr,offset,dindf,magcrit,rspot,r0spot,n0spot,tscl,rscl, &
-             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta)
+             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06)
           type (fluid_args), intent(inout) :: fargs
           character(len=40), intent(in) :: dfile,hfile,gfile,sim
-          integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf,magcrit
+          integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf, &
+               magcrit,bl06
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
                fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
@@ -128,7 +130,7 @@
           fargs%fmax = fmax; fargs%rmax = rmax; fargs%sigt = sigt
           fargs%mbh = mbh; fargs%fcol = fcol; fargs%mdot = mdot
           fargs%nscl = nscl; fargs%nnthscl = nnthscl; fargs%nnthp = nnthp
-          fargs%beta = beta
+          fargs%beta = beta; fargs%bl06 = bl06
           write(6,*) 'assign fluid args: ',jonfix,offset
         end subroutine assign_fluid_args
 
@@ -140,9 +142,9 @@
         if(fname=='COSMOS') then
 !          call initialize_cosmos_model(a,fargs)
         elseif(fname=='SARIAF') then
-!           call init_sariaf(real(fargs%nscl),real(fargs%tscl),real(fargs%nnthscl), &
-!                real(fargs%nnthp),real(fargs%beta)) !alwinremark
-           call init_sariaf()
+           call init_sariaf(real(fargs%nscl),real(fargs%tscl),real(fargs%nnthscl), &
+                real(fargs%nnthp),real(fargs%beta),fargs%bl06) !alwinremark
+!           call init_sariaf()
         elseif(fname=='MB') then
 !          call intiialize_mb_model(a)
         elseif(fname=='THICKDISK') then

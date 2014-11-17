@@ -8,7 +8,7 @@
 
   implicit none
 
-  real :: riaf_pnth, riaf_n0, riaf_t0, riaf_nnth0, riaf_beta
+  real :: riaf_pnth, riaf_n0, riaf_t0, riaf_nnth0, riaf_beta, riaf_bl06
   
 !  interface read_sariaf_inputs
 !     module procedure read_sariaf_inputs
@@ -28,9 +28,12 @@
 
   contains
 
-    subroutine init_sariaf(n0,t0,nnth0,pnth,beta)
+    subroutine init_sariaf(n0,t0,nnth0,pnth,beta,bl06)
 ! assign inputs, defaults for a = 0 from Broderick & Loeb 2006 Table 1
       real, intent(in), optional :: n0,t0,nnth0,pnth,beta
+      integer, intent(in), optional :: bl06
+      write(6,*) 'init sariaf: ',present(n0),present(t0),present(nnth0),&
+           present(pnth),present(beta)
       if(present(pnth)) then
          riaf_pnth = pnth
       else
@@ -55,6 +58,11 @@
          riaf_beta = beta
       else
          riaf_beta = 10.
+      endif
+      if(present(bl06)) then
+         riaf_bl06 = bl06
+      else
+         riaf_bl06 = 0
       endif
       write(6,*) 'fluid model sariaf inputs: ',riaf_pnth,riaf_n0,riaf_t0,riaf_nnth0,riaf_beta
     end subroutine init_sariaf
@@ -106,15 +114,21 @@
 !      riaf_urims = -1.*sqrt(2./3./riaf_rms)*(riaf_urimsarg**(3./2.))
 !      riaf_utims = riaf_game*(1.+(2./riaf_r)*(1.+riaf_H))
 !      riaf_uphims = (riaf_game/riaf_r**2.)*(riaf_lambdae+riaf_a*riaf_H)
-!From Broderick et al. (2009)
-      riaf_neth = riaf_n0 * ((riaf_rs)**(-1.1))*exp(-.5*(riaf_z/riaf_a2)**2.) !will return rho0 eq
-      riaf_nenth = riaf_nnth0 * ((riaf_rs)**(-riaf_pnth))*exp(-.5*(riaf_z/riaf_a2)**2.)
-      riaf_te = riaf_t0 * (riaf_rs)**(-0.84) !will return p0 eq
+      if(riaf_bl06.ne.1) then
+         !From Broderick et al. (2009)
+         riaf_neth = riaf_n0 * ((riaf_rs)**(-1.1))*exp(-.5*(riaf_z/riaf_a2)**2.) !will return rho0 eq
+         riaf_nenth = riaf_nnth0 * ((riaf_rs)**(-riaf_pnth))*exp(-.5*(riaf_z/riaf_a2)**2.)
+         riaf_te = riaf_t0 * (riaf_rs)**(-0.84) !will return p0 eq
+      else
+         ! Slightly different version from Broderick & Loeb (2006)
+         riaf_neth = riaf_n0 * ((riaf_a2)**(-1.1))*exp(-.5*(riaf_z/riaf_a2)**2.) !will return rho0 eq
+         riaf_nenth = riaf_nnth0 * ((riaf_a2)**(-riaf_pnth))*exp(-.5*(riaf_z/riaf_a2)**2.)
+         riaf_te = riaf_t0 * (riaf_r)**(-0.84) !will return p0 eq
+      endif
       riaf_B = sqrt(8.*pi* riaf_neth * mp * c2 / riaf_rs / 12. / riaf_beta)
       riaf_vr = 0.*riaf_r!riaf_compare*riaf_urims/riaf_utims  !what is vr?
       riaf_vth = 0.*riaf_r
       riaf_omega = 1./(riaf_r**(3./2.)+riaf_a) !*(1.-riaf_compare) + riaf_compare*riaf_uphims/riaf_utims
-!B and v are four vectors now?
      end subroutine sariaf_vals
 
      subroutine del_sariaf
