@@ -77,6 +77,10 @@
          module procedure calc_kappapw
       end interface
 
+      interface calc_u0
+         module procedure calc_u0
+      end interface
+
       contains
 
         function ledd(m) result(leddval)
@@ -1047,11 +1051,13 @@
       write(6,*) 'ph integral: ',minval(s),maxval(s),minval(x),maxval(x)
       end function ph_integral
 
-!      function acc_efficiency(rin,a) result(eta)
-      ! calculate thindisk accretion efficiency for disk inner edge rin, spin a
-      ! 2/23/2013
-!      real(8), intent(in) :: rin,a
-!      eta=
+      function calc_u0(metric,vr,vth,vph) result(u0)
+! calculate u0 from three-velocity in BL coordinates
+        real(8), intent(in), dimension(:) :: vr,vth,vph
+        real(8), intent(in), dimension(:,:) :: metric
+        real(8), dimension(size(vr)) :: u0
+        u0 = sqrt(-1d0/(metric(:,1) + metric(:,5)*vr**2d0 + metric(:,8)*vth**2d0 &
+             + metric(:,10)*vph**2d0 + 2d0*metric(:,4)*vph))
+      end function calc_u0
 
-
-      end module kerr
+    end module kerr

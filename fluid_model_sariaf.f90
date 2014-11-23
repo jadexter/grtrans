@@ -2,13 +2,12 @@
 ! Semi-analytic RIAF model from Yuan, Quataert, Narayan (2003)
 ! And Broderick+ (2009)
 
-!  use class_four_vector
-!  use kerr, only: calc_rms, ledd, kerr_metric
   use phys_constants, only: c2, pi, mp
 
   implicit none
 
-  real :: riaf_pnth, riaf_n0, riaf_t0, riaf_nnth0, riaf_beta, riaf_bl06
+  real :: riaf_pnth, riaf_n0, riaf_t0, riaf_nnth0, riaf_beta
+  integer :: riaf_bl06
   
 !  interface read_sariaf_inputs
 !     module procedure read_sariaf_inputs
@@ -67,7 +66,8 @@
       write(6,*) 'fluid model sariaf inputs: ',riaf_pnth,riaf_n0,riaf_t0,riaf_nnth0,riaf_beta
     end subroutine init_sariaf
 
-    subroutine sariaf_vals(a,mu,riaf_u,riaf_neth,riaf_te,riaf_B,riaf_vr,riaf_vth,riaf_omega,riaf_nenth)
+    subroutine sariaf_vals(a,mu,riaf_u,riaf_neth,riaf_te,riaf_B,riaf_vr,riaf_vth,riaf_omega, &
+         riaf_nenth,bl06)
 !      real :: riaf_n0, riaf_t0,riaf_beta
       real, intent(in) :: a
       real, dimension(:), intent(in) :: riaf_u,mu
@@ -78,7 +78,7 @@
       real, dimension(size(mu)) :: riaf_mu
       real, dimension(size(riaf_u)), intent(out) :: riaf_neth, riaf_te, riaf_B, riaf_vr, riaf_omega, &
            riaf_vth, riaf_nenth
-
+      integer, intent(out) :: bl06
 !      write(6,*) 'hotspot sizes: ',size(x0), size(u)
 !r,mu,a,z,a2,rms,lambdae,delta,game,H,urimsarg,urims,utims,uphims,n0,t0,beta,rs
 !compare,neth,te,B,vr
@@ -114,7 +114,8 @@
 !      riaf_urims = -1.*sqrt(2./3./riaf_rms)*(riaf_urimsarg**(3./2.))
 !      riaf_utims = riaf_game*(1.+(2./riaf_r)*(1.+riaf_H))
 !      riaf_uphims = (riaf_game/riaf_r**2.)*(riaf_lambdae+riaf_a*riaf_H)
-      if(riaf_bl06.ne.1) then
+      bl06 = riaf_bl06
+      if(bl06.ne.1) then
          !From Broderick et al. (2009)
          riaf_neth = riaf_n0 * ((riaf_rs)**(-1.1))*exp(-.5*(riaf_z/riaf_a2)**2.) !will return rho0 eq
          riaf_nenth = riaf_nnth0 * ((riaf_rs)**(-riaf_pnth))*exp(-.5*(riaf_z/riaf_a2)**2.)
