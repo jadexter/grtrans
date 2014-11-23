@@ -3,7 +3,7 @@
       use class_four_vector
       use phys_constants, GC=>G
       use interpolate, only: interp, get_weight
-      use kerr, only: kerr_metric, lnrf_frame, calc_rms, krolikc, calc_polvec
+      use kerr, only: kerr_metric, lnrf_frame, calc_rms, krolikc, calc_polvec, calc_u0
       use fluid_model_sphacc, only: sphacc_vals, init_sphacc, del_sphacc
       use fluid_model_sariaf, only: sariaf_vals, init_sariaf, del_sariaf
       use fluid_model_constant, only: constant_vals, init_constant
@@ -881,37 +881,40 @@
              bmag,n,t,nnth
 !        real, dimension(size(x0)) :: g00,grr,ur
 !interim variables
-        real, dimension(size(x0)) :: gtt,gphi,gtphi,ub,aleph,bb
+        real, dimension(size(x0)) :: ub,aleph,bb
         real, dimension(size(x0)) :: rr, rho2,psi4,stheta
 !rms related variables
         real :: rms
 !r < rms intermediate variables
         real :: lambdae,game 
         real, dimension(size(x0)) :: delta,hhh 
-!checking variables
-!        real :: checkacc
-        real, dimension(size(x0),10) :: metric
-!        real, dimension(size(x0)) :: rrcompare, ferret, ferretbb, ferretub
-!        integer :: i,alwingood,alwinbad,idlgood,idlbad
+        real(8), dimension(size(x0),10) :: metric
+        real(8), dimension(size(x0)) :: hc,lc,d,ar,om,omtest,zero,vth,vphi,vr!,one,two
+        integer :: bl06
+! debugging stuff
+        real, dimension(size(x0)) :: rrcompare, ferret, ferretbb, ferretub
+        integer :: i,alwingood,alwinbad,idlgood,idlbad
+        real :: checkacc
 
         rr = x0%data(2)
         rms = calc_rms(a)
+        zero = 0d0
 
         lambdae = (rms**2. - 2.*a*sqrt(rms) + a**2.)/(rms**(3./2.)-2.*sqrt(rms)+a)
         game = sqrt(1.-2./3./rms)
         delta = rr*rr - 2.*rr + a*a
         hhh = (2.*rr-a*lambdae)/delta
 
-        u=1./x0%data(2)
+        u=1./rr
         ctheta =cos(x0%data(3))
         stheta = sin(x0%data(3))
         rho2 = rr**2. + a**2. * (ctheta)**2.
         psi4 = 2.*rr/rho2
 !kerr metric values copied from kerr.f90 kmetric_cov
-        gtt = -1.*(1.-psi4) !metric 1
-        gphi = (stheta*stheta) * (rho2 + a*a*(1.+2.*rr/rho2)*stheta*stheta) !metric 10
-        gtphi = -1.*psi4*a*stheta**2. !metric 4
-        call sariaf_vals(a,ctheta,u,n,t,bmag,riaf_vr,riaf_vth,riaf_omega,nnth)
+!        gtt = -1.*(1.-psi4) !metric 1
+!        gphi = (stheta*stheta) * (rho2 + a*a*(1.+2.*rr/rho2)*stheta*stheta) !metric 10
+!        gtphi = -1.*psi4*a*stheta**2. !metric 4
+        call sariaf_vals(a,ctheta,u,n,t,bmag,riaf_vr,riaf_vth,riaf_omega,nnth,bl06)
 !       ! b = riaf_B
 !        n = riaf_neth
 !        t = riaf_te
@@ -921,25 +924,65 @@
         
 !        gtt= -(1.-2.*u)!alwinremark
 !        gphi = !alwinremark
-        ub = gtt + riaf_omega*riaf_omega*gphi + 2.*riaf_omega*gtphi !&
+!        ub = gtt + riaf_omega*riaf_omega*gphi + 2.*riaf_omega*gtphi &
 !             + grr*riaf_vr*riaf_vr + gtheta*riaf_vth*riaf_vth
 !ub * u0**2. = -1
-        where(rr.lt.rms)
-           f%u%data(1) = game*(1.+2.*(1.+hhh)/rr)
-           f%u%data(2) = -1.*sqrt(2./3./rms)*(rms/rr-1.)**(3./2.)
-           f%u%data(3) = 0d0
-           f%u%data(4) = game*(lambdae + a*hhh)/rr/rr
-        elsewhere
-           f%u%data(1) =  sqrt(-1./ub) !what sign?
-           f%u%data(2) = 0d0 ! vr*f%u%data(1)
-           f%u%data(3) = 0d0 ! vth*f%u%data(1)
-           f%u%data(4) = riaf_omega * f%u%data(1)
-        endwhere
+!        where(rr.lt.rms)
+!           f%u%data(1) = game*(1.+2.*(1.+hhh)/rr)
+!           f%u%data(2) = -1.*sqrt(2./3./rms)*(rms/rr-1.)**(3./2.)
+!           f%u%data(3) = 0d0
+!           f%u%data(4) = game*(lambdae + a*hhh)/rr/rr
+!        elsewhere
+!           f%u%data(1) =  sqrt(-1./ub) !what sign?
+!           f%u%data(2) = 0d0 ! vr*f%u%data(1)
+!           f%u%data(3) = 0d0 ! vth*f%u%data(1)
+!           f%u%data(4) = riaf_omega * f%u%data(1)
+!        endwhere
 
-        aleph = -1.*(gtphi*f%u%data(1)+gphi*f%u%data(4)) &
-             /(gtt*f%u%data(1)+gtphi * f%u%data(4))
+! construct four-velocity from three-velocity
+        metric=kerr_metric(real(rr),real(x0%data(3)),a)
+        lc = (rms**2d0-2d0*a*sqrt(rms)+a**2d0)/(rms**1.5d0-2d0*sqrt(rms)+a)
+        d = rr**2d0-2d0*rr+a**2d0
+        ar = (rr**2d0+a**2d0)**2d0-a**2d0*d*sin(x0%data(3))
+        om = 2d0*a*rr/ar
+        hc = (2d0*rr-a*lc)/d
+        if(bl06.eq.-1) then
+! stationary or free-fall inside ISCO, from bhimage.f
+           where(rr.lt.rms)
+!              vr = zero
+!              vth = zero
+!              vphi = om
+              vr = sqrt(2d0*rr*(a**2d0+rr**2d0))*d/ar
+              vth = zero
+              vphi = om
+           elsewhere
+              vr = riaf_vr
+              vth = riaf_vth
+              vphi = riaf_omega
+           endwhere
+        else
+           where(rr.lt.rms)
+! conserved quantities
+              vr = zero
+              vth = zero
+              omtest=(lc+a*hc)/(rr**2d0+2d0*rr*(1d0+hc))
+              vphi=merge(omtest,om,omtest.ge.om)
+           elsewhere
+              vr = riaf_vr
+              vth = riaf_vth
+              vphi = riaf_omega
+           endwhere
+        endif
+
+        f%u%data(1) = calc_u0(metric,vr,vth,vphi)
+        f%u%data(2) = vr*f%u%data(1)
+        f%u%data(3) = vth*f%u%data(1)
+        f%u%data(4) = vphi*f%u%data(1)
+
+        aleph = -1.*(metric(:,4)*f%u%data(1)+metric(:,10)*f%u%data(4)) &
+             /(metric(:,1)*f%u%data(1)+metric(:,4) * f%u%data(4))
 !b0 = aleph*b_phi
-        bb = gtt*aleph*aleph + gphi + 2.*gtphi*aleph !I hope this is never negative
+        bb = metric(:,1)*aleph*aleph + metric(:,10) + 2.*metric(:,4)*aleph !I hope this is never negative
 !bb*b_phi**2. = Bmag**2.
         f%b%data(4) = bmag/sqrt(bb) !what sign?
         f%b%data(3) = 0d0
@@ -956,19 +999,18 @@
 !        elsewhere
 !           rrcompare = 1.0
 !        endwhere
-!        checkacc = 1e-5
-        metric=kerr_metric(real(x0%data(2)),real(x0%data(3)),a)
+        checkacc = 1e-5
 !        if(maxval(abs(gtt - metric(:,1))).gt.1e-5) then
 !           write(6,*) 'ERROR: gtt Metric'
 !        elseif(maxval(abs(gphi - metric(:,10))).gt.2e-4) then
 !           write(6,*) 'ERROR: gphi Metric: ',maxval(abs(gphi-metric(:,10)))
-!        elseif(maxval(abs(gtphi - metric(:,4))).gt.1e-4) then
-!           write(6,*) 'ERROR: gtphi Metric'
+!        elseif(maxval(abs(metric(:,4) - metric(:,4))).gt.1e-4) then
+!           write(6,*) 'ERROR: metric(:,4) Metric'
 !        else
 !           write(6,*) 'METRIC GOOD'
 !        endif
-        call assign_metric(f%u,transpose(metric))
-        call assign_metric(f%b,transpose(metric))
+!        call assign_metric(f%u,transpose(metric))
+!        call assign_metric(f%b,transpose(metric))
 !        ferret = abs(f%u * f%u + 1.0)
 !        ferretub = abs(f%u * f%b)
 !        ferretbb = abs(f%b * f%b - bmag**2.)
@@ -1013,9 +1055,15 @@
 !           write(6,*) 'When 0 points inside RMS, ERROR: ', alwingood,alwinbad
 !        endif
 !END 4 VECTOR CHECKING ROUTINES
-!        if(maxval(rrcompare*abs(f%u * f%u + 1.0)).gt.checkacc) then
+!        rrcompare = 1d0
+!        write(6,*) 'u dot b: ',f%u*f%b
+!        write(6,*) 'u dot u: ',f%u*f%u
+!        if(maxval(abs(f%u * f%u + 1.0)).gt.checkacc) then
 !           write(6,*) 'ALWIN WARNING: u dot u is wrong somewhere '
 !           write(6,*) 'Error size: ',maxval(rrcompare*abs(f%u * f%u + 1.0))
+!           write(6,*) 'u0: ',f%u%data(1)
+!           write(6,*) 'vr: ',vr
+!           write(6,*) 'vphi: ',vphi
 !        endif
 !        if(maxval((1.0-rrcompare)*abs(f%u * f%u + 1.0)).gt.checkacc) then
 !           write(6,*) 'IDL WARNING: u dot u is wrong somewhere '
@@ -1025,6 +1073,8 @@
 !        if(maxval(abs(f%u * f%b)).gt.checkacc) then
 !           write(6,*) 'WARNING: u dot b is wrong somewhere '
 !           write(6,*) 'Error size: ',maxval(abs(f%u * f%b))
+!           write(6,*) 'b0: ',f%b%data(1)
+!           write(6,*) 'u0: ',f%u%data(1)
 !        endif
 !        if(maxval(abs(f%b * f%b - bmag**2.)).gt.checkacc) then
 !           write(6,*) 'WARNING: b dot b is wrong somewhere ' 
