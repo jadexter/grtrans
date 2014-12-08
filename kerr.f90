@@ -81,6 +81,14 @@
          module procedure calc_u0
       end interface
 
+      interface rms_vel
+         module procedure rms_vel
+      end interface
+
+      interface calc_plunging_vel
+         module procedure calc_plunging_vel
+      end interface calc_plunging_vel
+
       contains
 
         function ledd(m) result(leddval)
@@ -339,14 +347,14 @@
         double precision, dimension(size(r)) :: cth,sth,delta, &
         rho2,sigma
         cth=cos(th); sth=sin(th)
-        delta=r*r-2.*r+a*a
+        delta=r*r-2d0*r+a*a
         rho2=r*r+a*a*cth*cth
         sigma=(r*r+a*a)**2-a*a*delta*sth*sth
         blmetric=0d0
         blmetric(:,1)=-((r*r+a*a)**2-a*a*delta*sth*sth)/rho2/delta
-        blmetric(:,4)=-2*a*r/rho2/delta
+        blmetric(:,4)=-2d0*a*r/rho2/delta
         blmetric(:,5)=delta/rho2
-        blmetric(:,8)=1./rho2
+        blmetric(:,8)=1d0/rho2
         blmetric(:,10)=(delta-a*a*sth*sth)/delta/rho2/sth/sth
 !        gmunu=transpose(blmetric)
         end function blmetric_con
@@ -556,7 +564,7 @@
              aahatm,aahatr,aahatp,delta,al1,al2,al3,uhatp,ahatt,ahatm, &
              ahatr,ahatp,bdotb,bdotk,kdotk,om,om2,knorm,anorm,bpdotbp, &
              bpdotbb,aadotbp,sxi,cxi,eps,one,mone,angnorm,angmin,angmax, &
-             cxitest,sxitest,xi
+             cxitest,sxitest,xi,be1,be2
         double precision, dimension(size(r),3) :: aahat &
            ,bbhat
         double precision, dimension(size(r),3) :: bphat
@@ -627,21 +635,32 @@
         bbhat(:,2)=-(aahat(:,3)*khatr-aahat(:,1)*khatp)/sqrt(knorm)
         bbhat(:,3)=-(aahat(:,1)*khatm-aahat(:,2)*khatr)/sqrt(knorm)
         bdotk=bhat%data(2)*khatr+bhat%data(3)*khatm+bhat%data(4)*khatp
-        bphat(:,1)=bhat%data(2)-khatr*bdotk/knorm
-        bphat(:,2)=bhat%data(3)-khatm*bdotk/knorm
-        bphat(:,3)=bhat%data(4)-khatp*bdotk/knorm
-        aadotbp=dot_product(aahat,bphat)
-        bpdotbp=dot_product(bphat,bphat)
-        bpdotbb=dot_product(bphat,bbhat)
+!        bphat(:,1)=bhat%data(2)-khatr*bdotk/knorm
+!        bphat(:,2)=bhat%data(3)-khatm*bdotk/knorm
+!        bphat(:,3)=bhat%data(4)-khatp*bdotk/knorm
+!        aadotbp=dot_product(aahat,bphat)
+!        bpdotbp=dot_product(bphat,bphat)
+!        bpdotbb=dot_product(bphat,bbhat)
+!        write(6,*) 'test aadotbp: ',aadotbp/sqrt(bpdotbp)
+!        write(6,*) 'test aadotbp 2: ',(aahat(:,1)*bhat%data(2)+aahat(:,2)*bhat%data(3)+bhat%data(4)*aahat(:,3))/ &
+!             sqrt((aahat(:,1)*bhat%data(2)+aahat(:,2)*bhat%data(3)+aahat(:,3)*bhat%data(4))**2.+(bbhat(:,1) &
+!             *bhat%data(2)+bbhat(:,2)*bhat%data(3)+bbhat(:,3)*bhat%data(4))**2.)
+!        write(6,*) 'test aadotbp max: ',maxval(abs(aadotbp-aahat(:,1)*bhat%data(2)+aahat(:,2)*bhat%data(3)+bhat%data(4)*aahat(:,3)))
 ! Now compute angle between polarization basis and magnetic field:
 ! if field is zero, emissivity = 0 so arbitrary angles to prevent NaNs
-        where(bpdotbp.gt.0d0)
-           sxi=aadotbp/sqrt(bpdotbp)
-           cxi=-bpdotbb/sqrt(bpdotbp)
+        where(bdotb.gt.0d0)
+           aadotbp=bhat%data(2)*aahat(:,1)+bhat%data(3)*aahat(:,2)+bhat%data(4)*aahat(:,3)
+           bpdotbb=bhat%data(2)*bbhat(:,1)+bhat%data(3)*bbhat(:,2)+bhat%data(4)*bbhat(:,3)
+           s2xi=-2d0*aadotbp*bpdotbb/(aadotbp**2.+bpdotbb**2.)
+           c2xi=(bpdotbb*bpdotbb-aadotbp*aadotbp)/(aadotbp**2.+bpdotbb**2.)
+!           sxi=aadotbp/sqrt(bpdotbp)
+!           cxi=-bpdotbb/sqrt(bpdotbp)
            angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
         elsewhere
-           sxi=0d0
-           cxi=one
+!           sxi=0d0
+!           cxi=one
+           s2xi=0d0
+           c2xi=one
            angnorm=0.5d0
         endwhere
  !       write(6,*) 'bperp: ',bpdotbp,bdotb
@@ -654,7 +673,15 @@
 !             (aahat(:,1)*khatr+aahat(:,2)*khatm+aahat(:,3)*khatp)*(khat*bhat)/knorm/sqrt(bdotb)
         !write(6,*) 'cxitest: ',cxi,cxitest
         !write(6,*) 'sxitest: ',sxi,sxitest
-        s2xi=2d0*sxi*cxi; c2xi=cxi*cxi-sxi*sxi
+!        s2xi=2d0*sxi*cxi; c2xi=cxi*cxi-sxi*sxi
+! roman version manifestly has s2xi^2+c2xi^2 = 1, doesn't need bperp.
+!        write(6,*) 's2xi: ',s2xi
+!        Be1=bhat%data(2)*ahat%data(2)+bhat%data(3)*ahat%data(3)+bhat%data(4)*ahat%data(4)
+!        Be2=bhat%data(2)*bbhat(:,1)+bhat%data(3)*bbhat(:,2)+bhat%data(4)*bbhat(:,3)
+!        write(6,*) 's2xi roman: ',-2*Be1*Be2/(Be1*Be1+Be2*Be2)
+!        write(6,*) 'c2xi: ',c2xi
+!        write(6,*) 'c2xi roman: ',(-Be1*Be1+Be2*Be2)/(Be1*Be1+Be2*Be2)
+!        write(6,*) 'c2xi bp: ',(-aadotbp*aadotbp+bpdotbb*bpdotbb)/(aadotbp*aadotbp+bpdotbb*bpdotbb)
 !        s2xi=sin(2d0*xi); c2xi=cos(2d0*xi)
         !angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
 !        write(6,*) 'cdot: ',b(1)%data,u(1)%data,k(1)%data
@@ -860,16 +887,21 @@
 ! Now compute angle between polarization basis and magnetic field:
         one=1d0; mone=-one; angmin=-.9999d0; angmax=-1d0*angmin
         where(bpdotbp.gt.0d0)
+           aadotbp=bhat%data(2)*aahat(:,1)+bhat%data(3)*aahat(:,2)+bhat%data(4)*aahat(:,3)
+           bpdotbb=bhat%data(2)*bbhat(:,1)+bhat%data(3)*bbhat(:,2)+bhat%data(4)*bbhat(:,3)
+           s2xi=-2d0*aadotbp*bpdotbb/(aadotbp**2.+bpdotbb**2.)
+           c2xi=(bpdotbb*bpdotbb-aadotbp*aadotbp)/(aadotbp**2.+bpdotbb**2.)
            sxi=aadotbp/sqrt(bpdotbp)
            cxi=-bpdotbb/sqrt(bpdotbp)
            angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
+!        where(
         elsewhere
            sxi=0d0
            cxi=one
            angnorm=0.5d0
         endwhere
 !        write(6,*) 'cxi: ',cxi
-        s2xi=2.*sxi*cxi; c2xi=cxi*cxi-sxi*sxi
+!        s2xi=2.*sxi*cxi; c2xi=cxi*cxi-sxi*sxi
 !        write(6,*) 'angnorm', angnorm
 !        write(6,*) 'bdotk: ',bdotk/sqrt(knorm)/sqrt(bdotb)
 !        write(6,*) 'knorm: ',knorm
@@ -1048,7 +1080,7 @@
       dth(:,2:nx2,:)=th(:,2:nx2,:)-th(:,1:nx2-1,:)
       dth(:,1,:)=dth(:,nx2,:)
       s=sum(x*gdet*dth*dph,3)*nx2
-      write(6,*) 'ph integral: ',minval(s),maxval(s),minval(x),maxval(x)
+!      write(6,*) 'ph integral: ',minval(s),maxval(s),minval(x),maxval(x)
       end function ph_integral
 
       function calc_u0(metric,vr,vth,vph) result(u0)
@@ -1059,5 +1091,62 @@
         u0 = sqrt(-1d0/(metric(:,1) + metric(:,5)*vr**2d0 + metric(:,8)*vth**2d0 &
              + metric(:,10)*vph**2d0 + 2d0*metric(:,4)*vph))
       end function calc_u0
+
+      subroutine calc_rms_constants(a,ems,lms,rms)
+        real(8), intent(in) :: a
+        real(8), intent(out) :: ems,lms,rms
+        real(8) :: v
+        rms = dble(calc_rms(real(a)))
+        v = 1d0/sqrt(rms)
+        ems = (1d0-2d0*v*v+a*v*v*v)/sqrt(1d0-3d0*v*v+2d0*a*v*v*v)
+        lms = rms*v*(1d0-2d0*a*v*v*v+a*a*v*v*v*v)/sqrt(1d0-3d0*v*v+2d0*a*v*v*v)
+        return
+      end subroutine calc_rms_constants
+
+      function calc_plunging_vel(a,r) result(fu)
+        real(8), intent(in) :: a
+        real(8), dimension(:), intent(in) :: r
+        type (four_vector), dimension(size(r)) :: fu
+        real(8) :: ems,lms,rms,rh
+        real(8), dimension(size(r)) :: pt,pr,pphi,th
+        real(8), dimension(size(r),10) :: metriccon
+! this is way based on Hughes (2000, 2001), Schnittman PhD. equivalently there is analytic way from old code that seems to give ~same result.
+        call calc_rms_constants(a,ems,lms,rms)
+!        write(6,*) 'kerr plunging vel rms constants: ',ems,lms,rms,minval(r),maxval(r)
+        th = pi/2d0
+        metriccon = kerr_metric(r,th,a,1)
+        pt = -metriccon(:,1)*ems + metriccon(:,4)*lms
+        pr = -sqrt(-metriccon(:,5)*(1d0+metriccon(:,1)*ems*ems-2d0*metriccon(:,4)*ems*lms+metriccon(:,10)*lms*lms))
+        pphi = -metriccon(:,4)*ems+metriccon(:,10)*lms
+        fu%data(1)=pt
+        fu%data(2)=pr
+        fu%data(3)=0d0
+        fu%data(4)=pphi
+!        write(6,*) 'kerr plunging vel fu: ',minval(pt),maxval(pt),minval(pr),maxval(pr),minval(pphi),maxval(pphi)
+      end function calc_plunging_vel
+
+      function rms_vel(a,th,r) result(fu)
+        real(8), intent(in) :: a
+        real(8), intent(in), dimension(:) :: th,r
+        type (four_vector), dimension(size(r)) :: fu,fueq
+        real(8), dimension(size(r)) :: vrl,vtl,vpl,vrr,vtt,vpp,u0,theq
+        real(8), dimension(size(r),10) :: metric
+! plunging four-velocity in equatorial plane
+        fueq = calc_plunging_vel(a,r)
+        theq = pi/2d0
+! transform to lnrf
+        call lnrf_frame(fueq%data(2)/fueq%data(1),fueq%data(3)/fueq%data(1), &
+             fueq%data(4)/fueq%data(1),r,a,theq,vrl,vtl,vpl)
+!        write(6,*) 'kerr rms_vel lnrf 1: ',maxval(vrl),minval(vrl),maxval(vpl),minval(vpl)
+! invert but at real \theta outside equatorial plane
+        call lnrf_frame(vrl,vtl,vpl,r,a,th,vrr,vtt,vpp,1)
+        metric=kerr_metric(r,th,a)
+        u0=calc_u0(metric,vrr,vtt,vpp)
+!        write(6,*) 'kerr rms_vel u0: ',minval(u0),maxval(u0)
+        fu%data(1)=u0; fu%data(2)=u0*vrr; fu%data(3)=u0*vtt; fu%data(4)=u0*vpp
+! now test
+        call assign_metric(fu,transpose(metric))
+!        write(6,*) 'kerr rms_vel udotu: ',maxval(abs(fu*fu+1d0))
+      end function rms_vel
 
     end module kerr
