@@ -438,6 +438,8 @@
         rd=(zr-uniqr(lx1))/(uniqr(ux1)-uniqr(lx1))
 ! When the geodesic is inside the innermost zone center located outside the horizon, 
 ! use nearest neighbor rather than interpolate
+!        write(6,*) 'fluid model thickdisk a: ',a,(1.+sqrt(1.-a**2.))
+!        write(6,*) 'fluid model thickdisk uniqr: ',uniqr(lx1)
         where(uniqr(lx1).le.(1.+sqrt(1.-a**2.)))
            rd=1.
         endwhere
@@ -538,6 +540,7 @@
 !        write(6,*) 'interp test u: ',x1(7041),x2(7041),x3(7041)
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
+!        write(6,*) 'fluid model thickdisk udotu: ',u*u
 !        write(6,*) '7041: ',u(7041)*u(7041)
         if(DEBUG.eq.1) then
         ! output quantities for debugging
@@ -554,8 +557,13 @@
            write(8,*) rd,td,pd
            write(8,*) x1l,x1u,x2l,x2u,x3l,x3u
            write(8,*) indx
-           write(8,*) u0i, vrli, vtli, vpli
+!           write(6,*) 'test u0i vrli: ',maxval(abs(u0i-vrli))
+           write(8,*) u0i
+           write(8,*) vrli
+           write(8,*) vtli
+           write(8,*) vpli
            write(8,*) u%data(1), u%data(2), u%data(3), u%data(4)
+           close(unit=8)
         endif
 !        write(6,*) 'thickdisk vals rho: ',rho
 !        write(6,*) 'thickdisk vals minloc: ',minloc(rho),rd(minloc(rho)), &
@@ -953,7 +961,7 @@
             if(present(test)) then
                write(6,*) 'vals: ',xbr,rout,b(1)%data,u(1)%data,x1_arr(1),x2_arr(1),x3_arr(1)
                write(6,*) 'bmin: ',minval(b*b),maxval(b*b), b(1)*b(1)
-               write(6,*) 'udotu: ',maxval(abs(u*u+1.)), u(1)*u(1)+1.
+               write(6,*) 'fluid model thickdisk udotu: ',maxval(abs(u*u+1.)), u(1)*u(1)+1.
             endif
         end subroutine read_thickdisk_fieldline_file
 
@@ -1273,8 +1281,9 @@
            br_arr((k-1)*n+1:k*n)=b%data(2)
            bth_arr((k-1)*n+1:k*n)=b%data(3)
            bph_arr((k-1)*n+1:k*n)=b%data(4)
-!           write(6,*) 'v assign'
+           write(6,*) 'fluid model thickdisk v assign: ',k,n,(k-1)*n+1,k*n,size(u%data(1))
            u0_arr((k-1)*n+1:k*n)=u%data(1)
+           write(6,*) 'fluid model thickdisk u0_arr min max udotu: ', minval(u0_arr),maxval(u0_arr),maxval(abs(u*u+1d0))
 !           write(6,*) 'vrl assign'
 ! for some applications want lnrf vels rather than four-velocity
            if(transform.eq.1) then
@@ -1305,7 +1314,7 @@
         deallocate(rho); deallocate(p); deallocate(u); deallocate(b)
         deallocate(vrl); deallocate(vtl); deallocate(vpl)
 !        write(6,*) 'read data file', a
-        write(6,*) maxval(vrl_arr**2.+vtl_arr**2.+vpl_arr**2.)
+        write(6,*) 'fluid model thickdisk vmax: ',maxval(vrl_arr**2.+vtl_arr**2.+vpl_arr**2.)
 !        write(6,*) 'maxmin temp: ',minval(p_arr/rho_arr*1.67e-24*9e20/1.38e-16), &
 !             maxval(p_arr/rho_arr*1.67e-24*9e20/1.38e-16)
         end subroutine load_thickdisk_data

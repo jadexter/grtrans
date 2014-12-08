@@ -2,7 +2,7 @@
 
       use geodesics
       use class_four_Vector
-      use kerr, only: calc_polar_psi, comoving_ortho_debug, calc_kappapw
+      use kerr, only: calc_polar_psi, comoving_ortho_debug, comoving_ortho, calc_kappapw
       use grtrans_inputs
       use phys_constants, GC=>G
       use fluid_model
@@ -18,13 +18,18 @@
       integer :: gunit, status
       type (geo) :: g
       type (geokerr_args) :: gargs
+      type (fluid_args) :: fargs
       type (fluid) :: f
-      character(len=20) :: file='inputs.in'
+      character(len=100) :: file='inputs.in'
 
       call read_inputs(file)
+      call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+            fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta,&
+            fbl06)
 
       write(6,*) 'inputs read'
-      call load_fluid_model(fname,spin)
+      call load_fluid_model(fname,spin,fargs)
 !      call initialize_pixels(gargs,.true.,standard,mu0,spin,uout,rcut,
 !     & nrotype,a1,a2,b1,b2,nro,nphi,nup)
       write(6,*) 'fluid loaded', standard, mu0(1), spin, uout, uin, rcut, nrotype
@@ -34,7 +39,7 @@
       call initialize_pixels(gargs,.true.,standard,mu0(1),phi0,spin,uout,uin, &
         rcut,nrotype,a1,a2,b1,b2,nro,nphi,nup)
       write(6,*) 'pixels'
-      call initialize_geodesic(g,gargs,1,status)
+      call initialize_geodesic(g,gargs,6258,status)
       write(6,*) 'geo'
       call initialize_fluid_model(f,fname,spin,g%npts)
       write(6,*) 'init fluid', size(g%x), g%gk%a
@@ -52,6 +57,8 @@
            g%gk%beta,rshift,g%gk%mu0,g%k,c2psi,s2psi,cosne)
 ! Test difference between psi, chi:
       maxang=maxval(abs(c2psi-c2xi))
+      write(6,*) 'test kerr xi: ',c2xi
+      write(6,*) 'test kerr psi: ',c2psi
 ! I don't think these should be the same -- using f%b as the polarization angle not the emission angle
       maxkbdiff=maxval(abs(ang-cosne))
 ! Test chi:
