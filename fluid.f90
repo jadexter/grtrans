@@ -946,13 +946,13 @@
         ar = (rr**2d0+a**2d0)**2d0-a**2d0*d*sin(x0%data(3))
         om = 2d0*a*rr/ar
         hc = (2d0*rr-a*lc)/d
-        if(bl06.eq.-1) then
+        if(bl06.eq.1) then
 ! stationary or free-fall inside ISCO, from bhimage.f
            where(rr.lt.rms)
 !              vr = zero
 !              vth = zero
 !              vphi = om
-              vr = sqrt(2d0*rr*(a**2d0+rr**2d0))*d/ar
+              vr = -sqrt(2d0*rr*(a**2d0+rr**2d0))*d/ar
               vth = zero
               vphi = om
            elsewhere
