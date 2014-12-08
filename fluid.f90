@@ -3,7 +3,7 @@
       use class_four_vector
       use phys_constants, GC=>G
       use interpolate, only: interp, get_weight
-      use kerr, only: kerr_metric, lnrf_frame, calc_rms, krolikc, calc_polvec, calc_u0
+      use kerr, only: kerr_metric, lnrf_frame, calc_rms, krolikc, calc_polvec, calc_u0, rms_vel
       use fluid_model_sphacc, only: sphacc_vals, init_sphacc, del_sphacc
       use fluid_model_sariaf, only: sariaf_vals, init_sariaf, del_sariaf
       use fluid_model_constant, only: constant_vals, init_constant
@@ -889,12 +889,13 @@
         real :: lambdae,game 
         real, dimension(size(x0)) :: delta,hhh 
         real(8), dimension(size(x0),10) :: metric
-        real(8), dimension(size(x0)) :: hc,lc,d,ar,om,omtest,zero,vth,vphi,vr!,one,two
+        real(8), dimension(size(x0)) :: hc,lc,d,ar,om,omtest,zero,vth,vphi,vr,u0!,one,two
         integer :: bl06
 ! debugging stuff
         real, dimension(size(x0)) :: rrcompare, ferret, ferretbb, ferretub
         integer :: i,alwingood,alwinbad,idlgood,idlbad
         real :: checkacc
+        type (four_vector), dimension(size(x0)) :: fu
 
         rr = x0%data(2)
         rms = calc_rms(a)
@@ -946,38 +947,50 @@
         ar = (rr**2d0+a**2d0)**2d0-a**2d0*d*sin(x0%data(3))
         om = 2d0*a*rr/ar
         hc = (2d0*rr-a*lc)/d
-        if(bl06.eq.1) then
+!        if(bl06.eq.1) then
 ! stationary or free-fall inside ISCO, from bhimage.f
-           where(rr.lt.rms)
+!           where(rr.lt.rms)
 !              vr = zero
+!              vr = sqrt(2d0*rr*(a**2d0+rr**2d0))*d/ar
 !              vth = zero
 !              vphi = om
-              vr = -sqrt(2d0*rr*(a**2d0+rr**2d0))*d/ar
-              vth = zero
-              vphi = om
-           elsewhere
-              vr = riaf_vr
-              vth = riaf_vth
-              vphi = riaf_omega
-           endwhere
-        else
-           where(rr.lt.rms)
+!           elsewhere
+!              vr = riaf_vr
+!              vth = riaf_vth
+!              vphi = riaf_omega
+!           endwhere
+!        else
+!           where(rr.lt.rms)
 ! conserved quantities
-              vr = zero
-              vth = zero
-              omtest=(lc+a*hc)/(rr**2d0+2d0*rr*(1d0+hc))
-              vphi=merge(omtest,om,omtest.ge.om)
-           elsewhere
-              vr = riaf_vr
-              vth = riaf_vth
-              vphi = riaf_omega
-           endwhere
-        endif
+!              vr = zero
+!              vth = zero
+!              omtest=(lc+a*hc)/(rr**2d0+2d0*rr*(1d0+hc))
+!              vphi=merge(omtest,om,omtest.ge.om)
+!           elsewhere
+!              vr = riaf_vr
+!              vth = riaf_vth
+!              vphi = riaf_omega
+!           endwhere
+!        endif
 
-        f%u%data(1) = calc_u0(metric,vr,vth,vphi)
-        f%u%data(2) = vr*f%u%data(1)
-        f%u%data(3) = vth*f%u%data(1)
-        f%u%data(4) = vphi*f%u%data(1)
+        u0 = calc_u0(metric,dble(riaf_vr),dble(riaf_vth),dble(riaf_omega))
+        fu = rms_vel(dble(a),x0%data(3),x0%data(2))
+        where(rr.lt.rms)
+           f%u%data(1) = fu%data(1)
+           f%u%data(2) = fu%data(2)
+           f%u%data(3) = fu%data(3)
+           f%u%data(4) = fu%data(4)
+        elsewhere
+           f%u%data(1) = u0
+           f%u%data(2) = riaf_vr*f%u%data(1)
+           f%u%data(3) = riaf_vth*f%u%data(1)
+           f%u%data(4) = riaf_omega*f%u%data(1)
+        endwhere
+
+!        f%u%data(1) = calc_u0(metric,vr,vth,vphi)
+!        f%u%data(2) = vr*f%u%data(1)
+!        f%u%data(3) = vth*f%u%data(1)
+!        f%u%data(4) = vphi*f%u%data(1)
 
         aleph = -1.*(metric(:,4)*f%u%data(1)+metric(:,10)*f%u%data(4)) &
              /(metric(:,1)*f%u%data(1)+metric(:,4) * f%u%data(4))
@@ -1009,8 +1022,8 @@
 !        else
 !           write(6,*) 'METRIC GOOD'
 !        endif
-!        call assign_metric(f%u,transpose(metric))
-!        call assign_metric(f%b,transpose(metric))
+        call assign_metric(f%u,transpose(metric))
+        call assign_metric(f%b,transpose(metric))
 !        ferret = abs(f%u * f%u + 1.0)
 !        ferretub = abs(f%u * f%b)
 !        ferretbb = abs(f%b * f%b - bmag**2.)

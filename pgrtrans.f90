@@ -171,7 +171,7 @@
 !$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
                   do i=1,c(1)%nx*c(1)%ny
                      !                write(6,*) 'i: ',i
-!                  do i=8323,8323
+!                  do i=15501,15999
                      !                 write(6,*) 'i: ',i
 !                write(6,*) 'after loop spin: ',mdots(1),mbh
                      call grtrans_driver(gargs,gunit,c,i,(j-1)*nt+l,iname,ename,fname, &
