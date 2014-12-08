@@ -740,10 +740,12 @@
       tm=-(eps11m22+targ)/2d0/eps12
       rhov=2d0*pi*nu/c*eps12
       rhoq=2d0*pi*nu/2d0/c*eps11m22
+! confusion about sign of rhoq. Shcherbakov (2008) disagrees with Huang & Shcherbakov (2011). Statement is different basis vectors. Basis looks identical between SH10, which I follow, and HS11. So I did signs as in Huang & Shcherbakov.
+!      rhoq=-2d0*pi*nu/2d0/c*eps11m22
 ! test unpolarized
 !      jq=0.; jv=0.; aq=0.; av=0.; rhoq=0.; rhov=0.
 ! w/o Faraday:
-      rhoq=0.; rhov=0
+!      rhoq=0.; rhov=0
       e=reshape((/ji,jq,ju,jv,ai,aq,au,av,
      & rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
 !      write(6,*) 'ai: ',ai, e(:,5), e(:,1), ji

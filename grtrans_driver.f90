@@ -88,22 +88,22 @@
          if (WRITE_GEO==1) then
             nitems=18
 ! Dump geodesic information for debugging
-            open(unit=8,file='geodebug.out',form='formatted')
+            open(unit=9,file='geodebug.out',form='formatted')
               ! header with number of points, number of items, mdot, mbh, frequency
-            write(8,*) g%npts, nitems, g%gk%alpha(1), g%gk%beta(1),g%gk%su,g%gk%sm, &
+            write(9,*) g%npts, nitems, g%gk%alpha(1), g%gk%beta(1),g%gk%su,g%gk%sm, &
                           sparams%mdot,sparams%mbh, fac
 ! geodesic properties
-            write(8,*) g%lambda
-            write(8,*) g%x%data(1)
-            write(8,*) g%x%data(2)
-            write(8,*) g%x%data(3)
-            write(8,*) g%x%data(4)
-            write(8,*) g%k%data(1)
-            write(8,*) g%k%data(2)
-            write(8,*) g%k%data(3)
-            write(8,*) g%k%data(4)
-            write(8,*) g%tprarr
-            write(8,*) g%tpmarr
+            write(9,*) g%lambda
+            write(9,*) g%x%data(1)
+            write(9,*) g%x%data(2)
+            write(9,*) g%x%data(3)
+            write(9,*) g%x%data(4)
+            write(9,*) g%k%data(1)
+            write(9,*) g%k%data(2)
+            write(9,*) g%k%data(3)
+            write(9,*) g%k%data(4)
+            write(9,*) g%tprarr
+            write(9,*) g%tpmarr
          endif
          if(status==1.and.g%npts.gt.0) then
 !            hmax=(g%lambda(1)-g%lambda(2))/3.
@@ -271,41 +271,41 @@
 !                  write(6,*) 'after save'
                   if (WRITE_GEO==1) then
 ! fluid properties
-                     write(8,*) f%rho
-                     write(8,*) f%p
-                     write(8,*) f%bmag
-                     write(8,*) f%u%data(1)
-                     write(8,*) f%u%data(2)
-                     write(8,*) f%u%data(3)
-                     write(8,*) f%u%data(4)
-                     write(8,*) f%b%data(1)
-                     write(8,*) f%b%data(2)
-                     write(8,*) f%b%data(3)
-                     write(8,*) f%b%data(4)
+                     write(9,*) f%rho
+                     write(9,*) f%p
+                     write(9,*) f%bmag
+                     write(9,*) f%u%data(1)
+                     write(9,*) f%u%data(2)
+                     write(9,*) f%u%data(3)
+                     write(9,*) f%u%data(4)
+                     write(9,*) f%b%data(1)
+                     write(9,*) f%b%data(2)
+                     write(9,*) f%b%data(3)
+                     write(9,*) f%b%data(4)
 ! emission properties
-                     write(8,*) e%ncgs
-                     write(8,*) e%tcgs
-                     write(8,*) e%bcgs
-                     write(8,*) e%rshift
-                     write(8,*) e%incang
-                     write(8,*) e%j(:,1)
-                     write(8,*) e%K(:,1)
+                     write(9,*) e%ncgs
+                     write(9,*) e%tcgs
+                     write(9,*) e%bcgs
+                     write(9,*) e%rshift
+                     write(9,*) e%incang
+                     write(9,*) e%j(:,1)
+                     write(9,*) e%K(:,1)
 ! Faraday rotation, conversion coefs
-                     write(8,*) e%j(:,2)
-                     write(8,*) e%j(:,4)
-                     write(8,*) e%K(:,2)
-                     write(8,*) e%K(:,4)
-                     write(8,*) e%K(:,5)
-                     write(8,*) e%K(:,7)
-                     write(8,*) r%I(1,:)/fac
-                     write(8,*) r%I(2,:)/fac
-                     write(8,*) r%I(3,:)/fac
-                     write(8,*) r%I(4,:)/fac
-                     write(8,*) tau
-                     write(8,*) e%j(:,3)
-                     write(8,*) e%K(:,3)
-                     write(8,*) e%K(:,6)
-                     close(unit=8)
+                     write(9,*) e%j(:,2)
+                     write(9,*) e%j(:,4)
+                     write(9,*) e%K(:,2)
+                     write(9,*) e%K(:,4)
+                     write(9,*) e%K(:,5)
+                     write(9,*) e%K(:,7)
+                     write(9,*) r%I(1,:)/fac
+                     write(9,*) r%I(2,:)/fac
+                     write(9,*) r%I(3,:)/fac
+                     write(9,*) r%I(4,:)/fac
+                     write(9,*) tau
+                     write(9,*) e%j(:,3)
+                     write(9,*) e%K(:,3)
+                     write(9,*) e%K(:,6)
+                     close(unit=9)
                   endif
                   call del_rad_trans(r)
            !           write(6,*) 'after rad'

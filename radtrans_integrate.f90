@@ -348,12 +348,12 @@
         double precision, intent(out), dimension(neq) :: dIdlam
         double precision, intent(in), dimension(neq) :: I
       !         write(6,*) 'rhs: ',IS_LINEAR_STOKES,size(I),size(K),size(J)
-        if (IS_LINEAR_STOKES==1) then
+!        if (IS_LINEAR_STOKES==1) then
            dIdlam(1)=j(1)-(K(1)*I(1)+K(2)*I(2)+K(3)*I(3)+K(4)*I(4))
            dIdlam(2)=j(2)-(K(2)*I(1)+K(1)*I(2)+K(7)*I(3)-K(6)*I(4))
            dIdlam(3)=j(3)-(K(3)*I(1)-K(7)*I(2)+K(1)*I(3)+K(5)*I(4))
            dIdlam(4)=j(4)-(K(4)*I(1)+K(6)*I(2)-K(5)*I(3)+K(1)*I(4))
-        endif
+!        endif
       end subroutine radtrans_rhs_form
 
       subroutine radtrans_rhs_form_npol(neq,j,K,rshift,dIdlam,I)
@@ -387,7 +387,7 @@
         double precision, intent(in), dimension(1+neq*(neq-1)/2) :: K
         double precision, intent(out), dimension(nrowpd,neq) :: pd
         !      write(6,*) 'jac: ',nrowpd,neq,size(K)
-        if (IS_LINEAR_STOKES==1) then
+!        if (IS_LINEAR_STOKES==1) then
            pd(1,1)=K(1)
            pd(1,2)=K(2)
            pd(1,3)=K(3)
@@ -405,7 +405,7 @@
            pd(4,3)=-K(5)
            pd(4,4)=K(1)
            pd=-1d0*pd
-        endif
+!        endif
 !         write(6,*) 'pd: ',pd
         return
       end subroutine radtrans_jac_form
