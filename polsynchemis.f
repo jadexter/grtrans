@@ -729,7 +729,7 @@
       wp2=4d0*pi*n*ec**2/m
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1.d3*omega0/2d0/pi/nu))
-      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4*
+      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4*
      &(beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)*
      & sin(theta)**2
       eps12=shgfunc(xarg)*wp2*omega0/(2d0*pi*nu)**3*
@@ -741,7 +741,10 @@
       rhov=2d0*pi*nu/c*eps12
       rhoq=2d0*pi*nu/2d0/c*eps11m22
 ! confusion about sign of rhoq. Shcherbakov (2008) disagrees with Huang & Shcherbakov (2011). Statement is different basis vectors. Basis looks identical between SH10, which I follow, and HS11. So I did signs as in Huang & Shcherbakov.
-!      rhoq=-2d0*pi*nu/2d0/c*eps11m22
+! limiting case for rhoq for small \nu / \nu_T where S08 approximations break down:
+!      rhoqlim=2d0**(2d0/3d0)/3d0**(7d0/2d0)*pi*n*ec**2d0/m/c/thetae**3/nuc* &
+!        xm**(-5d0/3d0)
+! this is implemented directly in shffunc now, see 12/9/2014 notes or idl polsynchemis.pro
 ! test unpolarized
 !      jq=0.; jv=0.; aq=0.; av=0.; rhoq=0.; rhov=0.
 ! w/o Faraday:
@@ -769,6 +772,17 @@
      &         dexp(-x**(1.2d0)/2.73d0)
      &         -.011d0*dexp(-x/47.2d0)
         end function shffunc
+
+        function jffunc(x)
+          ! Fitting function F(X) from Shcherbakov (2008), modified to match Jones & Hardee small \nu/\nu_c limit. See 12/9/2014 notes.
+          double precision, intent(in), dimension(:) :: x
+          double precision, dimension(size(x)) :: jffunc,extraterm
+          extraterm=(.011*exp(-x/47.2)-2.**(-1./3.)/3.**(23./6.)*pi*1d4*
+     &       (X+1d-16)**(-8./3.))*(0.5+0.5*tanh((log(x)-log(120d0))/0.1d0))
+          jffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)*
+     &         dexp(-x**(1.2d0)/2.73d0)
+     &         -.011d0*dexp(-x/47.2d0)+extraterm
+        end function jffunc
 
         function shgfunc(x)
         ! Fitting function G(X) from Shcherbakov (2008)
