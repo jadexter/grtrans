@@ -6,6 +6,7 @@
       use kerr, only: kerr_metric, lnrf_frame, calc_rms, krolikc, calc_polvec, calc_u0, rms_vel
       use fluid_model_sphacc, only: sphacc_vals, init_sphacc, del_sphacc
       use fluid_model_sariaf, only: sariaf_vals, init_sariaf, del_sariaf
+      use fluid_model_powerlaw, only: powerlaw_vals, init_powerlaw, del_powerlaw
       use fluid_model_constant, only: constant_vals, init_constant
       use fluid_model_toyjet, only: initialize_toyjet_model, del_toyjet_data, &
                                     toyjet_vals
@@ -28,7 +29,7 @@
       integer, parameter :: CONST=0,TAIL=1
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6,CONSTANT=7
       integer, parameter :: COSMOS=10,MB=11,HARM=12,TOYJET=13,NUMDISK=14,THICKDISK=15,MB09=16
-      integer, parameter :: SARIAF=17
+      integer, parameter :: SARIAF=17,POWERLAW=18
 
       type fluid
         integer :: model, nfreq
@@ -43,7 +44,8 @@
          integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset, &
               dindf,magcrit,bl06
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
-              fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta
+              fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta, &
+              np,tp
       end type
 
       type source_params
@@ -112,13 +114,13 @@
 
         subroutine assign_fluid_args(fargs,dfile,hfile,gfile,sim,nt,indf,nfiles,jonfix, &
              nw,nfreq_tab,nr,offset,dindf,magcrit,rspot,r0spot,n0spot,tscl,rscl, &
-             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06)
+             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06,np,tp)
           type (fluid_args), intent(inout) :: fargs
           character(len=40), intent(in) :: dfile,hfile,gfile,sim
           integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf, &
                magcrit,bl06
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
-               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta
+               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,np,tp
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
           write(6,*) 'assign fluid args: ',fargs%dfile
           fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
@@ -130,7 +132,7 @@
           fargs%fmax = fmax; fargs%rmax = rmax; fargs%sigt = sigt
           fargs%mbh = mbh; fargs%fcol = fcol; fargs%mdot = mdot
           fargs%nscl = nscl; fargs%nnthscl = nnthscl; fargs%nnthp = nnthp
-          fargs%beta = beta; fargs%bl06 = bl06
+          fargs%beta = beta; fargs%bl06 = bl06; fargs%np = np; fargs%tp=tp
           write(6,*) 'assign fluid args: ',jonfix,offset
         end subroutine assign_fluid_args
 
@@ -145,6 +147,10 @@
            call init_sariaf(real(fargs%nscl),real(fargs%tscl),real(fargs%nnthscl), &
                 real(fargs%nnthp),real(fargs%beta),fargs%bl06) !alwinremark
 !           call init_sariaf()
+        elseif(fname=='POWERLAW') then
+           call init_powerlaw(real(fargs%nscl),real(fargs%tscl),real(fargs%nnthscl), &
+                real(fargs%nnthp),real(fargs%beta),real(fargs%np),real(fargs%tp)) !alwinremark
+!           call init_powerlaw()
         elseif(fname=='MB') then
 !          call intiialize_mb_model(a)
         elseif(fname=='THICKDISK') then
@@ -251,6 +257,9 @@
               elseif(fname=='SARIAF') then
                  allocate(f%rho2(nup))
                  f%model=SARIAF !alwinremark
+              elseif(fname=='POWERLAW') then
+                 allocate(f%rho2(nup))
+                 f%model=POWERLAW
               else
                  write(6,*) 'WARNING: Unsupported fluid model -- using DUMMY'
                  f%model=DUMMY
@@ -307,6 +316,8 @@
            call del_sphacc()
         elseif(fname=='SARIAF') then
            call del_sariaf() !alwinremark does nothing so far
+        elseif(fname=='POWERLAW') then
+           call del_powerlaw()
         endif
         end subroutine unload_fluid_model
 
@@ -322,7 +333,7 @@
               deallocate(f%p)
               deallocate(f%bmag)
            endif
-           if(f%model==SARIAF) deallocate(f%rho2)
+           if(f%model==SARIAF.or.f%model==POWERLAW) deallocate(f%rho2)
         endif
         f%model=-1
         end subroutine del_fluid_model
@@ -375,12 +386,12 @@
              call get_thickdisk_fluidvars(x0,real(a),f)
           CASE (MB09)
              call get_mb09_fluidvars(x0,real(a),f)
-!          CASE (RIAF)
-!            call initialize_toyjet_model(f)
           CASE (CONSTANT)
              call get_constant_fluidvars(x0,real(a),f)
           CASE (SARIAF)
              call get_sariaf_fluidvars(x0,real(a),f) !alwinremark this exists below
+          CASE (POWERLAW)
+             call get_powerlaw_fluidvars(x0,real(a),f)
           CASE (DUMMY)
         END SELECT
         end subroutine get_fluid_vars_arr
@@ -417,17 +428,10 @@
              call convert_fluidvars_constant(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (SARIAF)
              call convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp) !alwinremark exists below
-!          CASE (RIAF)
-!            call initialize_toyjet_model(f)
+          CASE (POWERLAW)
+             call convert_fluidvars_powerlaw(f,ncgs,ncgsnth,bcgs,tcgs,sp)
 !          CASE (DUMMY)
         END SELECT
-! call source_params stuff here?
-! sariaf unique assign source params case
-!        if(f%model==SARIAF) then
-!           call assign_source_params(sp,ncgs,tcgs,ncgsnth)
-!        else
-!           call assign_source_params(sp,ncgs,tcgs,ncgsnth)
-!        endif
         call assign_source_params(sp,ncgs,tcgs,ncgsnth)
 
 !        write(6,*) 'after convert'
@@ -1094,6 +1098,90 @@
 !           write(6,*) 'Error size: ',maxval(abs(f%b * f%b - bmag**2.))
         end subroutine get_sariaf_fluidvars
 
+
+        subroutine get_powerlaw_fluidvars(x0,a,f)
+!powerlaw fluid model currently in progress (can also be one zone). Inputs
+        type (four_vector), intent(in), dimension(:) :: x0
+        type (fluid), intent(inout) :: f
+!inputs into sariaf_vals
+        real, intent(in) :: a
+        real, dimension(size(x0)) :: u,ctheta
+!        real, dimension(size(x0)) :: u,neth,te,B
+!outputs from sariaf_vals
+        real, dimension(size(x0)) :: vr,vth,omega, &
+             bmag,n,t,nnth
+!        real, dimension(size(x0)) :: g00,grr,ur
+!interim variables
+        real, dimension(size(x0)) :: ub,aleph,bb
+        real, dimension(size(x0)) :: rr, rho2,psi4,stheta
+!rms related variables
+        real :: rms
+!r < rms intermediate variables
+        real :: lambdae,game 
+        real, dimension(size(x0)) :: delta,hhh 
+        real(8), dimension(size(x0),10) :: metric
+        real(8), dimension(size(x0)) :: hc,lc,d,ar,om,omtest,zero,u0!,one,two
+        type (four_vector), dimension(size(x0)) :: fu
+
+        rr = x0%data(2)
+        rms = calc_rms(a)
+        zero = 0d0
+
+        lambdae = (rms**2. - 2.*a*sqrt(rms) + a**2.)/(rms**(3./2.)-2.*sqrt(rms)+a)
+        game = sqrt(1.-2./3./rms)
+        delta = rr*rr - 2.*rr + a*a
+        hhh = (2.*rr-a*lambdae)/delta
+
+        u=1./rr
+        ctheta =cos(x0%data(3))
+        stheta = sin(x0%data(3))
+        rho2 = rr**2. + a**2. * (ctheta)**2.
+        psi4 = 2.*rr/rho2
+
+        call powerlaw_vals(a,ctheta,u,n,t,bmag,vr,vth,omega,nnth)
+
+! construct four-velocity from three-velocity
+
+        metric = kerr_metric(x0%data(2),x0%data(3),dble(a))
+        u0 = calc_u0(metric,dble(vr),dble(vth),dble(omega))
+   !     fu = rms_vel(dble(a),x0%data(3),x0%data(2))
+!        where(rr.lt.rms)
+!           f%u%data(1) = fu%data(1)
+!           f%u%data(2) = fu%data(2)
+!           f%u%data(3) = fu%data(3)
+!           f%u%data(4) = fu%data(4)
+!        elsewhere
+!           f%u%data(1) = u0
+!           f%u%data(2) = vr*f%u%data(1)
+!           f%u%data(3) = vth*f%u%data(1)
+!           f%u%data(4) = omega*f%u%data(1)
+!        endwhere
+
+        f%u%data(1) = u0
+        f%u%data(2) = vr*u0
+        f%u%data(3) = vth*u0
+        f%u%data(4) = omega*u0
+
+        aleph = -1.*(metric(:,4)*f%u%data(1)+metric(:,10)*f%u%data(4)) &
+             /(metric(:,1)*f%u%data(1)+metric(:,4) * f%u%data(4))
+
+        bb = metric(:,1)*aleph*aleph + metric(:,10) + 2.*metric(:,4)*aleph !I hope this is never negative
+
+        f%b%data(4) = bmag/sqrt(bb) !what sign?
+        f%b%data(3) = 0d0
+        f%b%data(2) = 0d0
+        f%b%data(1) = aleph * f%b%data(4)
+        f%rho = n
+        f%p = t
+        f%bmag = bmag
+        f%rho2 = nnth
+
+        call assign_metric(f%u,transpose(metric))
+        call assign_metric(f%b,transpose(metric))
+
+        end subroutine get_powerlaw_fluidvars
+
+
         subroutine convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
         double precision :: riaf_n0, riaf_beta
@@ -1121,9 +1209,17 @@
 !        not necessary to scale f%b because f%b is only used for an angle
         end subroutine convert_fluidvars_sariaf
 
-
-
-
+        subroutine convert_fluidvars_powerlaw(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+        type (fluid), intent(in) :: f
+        double precision :: n0, beta
+        double precision, dimension(size(f%rho)), &
+             intent(out) :: ncgs,ncgsnth,bcgs,tcgs
+        type (source_params), intent(in) :: sp
+        ncgs = f%rho
+        bcgs = f%bmag
+        ncgsnth= f%rho2
+        tcgs= f%p
+        end subroutine convert_fluidvars_powerlaw
 
 ! source param routines
         subroutine assign_source_params_type(sp,type)

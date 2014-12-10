@@ -777,8 +777,8 @@
           ! Fitting function F(X) from Shcherbakov (2008), modified to match Jones & Hardee small \nu/\nu_c limit. See 12/9/2014 notes.
           double precision, intent(in), dimension(:) :: x
           double precision, dimension(size(x)) :: jffunc,extraterm
-          extraterm=(.011*exp(-x/47.2)-2.**(-1./3.)/3.**(23./6.)*pi*1d4*
-     &       (X+1d-16)**(-8./3.))*(0.5+0.5*tanh((log(x)-log(120d0))/0.1d0))
+          extraterm=(.011d0*exp(-x/47.2d0)-2d0**(-1d0/3d0)/3d0**(23d0/6d0)*pi*1d4*
+     &       (X+1d-16)**(-8d0/3d0))*(0.5d0+0.5d0*tanh((log(x)-log(120d0))/0.1d0))
           jffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)*
      &         dexp(-x**(1.2d0)/2.73d0)
      &         -.011d0*dexp(-x/47.2d0)+extraterm
