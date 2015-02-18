@@ -165,3 +165,9 @@ radtrans_integrate:
 
 polsynchemis:
 	f2py -c polsynchemis.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m polsynchemis $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
+
+calcgmin::
+	f2py -c calcgmin.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m calcgmin $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
+
+sariaf:
+	f2py -c fluid_model_sariaf.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m sariaf $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
