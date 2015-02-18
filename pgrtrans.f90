@@ -10,7 +10,7 @@
        contains
 
           subroutine grtrans_main(standard,mumin,mumax,nmu,phi0,spin,&
-            uout,uin, rcut, nrotype, gridvals, nn,fname, dt, nt, nload, &
+            uout,uin, rcut, nrotype, gridvals, nn,i1,i2,fname, dt, nt, nload, &
             nmdot, mdotmin, mdotmax,ename, mbh, nfreq, fmin, fmax, muval,&
             gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
             cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
@@ -32,7 +32,8 @@
              use chandra_tab24, only: load_chandra_tab24, del_chandra_tab24
 
 !INPUTS=====================
-            integer, intent(in) :: standard,nrotype,nvals,nfreq,nmu,cflag,nt,nmdot,nload,extra
+            integer, intent(in) :: standard,nrotype,nvals,nfreq,nmu,cflag,nt, &
+                 nmdot,nload,extra,i1,i2
             integer :: nro,nphi,nup,tempi
             logical, intent(in) :: use_geokerr
             double precision, intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
@@ -149,7 +150,8 @@
                   gargs%nup=1
                   write(6,*) 'grtrans nload gt 1 loop',size(gargs%t0),allocated(gargs%t0),gargs%nup
                   !$omp parallel do private(i) shared(gargs)
-                  do i=1,c(1)%nx*c(1)%ny
+!                  do i=1,c(1)%nx*c(1)%ny
+                  do i=i1,i2
                      call initialize_geo_tabs(gargs,i)
                   enddo
                   !$omp end parallel do
@@ -169,7 +171,7 @@
                   !       write(6,*) 'pre loop spin: ',spin,gargs%a
 !$omp parallel do schedule(static,1) private(i) shared(gargs,gunit,c,j,nt,l,spin, &
 !$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
-                  do i=1,c(1)%nx*c(1)%ny
+                  do i=i1,i2
                      !                write(6,*) 'i: ',i
 !                  do i=15501,15999
                      !                 write(6,*) 'i: ',i

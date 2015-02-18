@@ -74,7 +74,8 @@
              gargs%nup=1
 !             write(6,*) 'grtrans nload gt 1 loop',size(gargs%t0),allocated(gargs%t0),gargs%nup
 !$omp parallel do private(i) shared(gargs)
-             do i=1,c(1)%nx*c(1)%ny
+!             do i=1,c(1)%nx*c(1)%ny
+             do i=i1,i2
                 call initialize_geo_tabs(gargs,i)
                 nthreads = omp_get_num_threads()
 !                threadnum = omp_get_thread_num()
@@ -95,8 +96,9 @@
           do l=1,nt
 !       write(6,*) 'pre loop spin: ',spin,gargs%a
 !$omp parallel do schedule(static,1) private(i,indx) shared(gargs,gunit,c,j,nt,l,spin, &
-!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
-             do i=1,c(1)%nx*c(1)%ny
+!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2)
+!             do i=1,c(1)%nx*c(1)%ny
+             do i=i1,i2
 !                write(6,*) 'i: ',i
 !              do i=12826,12826
 !                 write(6,*) 'i: ',i

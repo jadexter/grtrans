@@ -13,9 +13,9 @@ def run_test_problems(save=0,pgrtrans=0):
         x.compile_pgrtrans()
     passed=0; max_passed=0
 # sphacc
-#    x.write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=15,nmu=1,fmin=2.41e10,fmax=6.31e14,ename='POLSYNCHTH',nvals=4,spin=0.,mbh=10.,standard=1,uout=.003,nn="100,100,100")
+#    x.write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=15,nmu=1,fmin=2.41e10,fmax=6.31e14,ename='POLSYNCHTH',nvals=4,spin=0.,mbh=10.,standard=1,uout=.003,nn=[100,100,100")
 # New tests of 1d intensity profile & full spectrum 12/14/2012
-    x.write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn="10000,1,100",gridvals="0.,400.,0.,0.",uout=.0025,oname='sphacc_abs.out')
+    x.write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn=[10000,1,100],gridvals=[0.,400.,0.,0.],uout=.0025,oname='sphacc_abs.out')
     if pgrtrans==0:
         x.run_grtrans()
         x.read_grtrans_output()
@@ -46,7 +46,7 @@ def run_test_problems(save=0,pgrtrans=0):
 # toyjet
     xlist.append(gr.grtrans())
     if pgrtrans==0:
-        xlist[-1].write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn="100,100,400",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40")
+        xlist[-1].write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
         xlist[-1].run_grtrans()
         xlist[-1].read_grtrans_output()
     else:
@@ -67,7 +67,7 @@ def run_test_problems(save=0,pgrtrans=0):
 # toyjet with delo integrator
     x2=gr.grtrans()
     if pgrtrans==0:
-        x2.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn="100,100,1600",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40",iname='delo')
+        x2.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='delo')
         x2.run_grtrans()
         x2.read_grtrans_output()
     else:
@@ -81,7 +81,7 @@ def run_test_problems(save=0,pgrtrans=0):
     max_passed+=1
 # thindisk
     xlist.append(gr.grtrans())
-    xlist[-1].write_grtrans_inputs('inputs.in',fname='THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='BBPOL',nvals=4,spin=0.9,standard=2,nn="100,100,1",uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals="-21,21,-21,21")
+    xlist[-1].write_grtrans_inputs('inputs.in',fname='THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='BBPOL',nvals=4,spin=0.9,standard=2,nn=[100,100,1],uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals=[-21,21,-21,21])
     if pgrtrans==0:
         xlist[-1].run_grtrans()
         xlist[-1].read_grtrans_output()
@@ -102,7 +102,7 @@ def run_test_problems(save=0,pgrtrans=0):
         pickle.dump(xlist[-1].ivals,open('test_grtrans_thindisk.p','wb'))
 # total I w/, w/o pol
     xlist.append(gr.grtrans())
-    xlist[-1].write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn="100,100,400",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40")
+    xlist[-1].write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
     if pgrtrans==0:
         xlist[-1].run_grtrans()
         xlist[-1].read_grtrans_output()
@@ -122,7 +122,7 @@ def run_test_problems(save=0,pgrtrans=0):
 
 # harm
     xlist.append(gr.grtrans())
-    xlist[-1].write_grtrans_inputs('inputs.in',fname='HARM',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=0.9375,standard=1,nn="150,150,400",uout=0.04,mbh=4e6, mdotmin=1.57e15,mdotmax=1.57e15,nmdot=1,mumin=.6428,mumax=.6428,gridvals="-13,13,-13,13",hhfile='dump040',hdfile='dump',hindf=40,hnt=1,muval=1./4.)
+    xlist[-1].write_grtrans_inputs('inputs.in',fname='HARM',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=0.9375,standard=1,nn=[150,150,400],uout=0.04,mbh=4e6, mdotmin=1.57e15,mdotmax=1.57e15,nmdot=1,mumin=.6428,mumax=.6428,gridvals=[-13,13,-13,13],hhfile='dump040',hdfile='dump',hindf=40,hnt=1,muval=1./4.)
     if pgrtrans==0:
         xlist[-1].run_grtrans()
         xlist[-1].read_grtrans_output()
@@ -146,7 +146,7 @@ def run_test_problems(save=0,pgrtrans=0):
 
 # thickdisk
     xlist.append(gr.grtrans())
-    xlist[-1].write_grtrans_inputs('inputs.in',fname='THICKDISK',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=-0.9375,standard=1,nn="150,150,400",uout=0.04,mbh=4e6, mdotmin=0.5e13,mdotmax=0.5e13,nmdot=1,mumin=.906,mumax=.906,gridvals="-15,15,-15,15",tgfile='dump0000rr2.bin',tdfile='fieldline',tindf=5206,tnt=1,muval=1./41.,toff=0)
+    xlist[-1].write_grtrans_inputs('inputs.in',fname='THICKDISK',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=-0.9375,standard=1,nn=[150,150,400],uout=0.04,mbh=4e6, mdotmin=0.5e13,mdotmax=0.5e13,nmdot=1,mumin=.906,mumax=.906,gridvals=[-15,15,-15,15],tgfile='dump0000rr2.bin',tdfile='fieldline',tindf=5206,tnt=1,muval=1./41.,toff=0)
     if pgrtrans==0:
         xlist[-1].run_grtrans()
         xlist[-1].read_grtrans_output()

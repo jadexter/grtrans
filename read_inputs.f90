@@ -6,7 +6,7 @@
       implicit none
 
       namelist /geodata/   standard,mumin,mumax,nmu,phi0,spin, uout,uin, rcut, &
-       nrotype, gridvals, nn
+       nrotype, gridvals, nn, i1, i2
       namelist /fluiddata/ fname, dt, nt, nload, nmdot, mdotmin, mdotmax
       namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, stype
       namelist /general/   use_geokerr, nvals, iname, cflag, extra
@@ -16,7 +16,8 @@
       namelist /analytic/ fnw, fwmin, fwmax, fnfreq_tab, ffmin, ffmax, frmax, fnr, fsigt, ffcol, &
            frspot,fr0spot,fn0spot,ftscl,frscl,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fbl06,fnp,ftp
       
-      integer :: standard,nrotype,nro,nphi,nup,nvals,nfreq,nmu,cflag, nt,nmdot,nload,extra
+      integer :: standard,nrotype,nro,nphi,nup,nvals,nfreq,nmu,cflag, nt,nmdot, &
+           nload,extra,i1,i2
       logical :: use_geokerr
       double precision :: mumax,mumin,spin,rcut,a1,a2,b1,b2,mbh,uout,uin, & 
            fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
