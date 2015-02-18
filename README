@@ -31,10 +31,10 @@ Numerical inhomogeneous disk model from Dexter & Agol (2011) (toy model so compl
 x.write_grtrans_inputs('inputs.in',fname="NUMDISK",nfreq=25,nmu=1,fmin=2.41e17,fmax=6.31e18,ename="BB")
 
 Semi-analytic model for M87 jet by Broderick & Loeb (2009)
-x.write_grtrans_inputs('inputs.in',fname="TOYJET",nfreq=25,nmu=1,fmin=2.41e10,fmax=6.31e14,ename="POLSYNCHPL",nvals=4,spin=0.998,standard=1,nn="100,100,100",uout=0.01,mbh=6.4e9)
+x.write_grtrans_inputs('inputs.in',fname="TOYJET",nfreq=25,nmu=1,fmin=2.41e10,fmax=6.31e14,ename="POLSYNCHPL",nvals=4,spin=0.998,standard=1,nn=[100,100,100],uout=0.01,mbh=6.4e9)
 
 Bondi spherical accretion problem but in GR
-x.write_grtrans_inputs('inputs.in',fname="SPHACC",nfreq=25,nmu=1,fmin=2.41e10,fmax=6.31e14,ename="POLSYNCHTH",nvals=4,spin=0.,standard=1,nn="100,100,100")
+x.write_grtrans_inputs('inputs.in',fname="SPHACC",nfreq=25,nmu=1,fmin=2.41e10,fmax=6.31e14,ename="POLSYNCHTH",nvals=4,spin=0.,standard=1,nn=[100,100,100])
 
 read_grtrans_output() reads the output into the grtrans object variables ab, nu, spec, ivals 
 which contain the alpha and beta values of the image (camera pixel locations in x and y), observed frequencies, observed spectrum, and observed intensities. The number of Stokes parameters (1 or 4) is set by the input parameter nvals. 
@@ -94,19 +94,15 @@ fname -- name of fluid model. Possibilities are:
 	specified numerically. Geodesic parameters are standard=1, uout > umin where umin 
 	is determined by outer radius saved for numerical solution. (WHAT IS IT IN MY DEFAULT?) 
 
-	TO ADD:
-
-	"HOTSPOT" -- Time-dependent orbiting hotspot model of Schnittman & Bertschinger (2004), 
-	Broderick & Loeb (2006), etc. Geodesic parameters are same as THINDISK. Need to add 
-	time-dependence to rad trans for this.
 
 	"HARM" -- Numerical general relativistic MHD (GRMHD) accretion flow model from publicly
 	available HARM code (Gammie et al. 2003, Noble et al. 2006). Template for other 2D
 	numerical models. Requires time-dependent rad trans, coordinate transformations 
 	(KS <--> BL), ability to read HARM binary files.
 
-	"MB" -- Jonathan McKinney 3D HARM GRMHD models. Requires time-dependence, coordinate 
-	transformations, 4D linear interpolation. 
+	"HOTSPOT" -- Time-dependent orbiting hotspot model of Schnittman & Bertschinger (2004), 
+	Broderick & Loeb (2006), etc. Geodesic parameters are same as THINDISK. Need to add 
+	time-dependence to rad trans for this.
 
 emisdata -- Emissivity related parameters
 
