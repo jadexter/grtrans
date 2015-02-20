@@ -122,11 +122,33 @@ def intensity(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0.,0.
     for k in range(4):
         i[:,k] = np.append(0.,scipy.integrate.cumtrapz(integrand[:,k],x)) + intatten[k]
 
-#    oatten,M1,M2,M3,M4 = calc_O
-#    intatten = o[-1,:,:].dot(I0)
-#    for k in range(4):
-#        i[:,k] = np.append(I0[k],scipy.integrate.cumtrapz(integrand[:,k],x))
     return i,o,dx,integrand
+
+# intensity over some set of coefficients j,a,rho at positions x for initial intensity I0 for arbitrary coefficients
+def intensity_var(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0.,0.]),rho=np.array([0.,0.,0.]),I0=np.array([0.,0.,0.,0.])):
+    o = np.zeros((len(x),4,4))
+    integrand = np.zeros((len(x),4))
+    if len(x) < 2:
+        dx = x
+    else:
+        dx = np.append(x[0],x[1:]-x[0:-1])
+    if len(np.shape(a)) < 2:
+# reform a,rho,j arrays to be of right size
+        a = np.tile(a,len(x)).reshape(len(x),4)
+        rho = np.tile(rho,len(x)).reshape(len(x),3)
+        j = np.tile(j,len(x)).reshape(len(x),4)
+        
+    i = np.zeros((len(x),4))
+    intprev = np.zeros(4); iprev = I0; xprev = 0.; jprev = np.zeros(4)        
+# intensity for constant coefs is integral along path + attenuated initial intensity
+    identity = np.identity(4)
+    for k in range(len(x)-1):
+        o[k,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],x[k+1]-x[k])
+        i[k+1,:] = (o[k,:,:]).dot(j[k,:])*(x[k+1]-x[k])+o[k,:,:].dot(intprev)
+        intprev = i[k+1,:]
+
+    return i,o,dx
+
 
 def invert_delo_matrix_thin(dx,K,ki,delta):
 #    matrix = np.identity(4)*(1.-delta/2.)+0.5*dx*K
@@ -196,7 +218,7 @@ def delo_intensity(dx=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.
         mt,imt = invert_delo_matrix_thin(dx[k],K,a[k,0],delta[k])
         pt = calc_delo_P(imatrix,F[k],G[k],Sp,Sp1)
         qt = calc_delo_Q(imatrix,E[k],F[k],G[k],Kp1)
-        ptt = calc_delo_P_thin(imt,dx[k],j[k],j[k+1],a[k,0],a[k+1,0])
+        ptt = calc_delo_P_thin(imt,dx[k],j[k,:],j[k+1,:],a[k,0],a[k+1,0])
         qtt = calc_delo_Q_thin(imt,dx[k],a[k,0],a[k+1,0],K1)
         mtt,imtt = invert_delo_matrix(Ft[k],Gt[k],Kp)
 #        pttt = calc_delo_P(imatrix,Ft[k],Gt[k],Sp,Sp1)

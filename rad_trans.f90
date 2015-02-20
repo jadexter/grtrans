@@ -30,6 +30,8 @@
             r%iflag=0
          else if (iname=='delo') then
             r%iflag=1
+         else if (iname=='formal') then
+            r%iflag=2
          endif
 !         write(6,*) 'rneq: ',neq
          r%neq=neq
