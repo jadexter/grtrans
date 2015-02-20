@@ -191,9 +191,10 @@
                         call calc_opt_depth(g%lambda(1:g%npts),e,tau,1)
                         tau = -tau
                         call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
+!                        write(6,*) 'maxtau: ',maxval(e%K(:,1)),maxval(abs(sqrt(e%K(:,5)**2.+e%K(:,6)**2.))),maxval(abs(tau))
                         call integrate(g%lambda(1:g%npts),e%j,e%K,tau,r%npts)
 ! may be better to do init, del data steps separately and then can move to outside of some loops
-                        r%I(1:r%neq,1:r%npts) = intensity(1:r%neq,1:r%npts);
+                        r%I(1:r%neq,1:r%npts) = intensity(1:r%neq,1:r%npts)
                         call del_radtrans_integrate_data()
 !                        write(6,*) 'integrate: ',g%npts,r%neq,r%npts,r%I(1,r%npts)
                         r%I=r%I*fac
@@ -254,7 +255,8 @@
 !                     write(6,*) 'zero: ',status, size(r%I,1), size(r%I,2), r%I(:,r%npts)
                   endif
 !           write(6,*) 'after intensity', i, r%npts, r%I(:,r%npts), sum(e%j(:,1))!, e%j(:,1), e%K(:,1)
-                  if(mod(i,500).eq.0.and.mod(k,nfreq).eq.0.and.mod(m,nparams).eq.0) write(6,*) 'save ', i, r%I(:,r%npts),l,k,m
+                  if(g%npts.gt.1.and.mod(i,500).eq.0.and.mod(k,nfreq).eq.0.and.mod(m,nparams).eq.0) &
+                       write(6,*) 'save ', i, r%I(:,r%npts),l,k,m
                   if(EXTRA_QUANTS==0) then
 ! this is normal situation
                      call save_raytrace_camera_pixel(c((l-1)*nfreq*nparams+(m-1)*nfreq+k), &

@@ -729,7 +729,7 @@
       wp2=4d0*pi*n*ec**2/m
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1.d3*omega0/2d0/pi/nu))
-      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4*
+      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4*
      &(beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)*
      & sin(theta)**2
       eps12=shgfunc(xarg)*wp2*omega0/(2d0*pi*nu)**3*
@@ -748,10 +748,15 @@
 ! test unpolarized
 !      jq=0.; jv=0.; aq=0.; av=0.; rhoq=0.; rhov=0.
 ! w/o Faraday:
-!      rhoq=0.; rhov=0
+!      rhoq=0d0; rhov=0d0
+! Faraday rotation only
+!      rhoq=0d0
+! Faraday conversion only
+      rhov=0d0
       e=reshape((/ji,jq,ju,jv,ai,aq,au,av,
      & rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
-!      write(6,*) 'ai: ',ai, e(:,5), e(:,1), ji
+!      write(6,*) 'rhovai: ',rhov/ai
+!      write(6,*) 'rhoqai: ',rhoq/ai
  !     write(6,*) 'reshape: ',maxval(emis(:,1)), maxval(emis(:,5))
       if(any(isnan(jq))) then
          write(6,*) 'NaN in polsynchemis.f'
@@ -777,8 +782,9 @@
           ! Fitting function F(X) from Shcherbakov (2008), modified to match Jones & Hardee small \nu/\nu_c limit. See 12/9/2014 notes.
           double precision, intent(in), dimension(:) :: x
           double precision, dimension(size(x)) :: jffunc,extraterm
-          extraterm=(.011d0*exp(-x/47.2d0)-2d0**(-1d0/3d0)/3d0**(23d0/6d0)*pi*1d4*
-     &       (X+1d-16)**(-8d0/3d0))*(0.5d0+0.5d0*tanh((log(x)-log(120d0))/0.1d0))
+          extraterm=(.011d0*exp(-x/47.2d0)-2d0**(-1d0/3d0)/3d0**
+     &         (23d0/6d0)*pi*1d4*(X+1d-16)**(-8d0/3d0))*
+     &         (0.5d0+0.5d0*tanh((log(x)-log(120d0))/0.1d0))
           jffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)*
      &         dexp(-x**(1.2d0)/2.73d0)
      &         -.011d0*dexp(-x/47.2d0)+extraterm

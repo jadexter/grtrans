@@ -779,7 +779,7 @@
         double precision, dimension(4,4,size(x)), intent(inout) :: O
         double precision, dimension(size(x)-1) :: dx
         double precision, dimension(4) :: I0,iprev
-        double precision, dimension(4,4) :: identity,M1,M2,M3,M4
+        double precision, dimension(4,4) :: identity,M1,M2,M3,M4,Ot
         integer :: k
         I0=0d0
         identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &
@@ -787,9 +787,10 @@
         dx = x(1:npts-1) - x(2:npts)
         intensity(:,1) = I0; iprev = I0
         do k=npts-1,1,-1
-           call calc_O(a(k,:),rho(k,:),dx(k),identity,O(:,:,k),M1,M2,M3,M4)
-           intensity(:,npts-k+1) = matmul(O(:,:,k),j(k,:))*dx(k)+matmul(O(:,:,k),iprev)
+           call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
+           intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
            iprev = intensity(:,npts-k+1)
+           O(:,:,k)=Ot
         end do
         return
       end subroutine radtrans_integrate_formal
@@ -798,7 +799,7 @@
         deallocate(jj); deallocate(KK)
         deallocate(s); deallocate(ss); deallocate(s0); deallocate(tau)
         deallocate(intensity)
-        if(iflag==1)then
+        if(iflag==1) then
            deallocate(PP); deallocate(QQ); deallocate(imm)
         elseif(iflag==2) then
            deallocate(OO)

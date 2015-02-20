@@ -95,7 +95,7 @@
           wtime = omp_get_wtime()
           do l=1,nt
 !       write(6,*) 'pre loop spin: ',spin,gargs%a
-!$omp parallel do schedule(static,1) private(i,indx) shared(gargs,gunit,c,j,nt,l,spin, &
+!$omp parallel do schedule(static,1) private(i) shared(gargs,gunit,c,j,nt,l,spin, &
 !$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2)
 !             do i=1,c(1)%nx*c(1)%ny
              do i=i1,i2

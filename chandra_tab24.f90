@@ -18,11 +18,11 @@ contains
   read(8,*) ch_I
   read(8,*) ch_delta
   close(unit=8)
-  write(6,*) 'load chandra'
+!  write(6,*) 'load chandra'
   end subroutine load_chandra_tab24
 
   subroutine del_chandra_tab24()
-    write(6,*) 'del chandra'
+!    write(6,*) 'del chandra'
   deallocate(ch_mu); deallocate(ch_I); deallocate(ch_delta)
   end subroutine del_chandra_tab24
 
