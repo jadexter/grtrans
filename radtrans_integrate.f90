@@ -9,14 +9,14 @@
     integer :: lindx=25,nequations,nptstot,npts,nptsout,iflag
     double precision, dimension(:,:), allocatable :: KK,jj,intensity,PP
     double precision, dimension(:), allocatable :: s,ss,s0,tau
-    double precision, dimension(:,:,:), allocatable :: QQ,imm
+    double precision, dimension(:,:,:), allocatable :: QQ,imm,OO
 
     integer :: IS_LINEAR_STOKES = 1
     integer, dimension(3) :: stats
     double precision :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2
 
 !$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats)
-!$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm)
+!$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO)
 
     interface integrate
        module procedure integrate
@@ -48,6 +48,14 @@
 
     interface invert_delo_matrix_thin
        module procedure invert_delo_matrix_thin_single
+    end interface
+
+    interface calc_O
+       module procedure calc_O
+    end interface
+
+    interface radtrans_integrate_formal
+       module procedure radtrans_integrate_formal
     end interface
 
     contains
@@ -100,6 +108,9 @@
            allocate(QQ(npts,nequations,nequations)); allocate(PP(npts,nequations))
            allocate(imm(npts,nequations,nequations))
            QQ = 0d0; PP = 0d0; imm = 0d0
+        elseif(iflag==2) then
+           allocate(OO(nequations,nequations,npts))
+           OO = 0d0
         endif
       end subroutine init_radtrans_integrate_data
 
@@ -139,6 +150,8 @@
            call radtrans_integrate_lsoda()
         elseif (iflag==1) then
            call radtrans_integrate_delo(s,tau,jj,KK(:,1:4),KK(:,5:7),PP,QQ,imm)
+        elseif (iflag==2) then
+           call radtrans_integrate_formal(s,jj,KK(:,1:4),KK(:,5:7),OO)
         endif
 !        write(6,*) 'assign intensity', size(rI,1), size(rI,2), size(intensity,1), size(intensity,2), nptsout
 !        rI(1:nequations,1:nptsout) = intensity(1:nequations,1:nptsout);
@@ -491,6 +504,53 @@
 !         K=0d0
       end subroutine radtrans_aux
 
+      subroutine calc_O(a,rho,dx,identity,O,M1,M2,M3,M4)
+        double precision, dimension(4), intent(in) :: a
+        double precision, dimension(3), intent(in) :: rho
+        double precision, dimension(4,4) :: identity,onopol!,M1,M2,M3,M4
+        double precision, dimension(4,4), intent(out) :: M1,M2,M3,M4,O
+        double precision :: lam1,lam2,ap,theta,sig,a2,p2
+        double precision :: aq,au,av,rhoq,rhou,rhov
+        double precision :: dx
+        onopol = exp(-a(1)*dx)
+        aq = a(2); au = a(3); av = a(4)
+        rhoq = rho(1); rhou = rho(2); rhov = rho(3)
+        a2 = aq**2d0+au**2d0+av**2d0
+        p2 = rhoq**2d0+rhou**2d0+rhov**2d0
+        if(a2.eq.0d0.and.p2.eq.0d0) then
+           O = identity*onopol
+        else
+           ap = aq*rhoq+au*rhou+av*rhov
+           lam1 = sqrt(sqrt((a2-p2)**2d0/4d0+ap**2d0)+(a2-p2)/2d0)
+           lam2 = sqrt(sqrt((a2-p2)**2d0/4d0+ap**2d0)-(a2-p2)/2d0)
+           theta = lam1**2d0+lam2**2d0
+           sig = sign(1d0,ap)
+           M1 = identity
+           M2(:,1) = (/0d0,lam2*aq-sig*lam1*rhoq,lam2*au-sig*lam1*rhou,lam2*av-sig*lam1*rhov/)
+           M2(:,2) = (/lam2*aq-sig*lam1*rhoq,0d0,-sig*lam1*av-lam2*rhov,sig*lam1*au+lam2*rhou/)
+           M2(:,3) = (/lam2*au-sig*lam1*rhou,sig*lam1*av+lam2*rhov,0d0,-sig*lam1*aq-lam2*rhoq/)
+           M2(:,4) = (/lam2*av-sig*lam1*rhov,-sig*lam1*au-lam2*rhou,sig*lam1*aq+lam2*rhoq,0d0/)
+           M2 = 1d0/theta*M2
+           M3(:,1) = (/0d0,lam1*aq+sig*lam2*rhoq,lam1*au+sig*lam2*rhou,lam1*av+sig*lam2*rhov/)
+           M3(:,2) = (/lam1*aq+sig*lam2*rhoq,0d0,sig*lam2*av-lam1*rhov,-sig*lam2*au+lam1*rhou/)
+           M3(:,3) = (/lam1*au+sig*lam2*rhou,-sig*lam2*av+lam1*rhov,0d0,sig*lam2*aq-lam1*rhoq/)
+           M3(:,4) = (/lam1*av+sig*lam2*rhov,sig*lam2*au-lam1*rhou,-sig*lam2*aq+lam1*rhoq,0d0/)
+           M3=1d0/theta*M3
+           M4(:,1) = (/(a2+p2)/2d0,au*rhov-av*rhou,av*rhoq-aq*rhov,aq*rhou-au*rhoq/)
+           M4(:,2) = (/av*rhou-au*rhov,aq*aq+rhoq*rhoq-(a2+p2)/2d0,aq*au+rhoq*rhou,av*aq+rhov*rhoq/)
+           M4(:,3) = (/aq*rhov-av*rhoq,aq*au+rhoq*rhou,au*au+rhou*rhou-(a2+p2)/2d0,au*av+rhou*rhov/)
+           M4(:,4) = (/au*rhoq-aq*rhou,av*aq+rhov*rhoq,au*av+rhou*rhov,av*av+rhov*rhov-(a2+p2)/2d0/)
+           M4=2d0/theta*M4
+!           M2 = 1./theta*(/((0.,lam2*aq-sig*lam1*rhoq,lam2*au-sig*lam1*rhou,lam2*av-sig*lam1*rhov),(lam2*aq-sig*lam1*rhoq,0.,sig*lam1*av+lam2*rhov,-sig*lam1*au-lam2*rhou),(lam2*au-sig*lam1*rhoq,-sig*lam1*av-lam2*rhov,0.,sig*lam1*aq+lam2*rhoq),(lam2*av-sig*lam1*rhov,sig*lam1*au+lam2*rhou,-sig*lam1*aq-lam2*rhoq,0.)))
+!           M3 = 1./theta*array(((0.,lam1*aq+sig*lam2*rhoq,lam1*au+sig*lam2*rhou,lam1*av+sig*lam2*rhov),(lam1*aq+sig*lam2*rhoq,0.,-sig*lam2*av+lam1*rhov,sig*lam2*au-lam1*rhou),(lam1*au+sig*lam2*rhou,sig*lam2*av-lam1*rhov,0.,-sig*lam2*aq+lam1*rhoq),(lam1*av+sig*lam2*rhov,-sig*lam2*au+lam1*rhou,sig*lam2*aq-lam1*rhoq,0.)))
+!           M4 = 2d0/theta*array((((a2+p2)/2d0,av*rhou-au*rhov,aq*rhov-av*rhoq,au*rhoq-aq*rhou),(au*rhov-av*rhou,aq**2d0+rhoq**2d0-(a2+p2)/2d0,aq*au+rhoq*rhou,av*aq+rhov*rhoq),(av*rhoq-aq*rhov,aq*au+rhoq*rhou,au**2d0+rhou**2d0-(a2+p2)/2d0,au*av+rhou*rhov),(aq*rhou-au*rhoq,av*aq+rhoq*rhov,av*au+rhou*rhov,av**2d0+rhov**2d0-(a2+p2)/2d0)))
+           O = onopol*(1d0/2d0*(cosh(lam1*dx)+cos(lam2*dx))*M1 - sin(lam2*dx)*M2-sinh(lam1*dx)*M3+1d0/2d0 &
+                *(cosh(lam1*dx)-cos(lam2*dx))*M4)
+        endif
+      end subroutine calc_O
+
+        
+
 !      subroutine imatrix_4(a,b)
 !        double precision, dimension(:,:,:), intent(in) :: a
 !        double precision, dimension(size(a,1),4,4), intent(out) :: b
@@ -712,12 +772,36 @@
 !        write(6,*) 'delo intensity P: ',P(:,1)
       end subroutine radtrans_integrate_delo
 
+      subroutine radtrans_integrate_formal(x,j,a,rho,O)
+        double precision, dimension(:), intent(in) :: x
+        double precision, dimension(size(x),4), intent(in) :: j,a
+        double precision, dimension(size(x),3), intent(in) :: rho
+        double precision, dimension(4,4,size(x)), intent(inout) :: O
+        double precision, dimension(size(x)-1) :: dx
+        double precision, dimension(4) :: I0,iprev
+        double precision, dimension(4,4) :: identity,M1,M2,M3,M4
+        integer :: k
+        I0=0d0
+        identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &
+             1d0,0d0,0d0,0d0,0d0,1d0/),(/4,4/))
+        dx = x(1:npts-1) - x(2:npts)
+        intensity(:,1) = I0; iprev = I0
+        do k=npts-1,1,-1
+           call calc_O(a(k,:),rho(k,:),dx(k),identity,O(:,:,k),M1,M2,M3,M4)
+           intensity(:,npts-k+1) = matmul(O(:,:,k),j(k,:))*dx(k)+matmul(O(:,:,k),iprev)
+           iprev = intensity(:,npts-k+1)
+        end do
+        return
+      end subroutine radtrans_integrate_formal
+
       subroutine del_radtrans_integrate_data()
         deallocate(jj); deallocate(KK)
         deallocate(s); deallocate(ss); deallocate(s0); deallocate(tau)
         deallocate(intensity)
-        if(iflag.eq.1)then
+        if(iflag==1)then
            deallocate(PP); deallocate(QQ); deallocate(imm)
+        elseif(iflag==2) then
+           deallocate(OO)
         endif
       end subroutine del_radtrans_integrate_data
    

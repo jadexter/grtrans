@@ -51,7 +51,7 @@ endif
 
 .DEFAULT:
 	-echo $@ does not exist.
-all: grtrans
+all: grtrans libgrtrans pgrtrans
 lib: libgrtrans
 public: grtrans_public
 pgrtrans: pgrtrans
