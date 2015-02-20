@@ -33,7 +33,7 @@
     character(len=20), intent(in), optional :: ifile
     character(len=20) :: default_ifile='thindisk.in'
     real, intent(in), optional :: mdott,mbht
-    write(6,*) 'init thindisk spin: ',a
+!    write(6,*) 'init thindisk spin: ',a
     if (present(mdott)) then
        mdot = mdott
        mbh = mbht

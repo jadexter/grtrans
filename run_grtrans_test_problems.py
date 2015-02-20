@@ -79,6 +79,22 @@ def run_test_problems(save=0,pgrtrans=0):
     if terr < 0.05: passed += 1
     else: failed.append('delo')
     max_passed+=1
+# toyjet with formal rad trans solution from Degl'Innocenti (1985):
+    x3=gr.grtrans()
+    if pgrtrans==0:
+        x3.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='formal')
+        x3.run_grtrans()
+        x3.read_grtrans_output()
+    else:
+        x3.run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='formal')
+        x3.calc_spec_pgrtrans((np.shape(x3.ivals))[2])
+    terr=10.
+    terr = np.max(np.abs(x3.spec - xlist[-1].spec)/xlist[-1].spec)
+    print 'terr: ',terr
+    if terr < 0.05: passed += 1
+    else: failed.append('formal')
+    max_passed+=1
+    x2=0; x3=0
 # thindisk
     xlist.append(gr.grtrans())
     xlist[-1].write_grtrans_inputs('inputs.in',fname='THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='BBPOL',nvals=4,spin=0.9,standard=2,nn=[100,100,1],uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals=[-21,21,-21,21])

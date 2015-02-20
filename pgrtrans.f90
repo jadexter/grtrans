@@ -170,7 +170,7 @@
                do l=1,nt
                   !       write(6,*) 'pre loop spin: ',spin,gargs%a
 !$omp parallel do schedule(static,1) private(i) shared(gargs,gunit,c,j,nt,l,spin, &
-!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup)
+!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2)
                   do i=i1,i2
                      !                write(6,*) 'i: ',i
 !                  do i=15501,15999

@@ -122,7 +122,7 @@
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
                fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,np,tp
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
-          write(6,*) 'assign fluid args: ',fargs%dfile
+!          write(6,*) 'assign fluid args: ',fargs%dfile
           fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
           fargs%jonfix = jonfix; fargs%nw = nw; fargs%nfreq_tab = nfreq_tab
           fargs%nr = nr; fargs%offset = offset; fargs%dindf = dindf
@@ -133,7 +133,7 @@
           fargs%mbh = mbh; fargs%fcol = fcol; fargs%mdot = mdot
           fargs%nscl = nscl; fargs%nnthscl = nnthscl; fargs%nnthp = nnthp
           fargs%beta = beta; fargs%bl06 = bl06; fargs%np = np; fargs%tp=tp
-          write(6,*) 'assign fluid args: ',jonfix,offset
+!          write(6,*) 'assign fluid args: ',jonfix,offset
         end subroutine assign_fluid_args
 
         subroutine load_fluid_model(fname,a,fargs)
