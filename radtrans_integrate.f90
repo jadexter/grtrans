@@ -7,13 +7,13 @@
 
     ! global data to avoid needing to pass arguments through external integration routines (e.g., lsoda)
     integer :: lindx=25,nequations,nptstot,npts,nptsout,iflag
-    double precision, dimension(:,:), allocatable :: KK,jj,intensity,PP
-    double precision, dimension(:), allocatable :: s,ss,s0,tau
-    double precision, dimension(:,:,:), allocatable :: QQ,imm,OO
+    real(kind=8), dimension(:,:), allocatable :: KK,jj,intensity,PP
+    real(kind=8), dimension(:), allocatable :: s,ss,s0,tau
+    real(kind=8), dimension(:,:,:), allocatable :: QQ,imm,OO
 
     integer :: IS_LINEAR_STOKES = 1
     integer, dimension(3) :: stats
-    double precision :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2
+    real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2
 
 !$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats)
 !$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO)
@@ -62,8 +62,8 @@
 
       subroutine init_radtrans_integrate_data(riflag,rneq,gnpts,rnpts,maxtau,hm,oa,ort,th)
         integer, intent(in) :: riflag,rneq,gnpts,rnpts
-!        double precision, intent(in), optional :: maxtau,hm,oa,ort
-        double precision, intent(in), optional :: maxtau,hm,oa,ort,th
+!        real(kind=8), intent(in), optional :: maxtau,hm,oa,ort
+        real(kind=8), intent(in), optional :: maxtau,hm,oa,ort,th
         nequations = rneq; npts = gnpts; iflag = riflag; nptsout = rnpts
         if(present(maxtau)) then
 !        MAX_TAU = maxtau; hmax = hm; oatol = oa; ortol = ort
@@ -117,12 +117,12 @@
       subroutine integrate(sinput,ej,eK,tauin,rnpts)
 ! these array sizes are really all known in terms of npts, nequations...
         integer, intent(inout) :: rnpts
-!        double precision, dimension(:,:), intent(inout) :: rI
-        double precision, dimension(:,:), intent(in) :: ej,eK
-        double precision, dimension(:), intent(in) :: sinput
-        double precision, dimension(:), intent(in) :: tauin
-!        double precision, dimension(:), intent(inout) :: I0
-!        double precision, intent(in), optional :: maxt
+!        real(kind=8), dimension(:,:), intent(inout) :: rI
+        real(kind=8), dimension(:,:), intent(in) :: ej,eK
+        real(kind=8), dimension(:), intent(in) :: sinput
+        real(kind=8), dimension(:), intent(in) :: tauin
+!        real(kind=8), dimension(:), intent(inout) :: I0
+!        real(kind=8), intent(in), optional :: maxt
     ! Subroutine to call integration routine for RT equation
     ! JAD 2/28/2011 moved from grtrans_driver 8/7/2014
      ! assign global data
@@ -144,6 +144,14 @@
            write(6,*) 'radtrans_integrate j1: ',jj(:,1)
            write(6,*) 'radtrans_integrate j2: ',jj(:,2)
         endif
+        if(any(isnan(KK))) then
+           write(6,*) 'nan in radtrans_integrate K'
+           write(6,*) 'radtrans_integrate K1: ',KK(:,1)
+           write(6,*) 'radtrans_integrate K2: ',KK(:,2)
+           write(6,*) 'radtrans_integrate K4: ',KK(:,4)
+           write(6,*) 'radtrans_integrate K5: ',KK(:,5)
+           write(6,*) 'radtrans_integrate K7: ',KK(:,7)
+        endif
         !write(6,*) 'jj: ',jj
         !write(6,*) 'KK: ',KK
         if (iflag==0) then
@@ -161,7 +169,7 @@
            write(6,*) 'NaN in integrate ej: ',ej
            write(6,*) 'NaN in integrate jj 2: ',jj
            write(6,*) 'NaN in integrate eK: ',eK
-           write(6,*) 'NaN in integrate KK: ',KK
+!           write(6,*) 'NaN in integrate KK: ',KK
         endif
 !        deallocate(jj); deallocate(KK)
 !        deallocate(s); deallocate(ss); deallocate(s0); deallocate(tau)
@@ -170,13 +178,13 @@
       end subroutine integrate
   
       subroutine radtrans_integrate_lsoda()
-!        double precision, dimension(:), intent(inout) :: I0
-        double precision, dimension(4) :: I0
-        double precision, dimension(npts) :: dummy
-        double precision, dimension(:,:), allocatable :: tau_arr
-        double precision, dimension(:), allocatable :: tau_temp,intvals
+!        real(kind=8), dimension(:), intent(inout) :: I0
+        real(kind=8), dimension(4) :: I0
+        real(kind=8), dimension(npts) :: dummy
+        real(kind=8), dimension(:,:), allocatable :: tau_arr
+        real(kind=8), dimension(:), allocatable :: tau_temp,intvals
         integer, dimension(:), allocatable :: inds
-        double precision :: weight
+        real(kind=8) :: weight
         integer :: lamdex,i,ii,i1,i2,taudex
       !         
 !         write(6,*) 'Kmax: ',size(KK), size(jj)
@@ -319,13 +327,13 @@
       subroutine radtrans_lsoda_calc_rhs(neq,lam,I,dIdlam)
 ! Compute RHS dIdlam for LSODA
         integer, intent(in) :: neq
-        double precision, intent(in) :: lam
-        double precision, intent(in), dimension(neq) :: I
-        double precision, intent(out), dimension(neq) :: dIdlam
-!         double precision, intent(out), dimension(neq,neq) :: jac
-        double precision, dimension(neq) :: j
-        double precision, dimension(1+neq*(neq-1)/2) :: K
-        double precision :: rshift
+        real(kind=8), intent(in) :: lam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8), intent(out), dimension(neq) :: dIdlam
+!         real(kind=8), intent(out), dimension(neq,neq) :: jac
+        real(kind=8), dimension(neq) :: j
+        real(kind=8), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8) :: rshift
         call radtrans_aux(neq,lam,j,K,rshift)
         call radtrans_rhs_form(neq,j,K,dIdlam,I)
 !         write(6,*) 'dIdlam: ',lam,dIdlam
@@ -338,13 +346,13 @@
       subroutine radtrans_lsoda_calc_rhs_npol(neq,lam,I,dIdlam)
 ! Compute RHS dIdlam for LSODA
         integer, intent(in) :: neq
-        double precision, intent(in) :: lam
-        double precision, intent(in), dimension(neq) :: I
-        double precision, intent(out), dimension(neq) :: dIdlam
-!         double precision, intent(out), dimension(neq,neq) :: jac
-        double precision, dimension(neq) :: j
-        double precision, dimension(1+neq*(neq-1)/2) :: K
-        double precision :: rshift
+        real(kind=8), intent(in) :: lam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8), intent(out), dimension(neq) :: dIdlam
+!         real(kind=8), intent(out), dimension(neq,neq) :: jac
+        real(kind=8), dimension(neq) :: j
+        real(kind=8), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8) :: rshift
         call radtrans_aux(neq,lam,j,K,rshift)
         call radtrans_rhs_form_npol(neq,j,K,rshift,dIdlam,I)
 !         didlam=didlam*1e25
@@ -356,10 +364,10 @@
          
       subroutine radtrans_rhs_form(neq,j,K,dIdlam,I)
         integer, intent(in) :: neq
-        double precision, intent(in), dimension(neq) :: j
-        double precision, intent(in), dimension(1+neq*(neq-1)/2) :: K
-        double precision, intent(out), dimension(neq) :: dIdlam
-        double precision, intent(in), dimension(neq) :: I
+        real(kind=8), intent(in), dimension(neq) :: j
+        real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8), intent(out), dimension(neq) :: dIdlam
+        real(kind=8), intent(in), dimension(neq) :: I
       !         write(6,*) 'rhs: ',IS_LINEAR_STOKES,size(I),size(K),size(J)
 !        if (IS_LINEAR_STOKES==1) then
            dIdlam(1)=j(1)-(K(1)*I(1)+K(2)*I(2)+K(3)*I(3)+K(4)*I(4))
@@ -371,11 +379,11 @@
 
       subroutine radtrans_rhs_form_npol(neq,j,K,rshift,dIdlam,I)
         integer, intent(in) :: neq
-        double precision, intent(in), dimension(neq) :: j
-        double precision, intent(in), dimension(1+neq*(neq-1)/2) :: K
-        double precision, intent(out), dimension(neq) :: dIdlam
-        double precision, intent(in), dimension(neq) :: I
-        double precision, intent(in) :: rshift
+        real(kind=8), intent(in), dimension(neq) :: j
+        real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8), intent(out), dimension(neq) :: dIdlam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8), intent(in) :: rshift
 !         write(6,*) 'rhs npol: ',size(I),size(K),size(J)
 !         dIdlam(1)=maxval((/j(1)-K(1)*I(1),0d0/))
         dIdlam(1)=j(1)-K(1)*I(1)
@@ -385,9 +393,9 @@
 
       subroutine radtrans_jac_form_npol(neq,j,K,nrowpd,pd)
         integer, intent(in) :: neq, nrowpd
-        double precision, intent(in), dimension(neq) :: j
-        double precision, intent(in), dimension(1+neq*(neq-1)/2) :: K
-        double precision, intent(out), dimension(nrowpd,neq) :: pd
+        real(kind=8), intent(in), dimension(neq) :: j
+        real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
    !      write(6,*) 'jac: ',nrowpd,neq,size(K),K(1)
         pd(1,1)=-K(1)
 !         write(6,*) 'pd: ',pd
@@ -396,9 +404,9 @@
 
       subroutine radtrans_jac_form(neq,j,K,nrowpd,pd)
         integer, intent(in) :: neq, nrowpd
-        double precision, intent(in), dimension(neq) :: j
-        double precision, intent(in), dimension(1+neq*(neq-1)/2) :: K
-        double precision, intent(out), dimension(nrowpd,neq) :: pd
+        real(kind=8), intent(in), dimension(neq) :: j
+        real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
         !      write(6,*) 'jac: ',nrowpd,neq,size(K)
 !        if (IS_LINEAR_STOKES==1) then
            pd(1,1)=K(1)
@@ -427,14 +435,14 @@
            ,mu,pd,nrowpd)
 ! Compute Jacobian for LSODA
         integer, intent(in) :: neq, nrowpd
-        double precision, intent(in) :: lam
-        double precision, intent(in), dimension(neq) :: I
-        double precision, intent(in) :: ml
-        double precision, intent(in) :: mu
-        double precision, intent(out), dimension(nrowpd,neq) :: pd
-        double precision, dimension(neq) :: j
-        double precision, dimension(1+neq*(neq-1)/2) :: K
-        double precision :: rshift
+        real(kind=8), intent(in) :: lam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8), intent(in) :: ml
+        real(kind=8), intent(in) :: mu
+        real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
+        real(kind=8), dimension(neq) :: j
+        real(kind=8), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8) :: rshift
 !         write(6,*) 'jac: ',nrowpd
         call radtrans_aux(neq,lam,j,K,rshift)
         call radtrans_jac_form(neq,j,K,nrowpd,pd)
@@ -446,14 +454,14 @@
            ,mu,pd,nrowpd)
 ! Compute Jacobian for LSODA
         integer, intent(in) :: neq, nrowpd
-        double precision, intent(in) :: lam
-        double precision, intent(in), dimension(neq) :: I
-        double precision, intent(in) :: ml
-        double precision, intent(in) :: mu
-        double precision, intent(out), dimension(nrowpd,neq) :: pd
-        double precision, dimension(neq) :: j
-        double precision, dimension(1+neq*(neq-1)/2) :: K
-        double precision :: rshift
+        real(kind=8), intent(in) :: lam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8), intent(in) :: ml
+        real(kind=8), intent(in) :: mu
+        real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
+        real(kind=8), dimension(neq) :: j
+        real(kind=8), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8) :: rshift
 !         write(6,*) 'jac: ',nrowpd
         call radtrans_aux(neq,lam,j,K,rshift)
         call radtrans_jac_form_npol(neq,j,K,nrowpd,pd)
@@ -463,12 +471,12 @@
 
       subroutine radtrans_aux(neq,lam,j,K,rshift)
         integer, intent(in) :: neq
-        double precision, intent(in) :: lam
-        double precision, intent(out) :: rshift
-        double precision, intent(out), dimension(neq) :: j
-        double precision, intent(out), dimension(1+neq*(neq-1)/2) :: K
-        double precision :: weight
-      !         double precision, dimension(size(s0)) :: dummy
+        real(kind=8), intent(in) :: lam
+        real(kind=8), intent(out) :: rshift
+        real(kind=8), intent(out), dimension(neq) :: j
+        real(kind=8), intent(out), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8) :: weight
+      !         real(kind=8), dimension(size(s0)) :: dummy
         integer :: indx,uindx
 !         call interp_geo_point(lam,g)
 !         call get_fluid_vars(x0,f)
@@ -505,13 +513,13 @@
       end subroutine radtrans_aux
 
       subroutine calc_O(a,rho,dx,identity,O,M1,M2,M3,M4)
-        double precision, dimension(4), intent(in) :: a
-        double precision, dimension(3), intent(in) :: rho
-        double precision, dimension(4,4) :: identity,onopol!,M1,M2,M3,M4
-        double precision, dimension(4,4), intent(out) :: M1,M2,M3,M4,O
-        double precision :: lam1,lam2,ap,theta,sig,a2,p2
-        double precision :: aq,au,av,rhoq,rhou,rhov
-        double precision :: dx
+        real(kind=8), dimension(4), intent(in) :: a
+        real(kind=8), dimension(3), intent(in) :: rho
+        real(kind=8), dimension(4,4) :: identity,onopol!,M1,M2,M3,M4
+        real(kind=8), dimension(4,4), intent(out) :: M1,M2,M3,M4,O
+        real(kind=8) :: lam1,lam2,ap,theta,sig,a2,p2
+        real(kind=8) :: aq,au,av,rhoq,rhou,rhov
+        real(kind=8) :: dx
         onopol = exp(-a(1)*dx)
         aq = a(2); au = a(3); av = a(4)
         rhoq = rho(1); rhou = rho(2); rhov = rho(3)
@@ -552,11 +560,11 @@
         
 
 !      subroutine imatrix_4(a,b)
-!        double precision, dimension(:,:,:), intent(in) :: a
-!        double precision, dimension(size(a,1),4,4), intent(out) :: b
-!        double precision, dimension(size(a,1)) :: detA
+!        real(kind=8), dimension(:,:,:), intent(in) :: a
+!        real(kind=8), dimension(size(a,1),4,4), intent(out) :: b
+!        real(kind=8), dimension(size(a,1)) :: detA
 !        integer :: i
-!        double precision, dimension(size(a,1)) :: a11,a21,a31,a41,a12,&
+!        real(kind=8), dimension(size(a,1)) :: a11,a21,a31,a41,a12,&
 !             a22,a32,a42,a13,a23,a33,a43,a14,a24,a34,a44
 !        a11 = a(:,1,1); a12 = a(:,2,1); a13 = a(:,3,1); a14 = a(:,4,1)
 !        a21 = a(:,1,2); a22 = a(:,2,2); a23 = a(:,3,2); a24 = a(:,4,2)
@@ -593,9 +601,9 @@
 !      end subroutine imatrix_4
 
       subroutine imatrix_4_single(a,b)
-        double precision, dimension(4,4), intent(in) :: a
-        double precision, dimension(4,4), intent(out) :: b
-        double precision :: detA,a11,a21,a31,a41,a12,a22, &
+        real(kind=8), dimension(4,4), intent(in) :: a
+        real(kind=8), dimension(4,4), intent(out) :: b
+        real(kind=8) :: detA,a11,a21,a31,a41,a12,a22, &
              a32,a42,a13,a23,a33,a43,a14,a24,a34,a44
 
         b = 0d0
@@ -650,9 +658,9 @@
       end subroutine imatrix_4_single
       
       subroutine opacity_matrix(a,p,Karr)
-      double precision, dimension(:,:), intent(in) :: a
-      double precision, dimension(:,:), intent(in) :: p
-      double precision, dimension(size(a,1),4,4), intent(out) :: Karr
+      real(kind=8), dimension(:,:), intent(in) :: a
+      real(kind=8), dimension(:,:), intent(in) :: p
+      real(kind=8), dimension(size(a,1),4,4), intent(out) :: Karr
 !      K = np.array(((a(0),a(1),a(2),a(3)),(a(1),a(0),p(2),-p(1)),(a(2),-p(2),a(0),p(0)),(a(3),p(1),-p(0),a(0))))
       Karr(:,1,1) = a(:,1); Karr(:,2,2) = a(:,1); Karr(:,3,3) = a(:,1); Karr(:,4,4) = a(:,1)
       Karr(:,2,1) = a(:,2); Karr(:,3,1) = a(:,3); Karr(:,4,1) = a(:,4)
@@ -664,67 +672,67 @@
     end subroutine opacity_matrix
 
       subroutine invert_delo_matrix_thin_single(dx,K0,ki,delta,identity,matrix,imatrix)
-        double precision, intent(in) :: dx,ki,delta
-        double precision, intent(in), dimension(4,4) :: identity,K0
-        double precision, intent(out), dimension(4,4) :: matrix,imatrix
+        real(kind=8), intent(in) :: dx,ki,delta
+        real(kind=8), intent(in), dimension(4,4) :: identity,K0
+        real(kind=8), intent(out), dimension(4,4) :: matrix,imatrix
         matrix = (1d0-delta/2d0+delta**2d0/6d0)*identity & 
              +(0.5d0*dx-1d0/6d0*dx**2d0*ki)*K0
         call imatrix_4(matrix,imatrix)
       end subroutine invert_delo_matrix_thin_single
 
       subroutine calc_delo_P_thin_single(imatrix,dx,j,j1,ki,ki1,P)
-        double precision, intent(in), dimension(4,4) :: imatrix
-        double precision, intent(in) :: dx,ki,ki1
-        double precision, intent(in), dimension(4) :: j,j1
-        double precision, intent(out), dimension(4) :: P
+        real(kind=8), intent(in), dimension(4,4) :: imatrix
+        real(kind=8), intent(in) :: dx,ki,ki1
+        real(kind=8), intent(in), dimension(4) :: j,j1
+        real(kind=8), intent(out), dimension(4) :: P
         P = matmul(imatrix,(0.5d0*dx*j-1d0/6d0*dx**2d0*ki*j)+ &
              (0.5d0*j1*dx-1d0/3d0*dx**2d0*ki*j1))
       end subroutine calc_delo_P_thin_single
 
       subroutine calc_delo_Q_thin_single(imatrix,dx,ki,ki1,K1,identity,Q)
-        double precision, intent(in), dimension(4,4) :: imatrix,K1,identity
-        double precision, intent(in) :: dx,ki,ki1
-        double precision, intent(out), dimension(4,4) :: Q
+        real(kind=8), intent(in), dimension(4,4) :: imatrix,K1,identity
+        real(kind=8), intent(in) :: dx,ki,ki1
+        real(kind=8), intent(out), dimension(4,4) :: Q
         Q = matmul(imatrix,identity*(1d0-0.5d0*dx*ki+1d0/6d0*dx**2d0*ki**2d0) &
              -(0.5d0*dx-1d0/3d0*dx**2d0)*K1)
       end subroutine calc_delo_Q_thin_single
 
       subroutine invert_delo_matrix_single(F,G,Kp,identity,matrix,imatrix)
-        double precision, intent(in) :: F,G
-        double precision, intent(in), dimension(4,4) :: Kp,identity
-        double precision, intent(out), dimension(4,4) :: matrix,imatrix
+        real(kind=8), intent(in) :: F,G
+        real(kind=8), intent(in), dimension(4,4) :: Kp,identity
+        real(kind=8), intent(out), dimension(4,4) :: matrix,imatrix
         matrix = identity+(F-G)*Kp
         call imatrix_4(matrix,imatrix)
       end subroutine invert_delo_matrix_single
 
       subroutine calc_delo_P_single(imatrix,F,G,Sp,Sp1,P)
-        double precision, dimension(4,4), intent(in) :: imatrix
-        double precision, intent(in) :: F,G
-        double precision, intent(in), dimension(4) :: Sp,Sp1
-        double precision, intent(out), dimension(4) :: P
+        real(kind=8), dimension(4,4), intent(in) :: imatrix
+        real(kind=8), intent(in) :: F,G
+        real(kind=8), intent(in), dimension(4) :: Sp,Sp1
+        real(kind=8), intent(out), dimension(4) :: P
         P = matmul(imatrix,(F-G)*Sp+G*Sp1)
       end subroutine calc_delo_P_single
 
       subroutine calc_delo_Q_single(imatrix,E,F,G,Kp1,identity,Q)
-        double precision, dimension(4,4), intent(in) :: imatrix,Kp1,identity
-        double precision, intent(in) :: E,F,G
-        double precision, dimension(4,4), intent(out) :: Q
+        real(kind=8), dimension(4,4), intent(in) :: imatrix,Kp1,identity
+        real(kind=8), intent(in) :: E,F,G
+        real(kind=8), dimension(4,4), intent(out) :: Q
         Q = matmul(imatrix,identity*E-G*Kp1)
       end subroutine calc_delo_Q_single
 
       subroutine radtrans_integrate_delo(x,tau,j,a,rho,P,Q,im)
-        double precision, dimension(:), intent(in) :: x,tau
-        double precision, dimension(:,:), intent(in) :: j,a,rho
-!        double precision, intent(out), dimension(size(j,1),size(j,2)) :: P
-!        double precision, intent(out), dimension(size(x),4,4) :: Q,im
-!        double precision, intent(out), dimension(size(x)) :: delta
-        double precision, dimension(size(x),4), intent(inout) :: P
-        double precision, dimension(size(x),4,4), intent(inout) :: Q,im
-        double precision, dimension(size(x)-1) :: delta,dx
-        double precision :: E,F,G
-        double precision, dimension(4) :: iprev,Sp,Sp1,pt,I0
-        double precision, dimension(4,4) :: identity,Kp,Kp1,K0,K1,qt,imatrix,matrix
-        double precision, dimension(size(x),4,4) :: Karr
+        real(kind=8), dimension(:), intent(in) :: x,tau
+        real(kind=8), dimension(:,:), intent(in) :: j,a,rho
+!        real(kind=8), intent(out), dimension(size(j,1),size(j,2)) :: P
+!        real(kind=8), intent(out), dimension(size(x),4,4) :: Q,im
+!        real(kind=8), intent(out), dimension(size(x)) :: delta
+        real(kind=8), dimension(size(x),4), intent(inout) :: P
+        real(kind=8), dimension(size(x),4,4), intent(inout) :: Q,im
+        real(kind=8), dimension(size(x)-1) :: delta,dx
+        real(kind=8) :: E,F,G
+        real(kind=8), dimension(4) :: iprev,Sp,Sp1,pt,I0
+        real(kind=8), dimension(4,4) :: identity,Kp,Kp1,K0,K1,qt,imatrix,matrix
+        real(kind=8), dimension(size(x),4,4) :: Karr
         integer :: k
         I0=0d0
         identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &
@@ -773,13 +781,13 @@
       end subroutine radtrans_integrate_delo
 
       subroutine radtrans_integrate_formal(x,j,a,rho,O)
-        double precision, dimension(:), intent(in) :: x
-        double precision, dimension(size(x),4), intent(in) :: j,a
-        double precision, dimension(size(x),3), intent(in) :: rho
-        double precision, dimension(4,4,size(x)), intent(inout) :: O
-        double precision, dimension(size(x)-1) :: dx
-        double precision, dimension(4) :: I0,iprev
-        double precision, dimension(4,4) :: identity,M1,M2,M3,M4,Ot
+        real(kind=8), dimension(:), intent(in) :: x
+        real(kind=8), dimension(size(x),4), intent(in) :: j,a
+        real(kind=8), dimension(size(x),3), intent(in) :: rho
+        real(kind=8), dimension(4,4,size(x)), intent(inout) :: O
+        real(kind=8), dimension(size(x)-1) :: dx
+        real(kind=8), dimension(4) :: I0,iprev
+        real(kind=8), dimension(4,4) :: identity,M1,M2,M3,M4,Ot
         integer :: k
         I0=0d0
         identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &

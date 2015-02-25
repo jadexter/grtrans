@@ -92,7 +92,7 @@
       contains
 
         function ledd(m) result(leddval)
-        double precision :: leddval
+        real(kind=8) :: leddval
         real, intent(in) :: m
 ! Eddington luminosity
         leddval=4.*pi*G*m*msun*mp*c/sigt
@@ -115,13 +115,13 @@
         rms=calc_rms(a)
         y=sqrt(r)
         yms=sqrt(rms)
-        y1=2.*cos(1./3.*(acos(a)-pi))
-        y2=2.*cos(1./3.*(acos(a)+pi))
-        y3=-2.*cos(1./3.*acos(a))
-        arg1=3.*a/(2.*y)
-        arg2=3.*(y1-a)**2./(y*y1*(y1-y2)*(y1-y3))
-        arg3=3.*(y2-a)**2./(y*y2*(y2-y1)*(y2-y3))
-        arg4=3.*(y3-a)**2./(y*y3*(y3-y1)*(y3-y2))
+        y1=2d0*cos(1./3.*(acos(a)-pi))
+        y2=2d0*cos(1./3.*(acos(a)+pi))
+        y3=-2d0*cos(1./3.*acos(a))
+        arg1=3.*a/(2d0*y)
+        arg2=3.*(y1-a)**2d0/(y*y1*(y1-y2)*(y1-y3))
+        arg3=3.*(y2-a)**2d0/(y*y2*(y2-y1)*(y2-y3))
+        arg4=3.*(y3-a)**2d0/(y*y3*(y3-y1)*(y3-y2))
         kc=1.-yms/y-arg1*log(y/yms)-arg2*log((y-y1)/(yms-y1))- &
           arg3*log((y-y2)/(yms-y2))-arg4*log((y-y3)/(yms-y3))
 !        write(6,*) 'krolikc: ',kc,arg1,arg2,arg3,arg4,y1,y2,y3
@@ -132,63 +132,62 @@
         ! Converts a Kerr-Schild spherical 4-velocity to a Boyer-Lindquist one.
         ! JAD 11/10/2008
         type (four_vector), dimension(:), intent(in) :: fut
-        double precision, dimension(:), intent(in) :: r
-        double precision, intent(in) :: a
-        double precision, dimension(size(r)) :: delta
+        real(kind=8), dimension(:), intent(in) :: r
+        real(kind=8), intent(in) :: a
+        real(kind=8), dimension(size(r)) :: delta
         type (four_vector), dimension(size(fut)) :: fu
-        delta=r**2.-2.*r+a**2
+        delta=r**2d0-2d0*r+a**2
         fu=fut
-        fu%data(1)=fut%data(1)-2.*r/delta*fut%data(2)
+        fu%data(1)=fut%data(1)-2d0*r/delta*fut%data(2)
         fu%data(4)=fut%data(4)-a/delta*fut%data(2)
         end function uks2ubl
 
 
         function bl2ks_time(r,x,a,time) result(xtilde)
-        double precision, dimension(:), intent(in) :: r,x
-        double precision, intent(in) :: a
-        double precision, dimension(size(x)) :: xtilde
+        real(kind=8), dimension(:), intent(in) :: r,x
+        real(kind=8), intent(in) :: a
+        real(kind=8), dimension(size(x)) :: xtilde
         integer, intent(in) :: time
         ! Function to convert t/phi from Boyer-Lindquist coordinates to Kerr-Schild coordinates as shown in PF98 and FIP99
-        xtilde=x+log(r**2-2*r+a**2)+1./(2.*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1+sqrt(1.-a**2))) 
+        xtilde=x+log(r**2-2*r+a**2)+1./(2d0*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1+sqrt(1.-a**2))) 
         end function bl2ks_time
 
         function bl2ks_phi(r,x,a) result(xtilde)
-        double precision, dimension(:), intent(in) :: r,x
-        double precision, intent(in) :: a
-        double precision, dimension(size(x)) :: xtilde
+        real(kind=8), dimension(:), intent(in) :: r,x
+        real(kind=8), intent(in) :: a
+        real(kind=8), dimension(size(x)) :: xtilde
         ! Function to convert t/phi from Boyer-Lindquist coordinates to Kerr-Schild coordinates as shown in PF98 and FIP99
-        xtilde=x+a/(2.*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1.+sqrt(1.-a**2)))
+        xtilde=x+a/(2d0*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1.+sqrt(1.-a**2)))
         end function bl2ks_phi
 
 
         function bl2ks_time_single(r,x,a,time) result(xtilde)
-        double precision, intent(in) :: r,x
-        double precision, intent(in) :: a
-        double precision :: xtilde
+        real(kind=8), intent(in) :: r,x
+        real(kind=8), intent(in) :: a
+        real(kind=8) :: xtilde
         integer, intent(in) :: time
         ! Function to convert t/phi from Boyer-Lindquist coordinates to Kerr-Schild coordinates as shown in PF98 and FIP99
-        xtilde=x+log(r**2-2*r+a**2)+1./(2.*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1+sqrt(1.-a**2))) 
-      end function bl2ks_time_single
+        xtilde=x+log(r**2-2*r+a**2)+1./(2d0*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1+sqrt(1.-a**2))) 
+        end function bl2ks_time_single
 
         function bl2ks_phi_single(r,x,a) result(xtilde)
-        double precision, intent(in) :: r,x
-        double precision, intent(in) :: a
-        double precision :: xtilde
+        real(kind=8), intent(in) :: r,x
+        real(kind=8), intent(in) :: a
+        real(kind=8) :: xtilde
         ! Function to convert t/phi from Boyer-Lindquist coordinates to Kerr-Schild coordinates as shown in PF98 and FIP99
-        xtilde=x+a/(2.*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1.+sqrt(1.-a**2)))
-      end function bl2ks_phi_single
-
+        xtilde=x+a/(2d0*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1.+sqrt(1.-a**2)))
+        end function bl2ks_phi_single
 
         FUNCTION CALCG(U,MU,Q2,L,A,TPM,TPR,SU,SM,VRL,VTL,VPL) result(g)
-          double precision, dimension(:), intent(in) :: su,sm,u,mu,tpm,tpr,vrl,vtl,vpl,q2,l
-          double precision, intent(in) :: a
-          double precision, dimension(size(u)) :: zero,r,z1,z2,rms,d,ar,rho,enu, &
+          real(kind=8), dimension(:), intent(in) :: su,sm,u,mu,tpm,tpr,vrl,vtl,vpl,q2,l
+          real(kind=8), intent(in) :: a
+          real(kind=8), dimension(size(u)) :: zero,r,z1,z2,rms,d,ar,rho,enu, &
                emu1,emu2,epsi,om,sr,st,omega,gam,rr,tt,g
-          double precision :: one,two,tres,third
+          real(kind=8) :: one,two,tres,third
           ! see 2/25/99 notes, p.17
           zero=0.d0
           ONE=1.d0
-          TWO=2.D0
+          TWO=2D0
           TRES=3.d0
           THIRD=ONE/TRES
           R=ONE/U
@@ -225,12 +224,12 @@
           ! frame based on Broderick (2004) covariant method                                      
           ! JAD 2/8/2011
 !          type (four_vector), dimension(:), intent(in) :: k,b,u
-!          double precision, dimension(:), intent(in) :: r,th
-!          double precision, intent(in) :: a
-!          double precision, dimension(size(r)) :: bdotk,bdotb,kdotk,om,angnorm,ang,zero,one, &
+!          real(kind=8), dimension(:), intent(in) :: r,th
+!          real(kind=8), intent(in) :: a
+!          real(kind=8), dimension(size(r)) :: bdotk,bdotb,kdotk,om,angnorm,ang,zero,one, &
 !               angmin,angmax
-!          double precision, dimension(size(r),10) :: metric
-!          double precision, dimension(10,size(r)) :: tmetric
+!          real(kind=8), dimension(size(r),10) :: metric
+!          real(kind=8), dimension(10,size(r)) :: tmetric
 !          zero=0.d0; one=1.d0; angmin=-.9999d0; angmax=0.9999d0
 !          metric=kerr_metric(r,th,a); tmetric=transpose(metric)
 !          call assign_metric(b,tmetric)
@@ -255,10 +254,10 @@
 
 
         function calc_nullp(q2,l,a,r,mu,su,smu,rcomp,thcomp) result(k)
-        double precision, intent(in) :: q2,l,a
-        double precision, dimension(:), intent(in) :: r,mu,su,smu
+        real(kind=8), intent(in) :: q2,l,a
+        real(kind=8), dimension(:), intent(in) :: r,mu,su,smu
         integer, intent(in), optional :: rcomp,thcomp
-        double precision, dimension(size(r)) :: zero,Mfunc,Ufunc, &
+        real(kind=8), dimension(size(r)) :: zero,Mfunc,Ufunc, &
           rho2,delta,u,pu,pt,pmu,pphi,Rfunc
         type (four_Vector), dimension(size(r)) :: k
         zero=0d0
@@ -324,7 +323,7 @@
         real(8), dimension(size(r)) :: ctheta,stheta,rho2,psi4
         ctheta=cos(th); stheta=sin(th)
         rho2=r**2+a**2*ctheta**2
-        psi4=2.*r/rho2
+        psi4=2d0*r/rho2
         ksmetric=0.
         ksmetric(:,1)=-(1.-psi4)
         ksmetric(:,2)=psi4
@@ -332,19 +331,19 @@
         ksmetric(:,5)=1.+psi4
         ksmetric(:,7)=-a*stheta**2*(1.+psi4)
         ksmetric(:,8)=rho2
-        ksmetric(:,10)=stheta**2*(rho2+a**2*(1.+2.*r/rho2)*stheta**2)
+        ksmetric(:,10)=stheta**2*(rho2+a**2*(1.+2d0*r/rho2)*stheta**2)
 !        write(6,*) 'ksmetric kerr: ',ksmetric(1,:)
       end function ksmetric_cov
 
         function blmetric_con(r,th,a,con) result(blmetric)
         ! Returns boyer-lindquist covariant metric components
         ! JAD 10/1/2008, fortran 3/28/2011
-        double precision, dimension(:), intent(in) :: r,th
-        double precision, intent(in) :: a
+        real(kind=8), dimension(:), intent(in) :: r,th
+        real(kind=8), intent(in) :: a
         integer, intent(in) :: con
-        double precision, dimension(size(r),10) :: blmetric
-!        double precision, dimension(10,size(r)) :: gmunu
-        double precision, dimension(size(r)) :: cth,sth,delta, &
+        real(kind=8), dimension(size(r),10) :: blmetric
+!        real(kind=8), dimension(10,size(r)) :: gmunu
+        real(kind=8), dimension(size(r)) :: cth,sth,delta, &
         rho2,sigma
         cth=cos(th); sth=sin(th)
         delta=r*r-2d0*r+a*a
@@ -383,46 +382,46 @@
         function blmetric_cov(r,th,a) result(blmetric)
         ! Returns boyer-lindquist covariant metric components
         ! JAD 10/1/2008, fortran 3/28/2011
-        double precision, dimension(:), intent(in) :: r,th
-        double precision, intent(in) :: a
-        double precision, dimension(size(r),10) :: blmetric
-!        double precision, dimension(10,size(r)) :: gmunu
-        double precision, dimension(size(r)) :: cth,sth,delta, &
+        real(kind=8), dimension(:), intent(in) :: r,th
+        real(kind=8), intent(in) :: a
+        real(kind=8), dimension(size(r),10) :: blmetric
+!        real(kind=8), dimension(10,size(r)) :: gmunu
+        real(kind=8), dimension(size(r)) :: cth,sth,delta, &
         rho2,sigma
         cth=cos(th); sth=sin(th)
-        delta=r*r-2.*r+a*a
+        delta=r*r-2d0*r+a*a
         rho2=r*r+a*a*cth*cth
         sigma=(r*r+a*a)**2-a*a*delta*sth*sth
         blmetric=0d0
         blmetric(:,1)=-(delta-a*a*sth*sth)/rho2
-        blmetric(:,4)=-2.*a*r*sth*sth/rho2
+        blmetric(:,4)=-2d0*a*r*sth*sth/rho2
         blmetric(:,5)=rho2/delta
         blmetric(:,8)=rho2
         blmetric(:,10)=sigma/rho2*sth*sth
         end function blmetric_cov
 
         subroutine lnrf_frame(vr,vt,omega,r,a,th,vrl,vtl,vpl)
-        double precision, dimension(:), intent(in) :: vr,vt,omega,r,th
-        double precision, intent(in) :: a
-        double precision, dimension(size(r)), intent(out) :: vrl,vtl,vpl
-        double precision, dimension(size(r)) :: zero,d,ar,rho,enu,emu1, &
+        real(kind=8), dimension(:), intent(in) :: vr,vt,omega,r,th
+        real(kind=8), intent(in) :: a
+        real(kind=8), dimension(size(r)), intent(out) :: vrl,vtl,vpl
+        real(kind=8), dimension(size(r)) :: zero,d,ar,rho,enu,emu1, &
          emu2,epsi,om,mu
         zero=0d0
         mu=cos(th)
-        D=R*R-2.*R+A*A
+        D=R*R-2d0*R+A*A
         AR=(R*R+A*A)**2-A*A*D*(1.-MU*MU)
         RHO=R*R+A*A*MU*MU
         ENU=SQRT(D*RHO/AR)
         EMU1=SQRT(RHO/D)
         EMU2=SQRT(RHO)
         EPSI=SQRT(1.-MU*MU)*SQRT(AR/RHO)
-        OM=2.*A*R/AR
+        OM=2d0*A*R/AR
         VRL=EMU1/ENU*VR
         VTL=EMU2/ENU*VT
         VPL=EPSI/ENU*(OMEGA-OM)
         VRL=MERGE(VRL,ZERO,D.GT.0d0)
         VTL=MERGE(VTL,ZERO,D.GT.0d0)
-        VPL=MERGE(VPL,ZERO,D.GT.0d0)
+        VPL=MERGE(VPL,ZERO,D.GT.0d0.AND.abs(mu).LT.1d0)
         end subroutine lnrf_frame
 
         subroutine lnrf_frame_real(vr,vt,omega,r,a,th,vrl,vtl,vpl)
@@ -450,11 +449,11 @@
         end subroutine lnrf_frame_real
 
         subroutine lnrf_frame_inv(vr,vt,omega,r,a,th,vrl,vtl,vpl,inv)
-        double precision, dimension(:), intent(in) :: vr,vt,omega,r,th
-        double precision, intent(in) :: a
+        real(kind=8), dimension(:), intent(in) :: vr,vt,omega,r,th
+        real(kind=8), intent(in) :: a
         integer, intent(in) :: inv
-        double precision, dimension(size(r)), intent(out) :: vrl,vtl,vpl
-        double precision, dimension(size(r)) :: zero,d,ar,rho,enu,emu1, &
+        real(kind=8), dimension(size(r)), intent(out) :: vrl,vtl,vpl
+        real(kind=8), dimension(size(r)) :: zero,d,ar,rho,enu,emu1, &
         emu2,epsi,om,mu
         zero=0d0
         mu=cos(th)
@@ -506,14 +505,14 @@
         ! Walker-Penrose constants Kap1, Kap2 at locations 
         !r,th in Boyer-Lindquist coordinates assuming f0=0.
         ! JAD 2/22/2011 from notes
-        double precision, intent(in), dimension(:) :: r,th
+        real(kind=8), intent(in), dimension(:) :: r,th
         type (four_Vector), dimension(:), intent(in) :: kvec
-        double precision, intent(in) :: a,Kap1,Kap2
-        double precision, intent(in), dimension(:,:) :: metric
-        double precision, intent(out), dimension(size(r)) :: f1,f2,f3
-        double precision, dimension(size(r)) :: g03,g11,g22,g33, &
+        real(kind=8), intent(in) :: a,Kap1,Kap2
+        real(kind=8), intent(in), dimension(:,:) :: metric
+        real(kind=8), intent(out), dimension(size(r)) :: f1,f2,f3
+        real(kind=8), dimension(size(r)) :: g03,g11,g22,g33, &
          cth,sth,k0,k1,k2,k3,gam1,gam2,gam3,del1,del2,del3,g1t,g2t, &
-         d1t,d2t
+         d1t,d2t,denom,f1o,f2o,f3o
 !  !      write(6,*) 'perpk', size(metric,1), size(metric,2)
         g03=metric(:,4); g11=metric(:,5)
         g22=metric(:,8); g33=metric(:,10)
@@ -529,17 +528,51 @@
         gam2=r*(r*r+a*a)*sth*k3-a*r*sth*k0
         gam3=a*a*cth*sth*sth*k1-r*(r*r+a*a)*sth*k2
         del1=r*k0-r*a*sth*sth*k3
-        del2=a*cth*sth*(r*r+a*a)*k3-a*a*sth*cth*k0 
+        del2=a*cth*sth*(r*r+a*a)*k3-a*a*sth*cth*k0
         del3=r*a*sth*sth*k1+a*cth*sth*(r*r+a*a)*k2
         g1t=gam1-gam3*g11*k1/(g33*k3+g03*k0)
         g2t=gam2-gam3*g22*k2/(g33*k3+g03*k0)
         d1t=del1-del3*g11*k1/(g33*k3+g03*k0)
         d2t=del2+del3*g22*k2/(g33*k3+g03*k0)
-!  !      write(6,*) 'perpk delgam'
-        f1=(Kap2+d2t/g2t*Kap1)/(d1t+g1t/g2t*d2t)
-        f2=(Kap1-g1t*f1)/g2t
-        f3=(-g11*f1*k1-g22*f2*k2)/(g33*k3+g03*k0)
- ! !      write(6,*) 'perpk: ',Kap1,Kap2,maxval(abs(f1)),maxval(abs(f2))
+!        write(6,*) 'transport perpk denom: ',g33*k3+g03*k0
+!        write(6,*) 'transport perpk g03: ',g03
+!        write(6,*) 'transport perpk a: ',a,a.eq.0d0
+! denominators above vanish identically for mu0 = +/-1, a = 0 since k3 and g03 = 0, so use different form of solution.
+! see 2/23/2015 notes
+!        denom=g33*k3+g03*k0
+!        where(abs(k3).gt.0d0.or.abs(a).gt.0d0)
+!           f1=(Kap2+d2t/g2t*Kap1)/(d1t+g1t/g2t*d2t)
+!           f2=(Kap1-g1t*f1)/g2t
+!           f3=(-g11*f1*k1-g22*f2*k2)/(g33*k3+g03*k0)
+!        elsewhere
+!           f1=Kap1/r/k0
+!           f2=-g11/g22*k1*Kap1/r/k0/k2
+!           f3=-Kap2/r/r/r/sth/k2
+!        endwhere
+! new version based on mathematica notebook 2/23/2015 trying to avoid denominator problems
+        denom=(gam2*del1-gam1*del2)*(g33*k3+g03*k0)+(gam3*del2-gam2*del3)*g11*k1-(gam3*del1-gam1*del3)*g22*k2
+!        f1=(gam2*Kap1-del2*Kap2)*(g33*k3+g03*k0)-g22*k2*(gam3*Kap1-del3*Kap2)
+!        f2=(del1*Kap2-gam1*Kap1)*(g33*k3+g03*k0)+g11*k1*(gam3*Kap1-del3*Kap2)
+!        f3=g22*k2*(gam1*Kap1-del1*Kap2)-g11*k1*(gam2*Kap1-del2*Kap2)
+        f1=(gam2*Kap2-del2*Kap1)*(g33*k3+g03*k0)-g22*k2*(gam3*Kap2-del3*Kap1)
+        f2=(del1*Kap1-gam1*Kap2)*(g33*k3+g03*k0)+g11*k1*(gam3*Kap2-del3*Kap1)
+        f3=g22*k2*(gam1*Kap2-del1*Kap1)-g11*k1*(gam2*Kap2-del2*Kap1)
+        where(abs(denom).gt.0d0)
+           f1=f1/denom
+           f2=f2/denom
+           f3=f3/denom
+        endwhere
+!        write(6,*) 'perpk Kap: ',Kap1,Kap2
+!        write(6,*) 'perpk denom: ',denom
+!        write(6,*) 'perpk f1: ',f1
+!        write(6,*) 'perpk f2: ',f2
+!        write(6,*) 'perpk f3: ',f3
+!        write(6,*) 'perpk f1 old: ',f1o
+!        write(6,*) 'perpk f2 old: ',f2o
+!        write(6,*) 'perpk f3 old: ',f3o
+!        write(6,*) 'perpk kap test: ',Kap1,Kap2
+!        write(6,*) 'perpk kap1: ',del1*f1+del2*f2+del3*f3
+!        write(6,*) 'perpk kap2: ',gam1*f1+gam2*f2+gam3*f3
         end subroutine transport_perpk
 
         subroutine comoving_ortho(r,th,a,alpha,beta,mus,u,b,k, &
@@ -548,30 +581,31 @@
 ! co-moving orthonormal frame following Beckwith et al (2008) and
 ! Shcherbakov & Huang (2011)
 ! JAD 2/14/2011, fortran 3/27/2011
-        implicit none
+!        implicit none
         type (four_Vector), dimension(:), intent(in) :: u,b,k
-        double precision, dimension(:), intent(in) :: r,th
-        double precision, intent(in) :: a,alpha,beta,mus
-        double precision, intent(out), dimension(size(r)) :: s2xi,c2xi, &
+        real(kind=8), dimension(:), intent(in) :: r,th
+        real(kind=8), intent(in) :: a,alpha,beta,mus
+        real(kind=8), intent(out), dimension(size(r)) :: s2xi,c2xi, &
              ang,g,cosne
         type (four_Vector), dimension(size(r)) :: uhat, &
          bhat,khat
-        double precision, dimension(size(r),10) :: metric
-        double precision, dimension(10,size(r)) :: tmetric
-        double precision, dimension(size(r)) :: gtt,gtp,grr,gmm,gpp,ut, &
+        real(kind=8), dimension(size(r),10) :: metric
+        real(kind=8), dimension(10,size(r)) :: tmetric
+        real(kind=8), dimension(size(r)) :: gtt,gtp,grr,gmm,gpp,ut, &
              ur,um,up,urc,umc,utc,upc,np2,nm2,nr2,uhatt,uhatr,uhatm, &
              bhatt,bhatr,bhatm,bhatp,khatt,khatr,khatm,khatp,aahatt, &
              aahatm,aahatr,aahatp,delta,al1,al2,al3,uhatp,ahatt,ahatm, &
              ahatr,ahatp,bdotb,bdotk,kdotk,om,om2,knorm,anorm,bpdotbp, &
              bpdotbb,aadotbp,sxi,cxi,eps,one,mone,angnorm,angmin,angmax, &
              cxitest,sxitest,xi,be1,be2
-        double precision, dimension(size(r),3) :: aahat &
+        real(kind=8), dimension(size(r),3) :: aahat &
            ,bbhat
-        double precision, dimension(size(r),3) :: bphat
+        real(kind=8), dimension(size(r),3) :: bphat
         type (four_Vector), dimension(size(r)) :: &
              ekt,ekr,ekm,ekp,stb,srb,spb,smb,aa,ahat
         integer :: i, nr
-        double precision :: kap1,kap2
+        real(kind=8) :: kap1,kap2
+        one=1d0; mone=-one; angmin=-0.99d0; angmax=0.99d0
         eps=epsilon(eps)
         metric=kerr_metric(r,th,a); tmetric=transpose(metric)
 ! Co-variant metric components
@@ -626,7 +660,16 @@
         aahat(:,1)=ahatr-khat%data(2)*ahatt/khat%data(1)
         aahat(:,2)=ahatm-khat%data(3)*ahatt/khat%data(1)
         aahat(:,3)=ahatp-khat%data(4)*ahatt/khat%data(1)
+!        write(6,*) 'comoving ortho aa 2: ',aa%data(2)
+!        write(6,*) 'comoving ortho aa 3: ',aa%data(3)
+!        write(6,*) 'comoving ortho aa 4: ',aa%data(4)
+!        write(6,*) 'comoving ortho ahatt: ',ahatt
+!        write(6,*) 'comoving ortho khatt: ',khat%data(1)
+!        write(6,*) 'comoving ortho aahat 1: ',aahat(:,1)
+!        write(6,*) 'comoving ortho aahat 2: ',aahat(:,2)
+!        write(6,*) 'comoving ortho aahat 3: ',aahat(:,3)
 !        anorm=dot_product(aahat,aahat)
+!        write(6,*) 'anorm: ',anorm
 !        aahat(:,1)=aahat(:,1)/sqrt(anorm)
 !        aahat(:,2)=aahat(:,2)/sqrt(anorm)
 !        aahat(:,3)=aahat(:,3)/sqrt(anorm)
@@ -651,8 +694,8 @@
         where(bdotb.gt.0d0)
            aadotbp=bhat%data(2)*aahat(:,1)+bhat%data(3)*aahat(:,2)+bhat%data(4)*aahat(:,3)
            bpdotbb=bhat%data(2)*bbhat(:,1)+bhat%data(3)*bbhat(:,2)+bhat%data(4)*bbhat(:,3)
-           s2xi=-2d0*aadotbp*bpdotbb/(aadotbp**2.+bpdotbb**2.)
-           c2xi=(bpdotbb*bpdotbb-aadotbp*aadotbp)/(aadotbp**2.+bpdotbb**2.)
+           s2xi=-2d0*aadotbp*bpdotbb/(aadotbp**2d0+bpdotbb**2d0)
+           c2xi=(bpdotbb*bpdotbb-aadotbp*aadotbp)/(aadotbp**2d0+bpdotbb**2d0)
 !           sxi=aadotbp/sqrt(bpdotbp)
 !           cxi=-bpdotbb/sqrt(bpdotbp)
            angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
@@ -663,7 +706,11 @@
            c2xi=one
            angnorm=0.5d0
         endwhere
- !       write(6,*) 'bperp: ',bpdotbp,bdotb
+!        write(6,*) 'bperp bp: ',bpdotbp
+!        write(6,*) 'bperp bdotb: ',bdotb
+!        write(6,*) 'bperp aadotbp: ',aadotbp
+!        write(6,*) 'bperp s2xi: ',s2xi
+!        write(6,*) 'bperp c2xi: ',c2xi
 !        write(6,*) 'unit vectors: ',dot_product(bbhat,bbhat),dot_product(aahat,aahat),sqrt(knorm)
 !        write(6,*) 'orthogonal: ',dot_product(aahat,bbhat),(aahat(:,1)*khatr+aahat(:,2)*khatm+aahat(:,3)*khatp)/sqrt(knorm), &
 !             (bbhat(:,1)*khatr+bbhat(:,2)*khatm+bbhat(:,3)*khatp)/sqrt(knorm)
@@ -687,12 +734,20 @@
 !        write(6,*) 'cdot: ',b(1)%data,u(1)%data,k(1)%data
 !        write(6,*) 'cdot: ',bdotk,bdotb,om*om
 !        write(6,*) 'ang: ',angnorm, bdotk/sqrt(om2)/sqrt(bdotb)
-        one=1d0; mone=-one; angmin=-.9999d0; angmax=-1d0*angmin
-        ang=acos(merge(merge(angnorm,angmax,angnorm.le..9999d0),angmin, &
-         angnorm.ge.-.9999d0))
-        g=-1./khat%data(1)
+        ang=acos(merge(merge(angnorm,angmax,angnorm.le.angmax),angmin, &
+         angnorm.ge.angmin))
+        g=-1d0/khat%data(1)
 !        write(6,*) 'comoving ortho: ',u*u
+!        write(6,*) 'comoving ortho: ',k*k
+!        write(6,*) 'comoving ortho khat: ',khatr
+!        write(6,*) 'comoving ortho khat: ',khat%data(1)
         cosne=g*sqrt(beta*beta+mus*mus*(alpha*alpha-a*a))/r
+        if(any(isnan(s2xi)).or.any(isnan(c2xi))) then
+           write(6,*) 'NaN in comoving ortho aadotbp: ',aadotbp
+           write(6,*) 'NaN in comoving ortho bpdotbb: ',bpdotbb
+           write(6,*) 'NaN in comoving ortho ahat: ',aa%data(2),aa%data(3),aa%data(4)
+           write(6,*) 'NaN in comoving ortho Kpw: ',Kap1,Kap2
+        endif
       end subroutine comoving_ortho
 
       subroutine comoving_ortho_debug(r,th,a,alpha,beta,mus,u,b,k, &
@@ -701,29 +756,29 @@
 ! co-moving orthonormal frame following Beckwith et al (2008) and
 ! Shcherbakov & Huang (2011)
 ! JAD 2/14/2011, fortran 3/27/2011
-        implicit none
+!        implicit none
         type (four_Vector), dimension(:), intent(in) :: u,b,k
-        double precision, dimension(:), intent(in) :: r,th
-        double precision, intent(in) :: a,alpha,beta,mus
-        double precision, intent(out), dimension(size(r)) :: s2xi,c2xi, &
+        real(kind=8), dimension(:), intent(in) :: r,th
+        real(kind=8), intent(in) :: a,alpha,beta,mus
+        real(kind=8), intent(out), dimension(size(r)) :: s2xi,c2xi, &
              ang,g
         type (four_Vector), dimension(size(r)) :: uhat, &
          bhat,khat
-        double precision, dimension(size(r),10) :: metric
-        double precision, dimension(10,size(r)) :: tmetric
-        double precision, dimension(size(r)) :: gtt,gtp,grr,gmm,gpp,ut, &
+        real(kind=8), dimension(size(r),10) :: metric
+        real(kind=8), dimension(10,size(r)) :: tmetric
+        real(kind=8), dimension(size(r)) :: gtt,gtp,grr,gmm,gpp,ut, &
              ur,um,up,urc,umc,utc,upc,np2,nm2,nr2,uhatt,uhatr,uhatm, &
              bhatt,bhatr,bhatm,bhatp,khatt,khatr,khatm,khatp,aahatt, &
              aahatm,aahatr,aahatp,delta,al1,al2,al3,uhatp,ahatt,ahatm, &
              ahatr,ahatp,bdotb,bdotk,kdotk,om,om2,knorm,bpdotbp, &
              bpdotbb,aadotbp,sxi,cxi,eps,one,mone,angnorm,angmin,angmax 
-        double precision, dimension(size(r),3) :: aahat &
+        real(kind=8), dimension(size(r),3) :: aahat &
            ,bbhat
-        double precision, dimension(size(r),3) :: bphat
+        real(kind=8), dimension(size(r),3) :: bphat
         type (four_Vector), dimension(size(r)) :: &
              ekt,ekr,ekm,ekp,stb,srb,spb,smb,aa,ahat
         integer :: i, nr
-        double precision :: kap1,kap2
+        real(kind=8) :: kap1,kap2
         eps=epsilon(eps)
         metric=kerr_metric(r,th,a); tmetric=transpose(metric)
 ! Co-variant metric components
@@ -757,7 +812,7 @@
 !  !      write(6,*) 'kdota: ',maxval(abs(k*aa)),maxval(abs(aa*aa-1))
 !  !      write(6,*) 'perpk'
 ! Kulkarni+2011 normalizations:
-        delta=r*r+a*a-2.*r
+        delta=r*r+a*a-2d0*r
 !        write(6,*) 'delta: ',r,a,delta,grr
         nr2=-grr*(utc*ut+upc*up)*(1.+umc*um)
 !  !      write(6,*) 'nr2: ',utc,ut,upc,up,umc,um,nr2
@@ -860,7 +915,7 @@
 !  !      write(6,*) 'khat: ',khatr,khatm,khatp
 !  !      write(6,*) 'aadotbb: ',bbhat(:,1)*aahat(:,1)+aahat(:,2)*bbhat(
 !         :,2)+aahat(:,3)*bbhat(:,3)
-!  !      write(6,*) 'bbdotbb: ',maxval(abs(bbhat(:,1)**2+bbhat(:,2)**2
+!        write(6,*) 'bbdotbb: ',maxval(abs(bbhat(:,1)**2+bbhat(:,2)**2
 !          +bbhat(:,3)**2-1))
 ! Find perpendicular magnetic field:
 !  !      write(6,*) 'bdotk: ',maxval(abs(khatr*bhatr+khatm*bhatm+
@@ -881,16 +936,16 @@
         aadotbp=dot_product(aahat,bphat)
         bpdotbp=dot_product(bphat,bphat)
         bpdotbb=dot_product(bphat,bbhat)
-  !      write(6,*) 'aabb: ',maxval(abs(dot_product(aahat,aahat)-1)),
-  !   &   maxval(abs(dot_product(bbhat,bbhat)-1))
-  !      write(6,*) 'dot: ',maxval(aadotbp),bpdotbp,bpdotbb
+        write(6,*) 'aabb: ',maxval(abs(dot_product(aahat,aahat)-1)), &
+        maxval(abs(dot_product(bbhat,bbhat)-1))
+        write(6,*) 'dot: ',maxval(aadotbp),bpdotbp,bpdotbb
 ! Now compute angle between polarization basis and magnetic field:
         one=1d0; mone=-one; angmin=-.9999d0; angmax=-1d0*angmin
         where(bpdotbp.gt.0d0)
            aadotbp=bhat%data(2)*aahat(:,1)+bhat%data(3)*aahat(:,2)+bhat%data(4)*aahat(:,3)
            bpdotbb=bhat%data(2)*bbhat(:,1)+bhat%data(3)*bbhat(:,2)+bhat%data(4)*bbhat(:,3)
-           s2xi=-2d0*aadotbp*bpdotbb/(aadotbp**2.+bpdotbb**2.)
-           c2xi=(bpdotbb*bpdotbb-aadotbp*aadotbp)/(aadotbp**2.+bpdotbb**2.)
+           s2xi=-2d0*aadotbp*bpdotbb/(aadotbp**2d0+bpdotbb**2d0)
+           c2xi=(bpdotbb*bpdotbb-aadotbp*aadotbp)/(aadotbp**2d0+bpdotbb**2d0)
            sxi=aadotbp/sqrt(bpdotbp)
            cxi=-bpdotbb/sqrt(bpdotbp)
            angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
@@ -919,13 +974,13 @@
 
       subroutine calc_polar_psi(r,muf,q2,a,alpha,beta,rshift,mus,p, &
            c2psi,s2psi,cosne)
-      double precision, dimension(:), intent(in) :: r,muf,q2, &
+      real(kind=8), dimension(:), intent(in) :: r,muf,q2, &
            alpha,beta,rshift
       type (four_vector), dimension(:), intent(in) :: p
-      double precision, intent(in) :: a, mus
+      real(kind=8), intent(in) :: a, mus
       type (four_vector), dimension(size(r)) :: f
-      double precision, dimension(size(r)), intent(out) :: cosne,s2psi,c2psi
-      double precision, dimension(size(r)) :: kappa1, kappa2, gammac, num, denom, polarpsi 
+      real(kind=8), dimension(size(r)), intent(out) :: cosne,s2psi,c2psi
+      real(kind=8), dimension(size(r)) :: kappa1, kappa2, gammac, num, denom, polarpsi 
       complex, dimension(size(r)) :: kappa_pw
 !      write(6,*) 'polar psi: ',size(r)
 ! Components of vector in plane of disk
@@ -962,15 +1017,15 @@
       end subroutine
 
       function calc_polvec(r,mu,p,a,psi) result(fourf)
-      double precision, dimension(:), intent(in) :: r, mu
-      double precision, intent(in) :: a, psi
+      real(kind=8), dimension(:), intent(in) :: r, mu
+      real(kind=8), intent(in) :: a, psi
       type (four_vector), dimension(:), intent(in) :: p
-      double precision, dimension(size(r)) :: ptt, prt, ptht, ppht, &
+      real(kind=8), dimension(size(r)) :: ptt, prt, ptht, ppht, &
            vel
-      double precision, dimension(10,size(r)) :: tmetric
-      double precision, dimension(size(r),10) :: metric
+      real(kind=8), dimension(10,size(r)) :: tmetric
+      real(kind=8), dimension(size(r),10) :: metric
       type (four_vector), dimension(size(r)) :: fourf
-      double precision, dimension(size(r)) :: delta,ar,om,rho,frl,fthl, &
+      real(kind=8), dimension(size(r)) :: delta,ar,om,rho,frl,fthl, &
            fphl,frp,fthp,fphp,fr,fth,fph,normf,epsi,enu
 ! Calculate polarization vector assuming convention f^0=0, using Agol (1997)
 ! LNRF momentum:
@@ -1011,12 +1066,12 @@
       end function calc_polvec
 
       function calc_kappapw(a,r,mu,p,f) result(kappapw)
-      double precision, intent(in), dimension(:) :: r,mu
+      real(kind=8), intent(in), dimension(:) :: r,mu
       type (four_vector), intent(in), dimension(:) :: p
       type (four_vector), intent(in), dimension(:) :: f
       complex, dimension(size(r)) :: kappapw
-      double precision, intent(in) :: a
-      double precision, dimension(size(r)) :: alpha,beta
+      real(kind=8), intent(in) :: a
+      real(kind=8), dimension(size(r)) :: alpha,beta
       ! Calculates the complex Penrose-Walker constant for some four-vector
       ! f perpendicular to p
       ! JAD 10/23/2008
@@ -1039,7 +1094,7 @@
       real(8) :: dph
       real(8), dimension(size(r,1)) :: s
       dph=ph(1,1,2)-ph(1,1,1)
-      gdet=(r**2.+a**2.*cos(th)**2.)*sin(th)
+      gdet=(r**2d0+a**2d0*cos(th)**2d0)*sin(th)
       nx1=size(r,1); nx2=size(r,2); nx3=size(r,3)
       dth(:,2:nx2,:)=th(:,2:nx2,:)-th(:,1:nx2-1,:)
       dth(:,1,:)=dth(:,nx2,:)
@@ -1057,7 +1112,7 @@
       real(8), dimension(size(r,1),size(r,3)) :: s
       integer, intent(in) :: onlyth
       dph=ph(1,1,2)-ph(1,1,1)
-      gdet=(r**2.+a**2.*cos(th)**2.)*sin(th)
+      gdet=(r**2d0+a**2d0*cos(th)**2d0)*sin(th)
       nx1=size(r,1); nx2=size(r,2); nx3=size(r,3)
       dth(:,2:nx2,:)=th(:,2:nx2,:)-th(:,1:nx2-1,:)
       dth(:,1,:)=dth(:,nx2,:)
@@ -1075,7 +1130,7 @@
       real(8), dimension(size(r,1),size(r,2)) :: s
       integer, intent(in) :: onlyth, onlyph
       dph=ph(1,1,2)-ph(1,1,1)
-      gdet=(r**2.+a**2.*cos(th)**2.)*sin(th)
+      gdet=(r**2d0+a**2d0*cos(th)**2d0)*sin(th)
       nx1=size(r,1); nx2=size(r,2); nx3=size(r,3)
       dth(:,2:nx2,:)=th(:,2:nx2,:)-th(:,1:nx2-1,:)
       dth(:,1,:)=dth(:,nx2,:)

@@ -1,9 +1,9 @@
 
       module common_data
-      double precision :: nu=2.3d11
-      double precision, dimension(454) :: s,ncgs,tcgs,
+      real(kind=8) :: nu=2.3d11
+      real(kind=8), dimension(454) :: s,ncgs,tcgs,
      &  bcgs,ang
-      double precision :: fac=1d15
+      real(kind=8) :: fac=1d15
       end module
 
       program lsoda_radtrans
@@ -13,12 +13,12 @@
       implicit none
       external dIdspol, jacpol, dIds, jac
       integer :: n=454, k
-      double precision, dimension(1,454) :: Iout, Iexact, tau
-      double precision, dimension(1) :: I
-      double precision, dimension(4,454) :: Ioutpol
-      double precision, dimension(4) :: Ipol
-      double precision, dimension(454) :: sout
-      double precision :: oatol,ortol,temp1,temp2,temp3,temp4,temp5
+      real(kind=8), dimension(1,454) :: Iout, Iexact, tau
+      real(kind=8), dimension(1) :: I
+      real(kind=8), dimension(4,454) :: Ioutpol
+      real(kind=8), dimension(4) :: Ipol
+      real(kind=8), dimension(454) :: sout
+      real(kind=8) :: oatol,ortol,temp1,temp2,temp3,temp4,temp5
       integer, dimension(3) :: stats
       type (fluid) :: vars
       type (emis) :: e
@@ -76,9 +76,9 @@
       use fluid_model
       use emissivity
       use common_data
-      double precision, intent(in) :: s0
-      double precision, intent(out), dimension(4) :: j
-      double precision, intent(out), dimension(7) :: K
+      real(kind=8), intent(in) :: s0
+      real(kind=8), intent(out), dimension(4) :: j
+      real(kind=8), intent(out), dimension(7) :: K
       integer, save :: lindx=1
       type (fluid) :: f
       type (emis) :: e
@@ -98,8 +98,8 @@
       use fluid_model
       use common_data
       use interpolate
-      double precision, intent(in) :: s0
-      double precision :: weight
+      real(kind=8), intent(in) :: s0
+      real(kind=8) :: weight
       type (fluid), intent(out) :: f
       integer, intent(inout) :: lindx
 !      write(6,*) 'get_f: ',s0,size(s)
@@ -117,10 +117,10 @@
 
       subroutine dIds(neq,s,I,Idot)
       integer, intent(in) :: neq
-      double precision, intent(in) :: s, I
-      double precision, intent(out) :: Idot
-      double precision, dimension(4) :: j
-      double precision, dimension(7) :: K 
+      real(kind=8), intent(in) :: s, I
+      real(kind=8), intent(out) :: Idot
+      real(kind=8), dimension(4) :: j
+      real(kind=8), dimension(7) :: K 
       call calc_coefs(s,j,K)
 !      K(5:7)=0d0
       Idot=j(1)*1d15-K(1)*I*9.41d14
@@ -128,10 +128,10 @@
  
       subroutine jac(neq,s,I,ml,mu,pd,nrowpd)
       integer, intent(in) :: neq, ml, mu, nrowpd
-      double precision, intent(in) :: I, s
-      double precision, intent(out), dimension(nrowpd,neq) :: pd
-      double precision, dimension(4) :: j
-      double precision, dimension(7) :: K
+      real(kind=8), intent(in) :: I, s
+      real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
+      real(kind=8), dimension(4) :: j
+      real(kind=8), dimension(7) :: K
  !     write(6,*) 'jac'
       call calc_coefs(s,j,K)
 !      K(5:7)=0d0
@@ -140,11 +140,11 @@
  
       subroutine dIdspol(neq,s,I,Idot)
       integer, intent(in) :: neq
-      double precision, intent(in) :: s
-      double precision, dimension(neq), intent(in) :: I
-      double precision, dimension(neq), intent(out) :: Idot
-      double precision, dimension(4) :: j
-      double precision, dimension(7) :: K
+      real(kind=8), intent(in) :: s
+      real(kind=8), dimension(neq), intent(in) :: I
+      real(kind=8), dimension(neq), intent(out) :: Idot
+      real(kind=8), dimension(4) :: j
+      real(kind=8), dimension(7) :: K
       call calc_coefs(s,j,K)
 !      K(5:7)=0d0
 !      write(6,*) 'dids'
@@ -160,11 +160,11 @@
 
       subroutine jacpol(neq,s,I,ml,mu,pd,nrowpd)
       integer, intent(in) :: neq, ml, mu, nrowpd
-      double precision, intent(in) :: s
-      double precision, intent(in), dimension(neq) :: I
-      double precision, intent(out), dimension(nrowpd,neq) :: pd
-      double precision, dimension(4) :: j
-      double precision, dimension(7) :: K
+      real(kind=8), intent(in) :: s
+      real(kind=8), intent(in), dimension(neq) :: I
+      real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
+      real(kind=8), dimension(4) :: j
+      real(kind=8), dimension(7) :: K
       call calc_coefs(s,j,K)   
  !     K(5:7)=0d0  
  !     write(6,*) 'jac' 

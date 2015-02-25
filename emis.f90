@@ -14,11 +14,11 @@
                   EHYBRIDTH=21, EHYBRIDPL=22
 
        type emis
-         double precision, dimension(:,:), allocatable :: j,K
-         double precision, dimension(:), allocatable :: ncgs,bcgs, &
+         real(kind=8), dimension(:,:), allocatable :: j,K
+         real(kind=8), dimension(:), allocatable :: ncgs,bcgs, &
           tcgs,incang,p,ncgsnth,rshift,freqarr,fnu,deltapol,psipol
-         double precision :: gmax,fcol
-         double precision, dimension(:), allocatable :: cosne,gmin
+         real(kind=8) :: gmax,fcol
+         real(kind=8), dimension(:), allocatable :: cosne,gmin
          integer :: neq,nk,npts,type,nfreq
        end type emis
 
@@ -71,10 +71,10 @@
            ! Interpolate jnu & anu tabulated over freqarr to locations nu
            ! Adapted from IDL version of interpemisnew
            ! JAD 11/29/2011
-           double precision, dimension(:), intent(in) :: nu,freqarr
-           double precision, dimension(:), intent(in) :: jnu, anu
-           double precision, dimension(size(jnu)) :: logj, loga,minarr
-           double precision, dimension(:,:), intent(inout) :: K
+           real(kind=8), dimension(:), intent(in) :: nu,freqarr
+           real(kind=8), dimension(:), intent(in) :: jnu, anu
+           real(kind=8), dimension(size(jnu)) :: logj, loga,minarr
+           real(kind=8), dimension(:,:), intent(inout) :: K
            real :: minval
            integer :: nf,i
            real, dimension(size(nu)) :: yy,aa,xix,xix1,xx,aslope,jslope,yix,yix1
@@ -105,11 +105,11 @@
            ! Interpolate jnu tabulated over freqarr to locations nu
            ! Adapted from IDL version of interpemisnew
            ! JAD 11/29/2011
-           double precision, dimension(:), intent(in) :: nu,freqarr
-           double precision, dimension(:), intent(in) :: jnu
-           double precision, dimension(:,:), intent(inout) :: K
-           double precision, dimension(size(jnu)) :: logj,minarr
-           double precision :: minval
+           real(kind=8), dimension(:), intent(in) :: nu,freqarr
+           real(kind=8), dimension(:), intent(in) :: jnu
+           real(kind=8), dimension(:,:), intent(inout) :: K
+           real(kind=8), dimension(size(jnu)) :: logj,minarr
+           real(kind=8) :: minval
            integer :: nf,i
            real, dimension(size(nu)) :: yy,xix,xix1,xx,jslope,yix,yix1
 !           real, dimension(size(jnu,1),size(jnu,2)) :: yix1, yix
@@ -132,8 +132,8 @@
          end subroutine interpemis_noabs
 
          subroutine rhoemis(rho,rshift,K)
-         double precision, dimension(:), intent(in) :: rho,rshift
-         double precision, dimension(:,:), intent(inout) :: K
+         real(kind=8), dimension(:), intent(in) :: rho,rshift
+         real(kind=8), dimension(:,:), intent(inout) :: K
          K=0d0
 ! extra factor of rshift to make up for frequency integration
          K(:,1)=rho*rshift
@@ -141,27 +141,27 @@
          end subroutine rhoemis
 
          subroutine fbbemis(nu,T,f,K)
-         double precision, dimension(:), intent(in) :: nu,T
-         double precision, dimension(:,:), intent(inout) :: K
-         double precision :: f
+         real(kind=8), dimension(:), intent(in) :: nu,T
+         real(kind=8), dimension(:,:), intent(inout) :: K
+         real(kind=8) :: f
 !         write(6,*) 'bbemis', size(K,1), size(T), size(nu)
          K=0.d0
          K(:,1)=f**(-4d0)*bnu(T*f,nu)
          end subroutine fbbemis
 
          subroutine bbemis(nu,T,K)
-         double precision, dimension(:), intent(in) :: nu,T
-         double precision, dimension(:,:), intent(inout) :: K
+         real(kind=8), dimension(:), intent(in) :: nu,T
+         real(kind=8), dimension(:,:), intent(inout) :: K
 !         write(6,*) 'bbemis', size(K,1), size(T), size(nu)
          K=0.d0
          K(:,1)=bnu(T,nu)
          end subroutine bbemis
 
          subroutine fbbpolemis(nu,T,f,cosne,K)
-         double precision, dimension(:), intent(in) :: nu,T,cosne
-         double precision, dimension(:,:), intent(inout) :: K
+         real(kind=8), dimension(:), intent(in) :: nu,T,cosne
+         real(kind=8), dimension(:,:), intent(inout) :: K
          real, dimension(size(cosne)) :: interpI, interpdel
-         double precision :: f
+         real(kind=8) :: f
          K=0.d0
 !         write(6,*) 'K: ',size(K,1),size(K,2),size(T)
          f=1.8d0
@@ -230,7 +230,7 @@
          subroutine initialize_emissivity(e,npts,nfreq,rshift,ang,cosne)
          type (emis), intent(inout) :: e
          integer, intent(in) :: npts, nfreq
-         double precision, dimension(:), intent(in) :: rshift,ang,cosne
+         real(kind=8), dimension(:), intent(in) :: rshift,ang,cosne
  !        write(6,*) 'init emis: ',npts,e%nk,e%neq
          allocate(e%j(npts,e%neq)); allocate(e%K(npts,e%nk))
          allocate(e%rshift(npts)); allocate(e%gmin(npts))
@@ -290,8 +290,8 @@
 
          subroutine calc_emissivity(nu,e)
          type (emis), intent(inout) :: e
-         double precision, intent(in), dimension(:) :: nu
-         double precision, dimension(e%npts,11) :: K, Kth, Kpl
+         real(kind=8), intent(in), dimension(:) :: nu
+         real(kind=8), dimension(e%npts,11) :: K, Kth, Kpl
 
          integer :: i
          select  case(e%type)
@@ -325,6 +325,20 @@
 !             write(6,*) 'ppl p',e%p
              call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
               e%gmax,K)
+             if(any(isnan(K))) then
+                write(6,*) 'NaN in polsynch sizes: ', &
+                     e%npts,size(nu), &
+                     size(e%ncgsnth),size(e%bcgs),size(e%incang),size(e%p), &
+                     size(e%gmin),size(K,1),size(K,2)
+                write(6,*) 'NaN in polsynchpl K8: ',K(:,8)
+                write(6,*) 'NaN in polsynchpl K9: ',K(:,9)
+                write(6,*) 'NaN in polsynchpl nu: ',nu
+                write(6,*) 'NaN in polsynchpl ang: ',e%incang
+                write(6,*) 'NaN in polsynchpl n: ',e%ncgsnth
+                write(6,*) 'NaN in polsynchpl B: ',e%bcgs
+                write(6,*) 'NaN in polsynchpl p: ',e%p
+                write(6,*) 'NaN in polsynchpl gmin: ',e%gmin
+             endif
            case(esynchpl)
              call synchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
               e%gmax,K)
@@ -360,9 +374,9 @@
 
          subroutine assign_emis_params(e,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,nf)
          type (emis), intent(inout) :: e
-         double precision, dimension(e%npts), intent(in) :: bcgs,ncgs,tcgs,ncgsnth
-         double precision, dimension(nf), intent(in) :: freqarr
-         double precision, dimension(e%npts,nf), intent(in) :: fnu
+         real(kind=8), dimension(e%npts), intent(in) :: bcgs,ncgs,tcgs,ncgsnth
+         real(kind=8), dimension(nf), intent(in) :: freqarr
+         real(kind=8), dimension(e%npts,nf), intent(in) :: fnu
          integer, intent(in) :: nf
          SELECT CASE (e%type)
            CASE (EHYBRIDTHPL)
@@ -411,8 +425,8 @@
 
          subroutine polsynchemis_wrapper(nu,e)
          type (emis), intent(inout) :: e
-         double precision, intent(in), dimension(:) :: nu
-         double precision, dimension(e%npts,11) :: K, Kth, Kpl
+         real(kind=8), intent(in), dimension(:) :: nu
+         real(kind=8), dimension(e%npts,11) :: K, Kth, Kpl
 !         write(6,*) 'polsynch', size(K), size(e%bcgs), size(nu)
    !      write(6,*) size(e%ncgs), size(e%tcgs), size(e%incang),e%npts
          select case(e%type)
@@ -520,9 +534,9 @@
          end subroutine del_emissivity
 
          subroutine calc_opt_depth(s,e,tau,indx)
-         double precision, intent(in), dimension(:) :: s
+         real(kind=8), intent(in), dimension(:) :: s
          type (emis), intent(in) :: e
-         double precision, intent(out), dimension(size(s)) :: tau
+         real(kind=8), intent(out), dimension(size(s)) :: tau
          integer, intent(in) :: indx
 !         write(6,*) 'opt depth: ',size(s),size(e%K(:,1))
 !         write(6,*) 's: ', s
@@ -532,8 +546,8 @@
 
          subroutine rotate_emis(e,s2xi,c2xi)
          type (emis), intent(inout) :: e
-         double precision, dimension(:), intent(in) :: s2xi,c2xi
-         double precision, dimension(size(s2xi)) :: ju,jq,rhoq,rhou,aq,au
+         real(kind=8), dimension(:), intent(in) :: s2xi,c2xi
+         real(kind=8), dimension(size(s2xi)) :: ju,jq,rhoq,rhou,aq,au
 ! Based on Shcherbakov & Huang (2011) and Mathematica rotate_emis.nb
          jq=e%j(:,2); ju=e%j(:,3); aq=e%K(:,2); au=e%K(:,3)
          rhoq=e%K(:,5); rhou=e%K(:,6)
@@ -553,19 +567,21 @@
 !         e%j(:,3)=s2xi*e%j(:,2); e%j(:,2)=c2xi*e%j(:,2)
 !         e%K(:,3)=s2xi*e%K(:,2)+c2xi*e%K(:,3); e%K(:,2)=c2xi*e%K(:,2)-s2xi*e%K(:,3)
 !         e%K(:,6)=s2xi*e%K(:,5); e%K(:,5)=c2xi*e%K(:,5)
-         if(any(isnan(e%j))) then
+         if(any(isnan(e%j).or.any(isnan(e%K)))) then
             write(6,*) 'NaN in rotate_emis!'
             write(6,*) 's2xi: ',s2xi
             write(6,*) 'c2xi: ',c2xi
             write(6,*) 'jq: ',jq
             write(6,*) 'ej2: ',e%j(:,2)
+            write(6,*) 'ang: ',e%incang
+            write(6,*) 'ek5: ',e%K(:,5)
          endif
          end subroutine rotate_emis
 
          subroutine invariant_emis(e,g)
          type (emis), intent(inout) :: e
          integer :: i
-         double precision, dimension(:), intent(in) :: g
+         real(kind=8), dimension(:), intent(in) :: g
 !         e%rshift=g
          do i=1,e%neq; e%j(:,i)=e%j(:,i)*g*g; enddo
          do i=1,e%nk; e%K(:,i)=e%K(:,i)/g; enddo
@@ -573,7 +589,7 @@
 
          subroutine invariant_intensity(e,g,npow)
          type (emis), intent(inout) :: e
-         double precision, dimension(:), intent(in) :: g
+         real(kind=8), dimension(:), intent(in) :: g
          integer :: i
          integer, intent(in) :: npow
 !         e%rshift=g

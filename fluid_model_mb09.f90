@@ -361,9 +361,9 @@
         function findx2mks6(x2,args) result(diff)
           ! Calculates \theta for Jon's defcoord = 1401
           ! JAD 5/14/2010, fortran 12/28/2012    
-          double precision, intent(in) :: x2
-          double precision, intent(in), dimension(:) :: args
-          double precision :: diff,th,r,r0r,r1jet,njet,r0jet,rsjet,qjet, &
+          real(kind=8), intent(in) :: x2
+          real(kind=8), intent(in), dimension(:) :: args
+          real(kind=8) :: diff,th,r,r0r,r1jet,njet,r0jet,rsjet,qjet, &
                rs,r0,r0jet3,rsjet3,h0,ntheta,htheta,rsjet2,r0jet2,myhslope,th2, &
                th0,switch0,switch2,theta1,theta2,arctan2,theta
           th=args(2) ; r=args(1)
@@ -375,9 +375,9 @@
           ! Calculate theta from mks coordinate x2 (McKinney & Gammie (2006a)) and bl/ks coordinate r.             
           ! JAD 4/9/2009                                              
           ! These parameter definitions are based on Jon's defcoord=9:
-          double precision, intent(in), dimension(:) :: args
-          double precision, intent(in) :: x2
-          double precision :: diff,th,r,rj,r0j,nj,rsj,q,g,h
+          real(kind=8), intent(in), dimension(:) :: args
+          real(kind=8), intent(in) :: x2
+          real(kind=8) :: diff,th,r,rj,r0j,nj,rsj,q,g,h
           th=args(2); r=args(1)
           rj=2.8
           nj=0.3

@@ -5,18 +5,18 @@
        contains
 
          subroutine calc_gmin_subroutine(gmin_p,gmin_theta,gmin_etas,gmin_gmins,gmin_nfracs)
-           double precision, intent(in) :: gmin_p
-           double precision :: gmin_lin_cons, gmin_lin_coeff, gmin_lin_power
-           double precision :: gmin_inv_cons, gmin_inv_coeff, gmin_inv_power
-           double precision :: gmin_inv_sin_coeff, gmin_inv_sin_freq, gmin_inv_sin_delay
-           double precision :: gmin_lin_sin_coeff, gmin_lin_sin_freq, gmin_lin_sin_delay
-           double precision, dimension(:), intent(in) :: gmin_theta, gmin_etas
-           double precision, dimension(size(gmin_theta)) :: one
-           double precision, dimension(size(gmin_theta)) :: gmin_linear_constant, gmin_inverse_constant, gmin_atheta
-           double precision, dimension(size(gmin_theta)) :: gmin_raw_gmins
-           double precision :: acenter, anormal, azero, astwo
+           real(kind=8), intent(in) :: gmin_p
+           real(kind=8) :: gmin_lin_cons, gmin_lin_coeff, gmin_lin_power
+           real(kind=8) :: gmin_inv_cons, gmin_inv_coeff, gmin_inv_power
+           real(kind=8) :: gmin_inv_sin_coeff, gmin_inv_sin_freq, gmin_inv_sin_delay
+           real(kind=8) :: gmin_lin_sin_coeff, gmin_lin_sin_freq, gmin_lin_sin_delay
+           real(kind=8), dimension(:), intent(in) :: gmin_theta, gmin_etas
+           real(kind=8), dimension(size(gmin_theta)) :: one
+           real(kind=8), dimension(size(gmin_theta)) :: gmin_linear_constant, gmin_inverse_constant, gmin_atheta
+           real(kind=8), dimension(size(gmin_theta)) :: gmin_raw_gmins
+           real(kind=8) :: acenter, anormal, azero, astwo
 !          intermediate variables
-           double precision, dimension(size(gmin_theta)), intent(out) :: gmin_gmins, gmin_nfracs
+           real(kind=8), dimension(size(gmin_theta)), intent(out) :: gmin_gmins, gmin_nfracs
            one = 1d0
            acenter = 0.5668090982352612
            anormal = 0.52624783

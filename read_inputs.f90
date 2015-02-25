@@ -14,23 +14,25 @@
       namelist /harm/  fdfile, fgfile, fhfile, fnt, fnfiles, findf, fjonfix, &
            foffset, fsim, fdindf, fmagcrit
       namelist /analytic/ fnw, fwmin, fwmax, fnfreq_tab, ffmin, ffmax, frmax, fnr, fsigt, ffcol, &
-           frspot,fr0spot,fn0spot,ftscl,frscl,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fbl06,fnp,ftp
+           frspot,fr0spot,fn0spot,ftscl,frscl,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fbl06,fnp,ftp, &
+           frin,frout,fthin,fthout,fphiin,fphiout
       
       integer :: standard,nrotype,nro,nphi,nup,nvals,nfreq,nmu,cflag, nt,nmdot, &
            nload,extra,i1,i2
       logical :: use_geokerr
-      double precision :: mumax,mumin,spin,rcut,a1,a2,b1,b2,mbh,uout,uin, & 
+      real(kind=8) :: mumax,mumin,spin,rcut,a1,a2,b1,b2,mbh,uout,uin, & 
            fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
       character(len=100) :: ename,fname,iname,stype
-      double precision, dimension(:), allocatable :: freqs,mdots,mu0
-      double precision, dimension(4) :: gridvals
+      real(kind=8), dimension(:), allocatable :: freqs,mdots,mu0
+      real(kind=8), dimension(4) :: gridvals
       integer, dimension(3) :: nn
       ! fluid arguments
       character(len=40) :: fdfile,fhfile,fgfile,fsim
       integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
            fnr,foffset,fdindf,fmagcrit,fbl06
       real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
-           ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fnp,ftp
+           ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fnp,ftp, &
+           frin,frout,fthin,fthout,fphiin,fphiout
 
       interface read_inputs
         module procedure read_inputs

@@ -13,9 +13,9 @@
   implicit none
 
   real, dimension(:,:), allocatable :: fnu,anu
-  double precision, dimension(:,:), allocatable :: K, fnuvals
+  real(kind=8), dimension(:,:), allocatable :: K, fnuvals
   real, dimension(:), allocatable :: omega, r
-  double precision, dimension(:), allocatable :: ncgs,bcgs,tcgs,freqvals, nu
+  real(kind=8), dimension(:), allocatable :: ncgs,bcgs,tcgs,freqvals, nu
   type (fluid) :: f
   type (emis) :: e
   type (four_vector), dimension(:), allocatable :: x0

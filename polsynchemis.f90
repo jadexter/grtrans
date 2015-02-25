@@ -2,15 +2,15 @@
       module polsynchemis
       implicit none
 
-      real(8), dimension(:), allocatable :: gxvals, xvals
-      real(8), dimension(:), allocatable :: gyvals,ypvals,yvvals,yavals, &
+      real(kind=8), dimension(:), allocatable :: gxvals, xvals
+      real(kind=8), dimension(:), allocatable :: gyvals,ypvals,yvvals,yavals, &
        yavvals,yapvals
 !$omp threadprivate(gxvals,xvals,gyvals,ypvals,yvvals,yavals,yavvals,yapvals)
       contains
 
       function gxnum(x,p,ix,iy) result(yy)
-      real(8), dimension(:), intent(in) :: x,p
-      real(8), dimension(size(x)) :: yy
+      real(kind=8), dimension(:), intent(in) :: x,p
+      real(kind=8), dimension(size(x)) :: yy
       integer, intent(in), dimension(size(x)) :: ix,iy
 !      write(6,*) 'interp in', size(gxvals), size(gyvals)
       yy=interp_gxp(x,p,ix,iy,gxvals,gyvals)
@@ -21,46 +21,46 @@
       end function gxnum
 
       function gpnum(x,p,ix,iy) result(yy)
-      real(8), dimension(:), intent(in) :: x,p
-      real(8), dimension(size(x)) :: yy
+      real(kind=8), dimension(:), intent(in) :: x,p
+      real(kind=8), dimension(size(x)) :: yy
       integer, intent(in), dimension(size(x)) :: ix,iy
       yy=interp_gxp(x,p,ix,iy,xvals,ypvals)
       end function gpnum
 
       function gvnum(x,p,ix,iy) result(yy)
-      real(8), dimension(:), intent(in) :: x,p
-      real(8), dimension(size(x)) :: yy
+      real(kind=8), dimension(:), intent(in) :: x,p
+      real(kind=8), dimension(size(x)) :: yy
       integer, intent(in), dimension(size(x)) :: ix,iy
       yy=interp_gxp(x,p,ix,iy,xvals,yvvals)
       end function gvnum
 
       function ganum(x,p,ix,iy) result(yy)
-      real(8), dimension(:), intent(in) :: x,p
-      real(8), dimension(size(x)) :: yy
+      real(kind=8), dimension(:), intent(in) :: x,p
+      real(kind=8), dimension(size(x)) :: yy
       integer, intent(in), dimension(size(x)) :: ix,iy
 !      write(6,*) 'ganum: ',size(xvals),size(yavals)
       yy=interp_gxp(x,p,ix,iy,xvals,yavals)
       end function ganum
 
       function gapnum(x,p,ix,iy) result(yy)
-      real(8), dimension(:), intent(in) :: x,p
-      real(8), dimension(size(x)) :: yy
+      real(kind=8), dimension(:), intent(in) :: x,p
+      real(kind=8), dimension(size(x)) :: yy
        integer, intent(in), dimension(size(x)) :: ix,iy
       yy=interp_gxp(x,p,ix,iy,xvals,yapvals)
       end function gapnum
 
       function gavnum(x,p,ix,iy) result(yy)
-      real(8), dimension(:), intent(in) :: x,p
-      real(8), dimension(size(x)) :: yy
+      real(kind=8), dimension(:), intent(in) :: x,p
+      real(kind=8), dimension(size(x)) :: yy
       integer, intent(in), dimension(size(x)) :: ix,iy
       yy=interp_gxp(x,p,ix,iy,xvals,yavvals)
       end function gavnum
 
       subroutine find_inds_gxp(x,p,xv,ix,iy)
-      real(8), dimension(:), intent(in) :: x,p,xv
+      real(kind=8), dimension(:), intent(in) :: x,p,xv
       integer, dimension(size(x)) :: one, two, zero
       integer, intent(out), dimension(size(x)) :: ix,iy
-      real(8), dimension(size(x)) :: xx
+      real(kind=8), dimension(size(x)) :: xx
       integer :: nx
       two=2; one=1; zero=0
       nx=size(xv)
@@ -68,15 +68,15 @@
       xx=log(x); ix=int((xx-xv(1))/(xv(nx)-xv(1))*(nx))
 !      write(6,*) 'find inds: ',x,p,xx,xv(1:5)
       ix = merge(merge(ix,one,ix.gt.one),nx-1,ix.lt.(nx-1))
-      iy = merge(merge(one,zero,p.gt.3.2),two,p.lt.5.)
+      iy = merge(merge(one,zero,p.gt.3.2d0),two,p.lt.5d0)
       end subroutine find_inds_gxp
 
       function interp_gxp(x,p,ix,iy,xv,yv) result(yy)
-      real(8), dimension(:), intent(in) :: x,p,xv
-      real(8), dimension(:), intent(in) :: yv
+      real(kind=8), dimension(:), intent(in) :: x,p,xv
+      real(kind=8), dimension(:), intent(in) :: yv
       integer, dimension(:), intent(in) :: ix,iy
       integer, dimension(size(ix)) :: indx
-      real(8), dimension(size(x)) :: yy,slope,yix,xix,yix1,xix1,xx
+      real(kind=8), dimension(size(x)) :: yy,slope,yix,xix,yix1,xix1,xx
       xx=log(x); indx=iy*size(xv)+ix
 !      write(6,*) 'indx: ',iy,ix,size(xv),indx,size(yv)
       ! Then interpolate between these to choose appropriate p:
@@ -525,20 +525,22 @@
       ! Compute polarized synch from PL dist from Westford (1959)
       ! JAD 4/7/2011
 !      type (emis), intent(in) :: vars
-      real(8), intent(in), dimension(:) :: b
-      real(8), intent(in), dimension(:) :: nnth,th,p
-!f2py depend(b) nu,gmin,e
-      real(8), intent(in), dimension(:) :: nu,gmin
-      real(8), intent(out), dimension(size(b),11) :: e
-      real(8), dimension(size(b)) :: nub, &
+      real(kind=8), intent(in), dimension(:) :: b
+      real(kind=8), intent(in), dimension(:) :: nnth,th,p
+      real(kind=8), intent(in), dimension(:) :: nu,gmin
+      real(kind=8), intent(out), dimension(size(b),11) :: e
+      real(kind=8), dimension(size(b)) :: nub, &
       nucmin,nucmax,omega0,omega,A,jfac,alpha,kperp, &
       nubperp,nui,kstaralphaq,kstaralphav,kstarq,kstarv,afac,ai,aq,av, &
-       ji,jq,jv,rhoq,zero
-      real(8), dimension(size(b)) :: xmin,xmax
-      real(8), dimension(size(b)) :: gafac,gapfac, &
+       ji,jq,jv,zero,tanth,sinth
+      real(kind=8), dimension(size(b)) :: xmin,xmax
+      real(kind=8), dimension(size(b)) :: gafac,gapfac, &
       gavfac,gxfac,gpfac,gvfac
-      real(8), intent(in) :: gmax
-      zero=0d0
+      real(kind=8), intent(in) :: gmax
+      real(kind=8) :: nucfloor,nufloor,thsafe
+      zero=0d0; nucfloor=1d0; nufloor=1d-10; thsafe=1d-10
+      tanth=tan(th)+sign(1d0,cos(th))*thsafe
+      sinth=sin(th)+thsafe
 !      n=n ; nnth=nnth
 !      b=vars%bcgs ; t=vars%tcgs ; p=vars%p
 !      gmin=vars%gmin ; gmax=vars%gmax ; th=vars%incang
@@ -547,48 +549,49 @@
  !     write(6,*) 'poln: ',nnth
  !     write(6,*) 'polnu: ',nu
  !     write(6,*) 'polp: ',p
-      nub=ec*b/m/c/2d0/pi+1d0; nubperp=nub*sin(th)
-      nucmin=3d0/2d0*nub*gmin**2 ; nucmax=3d0/2d0*nub*gmax**2
-      omega0=nub*2d0*pi ; omega=nu*2d0*pi
+!      nub=ec*b/m/c/2d0/pi;
+      nubperp=ec*B/m/c/2d0/pi*sinth+nufloor
+      nucmin=3d0/2d0*nubperp*gmin**2; nucmax=3d0/2d0*nubperp*gmax**2
+      omega0=nubperp*2d0*pi; omega=nu*2d0*pi
       xmin=nu/nucmin ; xmax=nu/nucmax
 ! CHANGE TO BL09 WAY TO TEST TOYJET
 !      xmin=1e10; xmax=1d-10
-      A=(p-1d0)*nnth/(gmin**(1.-p)-gmax**(1d0-p))
+      A=(p-1d0)*nnth/(gmin**(1d0-p)-gmax**(1d0-p))
 !      write(6,*) 'x: ',xmin,xmax,p,gmin,gmax
       call get_polsynchpl_facs(xmin,xmax,p,gxfac,gpfac,gvfac, &
        gafac,gapfac,gavfac)
-      jfac=A*ec*ec/c*sqrt(3.)/4.* &
-      (3.*nub*sin(th)/2./nu)**((p-1)/2.)*nub*sin(th)
+      jfac=A*ec*ec/c*sqrt(3d0)/4d0* &
+      (3d0*nubperp/2d0/nu)**((p-1d0)/2d0)*nubperp
 !      write(6,*) 'jfac: ',jfac,th,A
       ji=jfac*gxfac
       jq=jfac*gpfac
-      jv=jfac*4d0/3d0/tan(th)* &
-      sqrt(3d0*nub*sin(th)/2d0/nu)*gvfac
+      jv=jfac*4d0/3d0/tanth* &
+      sqrt(3d0*nubperp/2d0/nu)*gvfac
       alpha=(p-1)/2d0
       kperp=A*ec*ec/m/c/nubperp
-      nubperp=ec*B*sin(th)/2d0/pi/m/c
+!      nubperp=ec*B*sinth/2d0/pi/m/c
       nui=gmin*gmin*nubperp
-      kstaralphaq=1.
+      kstaralphaq=1d0
       kstaralphav=2d0*(alpha+3d0/2d0)/(alpha+1)
-      kstarq=kstaralphaq*kperp*(nubperp/nu)**3d0*gmin**(-2*alpha-1)* &
-      (1.-(nui/nu)**(alpha-1d0/2d0))*(alpha-1d0/2d0)**(-1d0)*gapfac
+      kstarq=kstaralphaq*kperp*(nubperp/nu)**3d0*gmin**(-2d0*alpha-1d0)* &
+      (1d0-(nui/nu)**(alpha-1d0/2d0))*(alpha-1d0/2d0)**(-1d0)*gapfac
       kstarq=merge(kstarq,zero,nu.gt.nui)
-      kstarv=kstaralphav*kperp*(nubperp/nu)**2.*log(gmin)* &
-      gmin**(-2*(alpha+1))/tan(th)*gavfac
-      afac=(2d0*pi)**3*A*ec*ec*sqrt(3d0)*omega0*sin(th)*(p+2d0)/32d0/ &
-       pi**2/m/c/omega**2*(2d0*omega/3d0/omega0/sin(th))**(-p/2d0)
+      kstarv=kstaralphav*kperp*(nubperp/nu)**2d0*log(gmin)* &
+      gmin**(-2*(alpha+1))/tanth*gavfac
+      afac=(2d0*pi)**3*A*ec*ec*sqrt(3d0)*omega0*(p+2d0)/32d0/ &
+       pi**2/m/c/omega**2*(2d0*omega/3d0/omega0)**(-p/2d0)
       ai=afac*gafac
       aq=afac*gapfac
-      av=afac*4d0/3d0/tan(th)*gavfac*(2d0*omega/3d0/omega0/sin(th)) &
+      av=afac*4d0/3d0/tanth*gavfac*(2d0*omega/3d0/omega0) &
        **(-1d0/2d0)
-      e(:,1)=ji; e(:,2)=jq; e(:,3)=ji*0.; e(:,4)=jv
-      e(:,5)=ai; e(:,6)=aq; e(:,7)=0.*ai; e(:,8)=av
-      e(:,9)=kstarq; e(:,10)=rhoq*0.; e(:,11)=kstarv
+      e(:,1)=ji; e(:,2)=jq; e(:,3)=0d0; e(:,4)=jv
+      e(:,5)=ai; e(:,6)=aq; e(:,7)=0d0; e(:,8)=av
+      e(:,9)=kstarq; e(:,10)=0d0; e(:,11)=kstarv
 
       ! Zero out all but linear contributions for toyjet:
 !      e(:,4)=0.; e(:,9)=0.; e(:,11)=0.; e(:,8)=0.;
 
-!      write(6,*) 'th: ',th,sin(th),tan(th) 
+!      write(6,*) 'th: ',th,sinth,tan(th) 
 !      write(6,*) 'g: ',gxfac,gpfac,gvfac,gafac,gapfac,gavfac
 !      write(6,*) 'afac: ',afac
 !      write(6,*) 'nub: ',nub,b,ji
@@ -599,8 +602,8 @@
 
       subroutine get_polsynchpl_facs(xmin,xmax,p,gfac,gpfac,gvfac, &
        gafac,gapfac,gavfac)
-      real(8), dimension(:), intent(in) :: xmin,xmax,p
-      real(8), dimension(size(xmin)), intent(out) :: gfac,gafac, &
+      real(kind=8), dimension(:), intent(in) :: xmin,xmax,p
+      real(kind=8), dimension(size(xmin)), intent(out) :: gfac,gafac, &
       gpfac,gvfac,gapfac,gavfac
       integer, dimension(size(xmin)) :: ix1,ix2,iy1,iy2
       call find_inds_gxp(xmax,p,gxvals,ix2,iy2)
@@ -627,41 +630,43 @@
       ! Compute polarized synch from PL dist from Westford (1959)
       ! JAD 4/7/2011
 !      type (emis), intent(in) :: vars
-      real(8), intent(in), dimension(:) :: b
-      real(8), intent(in), dimension(:) :: nnth,th,p
+      real(kind=8), intent(in), dimension(:) :: b
+      real(kind=8), intent(in), dimension(:) :: nnth,th,p
 !f2py depend(b) nu,gmin,e
-      real(8), intent(in), dimension(:) :: nu,gmin
-      real(8), intent(out), dimension(size(b),11) :: e
-      real(8), dimension(size(b)) :: nub, &
+      real(kind=8), intent(in), dimension(:) :: nu,gmin
+      real(kind=8), intent(out), dimension(size(b),11) :: e
+      real(kind=8), dimension(size(b)) :: nub, &
       nucmin,nucmax,omega0,omega,A,jfac,alpha,kperp, &
       nubperp,nui,afac,ai, &
        ji,zero
-      real(8), dimension(size(b)) :: xmin,xmax
-      real(8), dimension(size(b)) :: gafac,gxfac
-      real(8), intent(in) :: gmax
-      zero=0.
+      real(kind=8), dimension(size(b)) :: xmin,xmax
+      real(kind=8), dimension(size(b)) :: gafac,gxfac
+      real(kind=8), intent(in) :: gmax
+      real(kind=8) :: nufloor
+      zero=0d0; nufloor=1d-10
 !      n=n ; nnth=nnth
 !      b=vars%bcgs ; t=vars%tcgs ; p=vars%p
 !      gmin=vars%gmin ; gmax=vars%gmax ; th=vars%incang
 !      write(6,*) 'polb: ',b,nnth,nu,p
-      nub=ec*b/m/c/2d0/pi ; nubperp=nub*sin(th)
-      nucmin=3d0/2d0*nub*gmin**2 ; nucmax=3d0/2d0*nub*gmax**2
-      omega0=nub*2d0*pi ; omega=nu*2d0*pi
+!      nub=ec*b/m/c/2d0/pi ; 
+      nubperp=ec*B/m/c/2d0/pi*sin(th)+nufloor
+      nucmin=3d0/2d0*nubperp*gmin**2 ; nucmax=3d0/2d0*nubperp*gmax**2
+      omega0=nubperp*2d0*pi ; omega=nu*2d0*pi
       xmin=nu/nucmin ; xmax=nu/nucmax
       A=(p-1d0)*nnth/(gmin**(1d0-p)-gmax**(1d0-p))
 !      write(6,*) 'x: '!,xmin,xmax,real(p),gmin,gmax
       call get_synchpl_facs(xmin,xmax,p,gxfac, &
        gafac)
       jfac=A*ec*ec/c*sqrt(3.)/4.* &
-      (3*nub*sin(th)/2d0/nu)**((p-1)/2d0)*nub*sin(th)
+      (3d0*nubperp/2d0/nu)**((p-1)/2d0)*nubperp
 !      write(6,*) 'jfac: '!,jfac,th,A
       ji=jfac*gxfac
       alpha=(p-1)/2d0
       kperp=A*ec*ec/m/c/nubperp
-      nubperp=ec*B*sin(th)/2d0/pi/m/c
+!      nubperp=ec*B*sin(th)/2d0/pi/m/c
       nui=gmin*gmin*nubperp
-      afac=(2d0*pi)**3*A*ec*ec*sqrt(3d0)*omega0*sin(th)*(p+2d0)/32d0/ &
-       pi**2/m/c/omega**2*(2d0*omega/3d0/omega0/sin(th))**(-p/2d0)
+      afac=(2d0*pi)**3*A*ec*ec*sqrt(3d0)*omega0*(p+2d0)/32d0/ &
+       pi**2/m/c/omega**2*(2d0*omega/3d0/omega0)**(-p/2d0)
       ai=afac*gafac
 !      write(6,*) 'ai: ',ai
 !      write(6,*) 'gafac: ',gafac
@@ -671,8 +676,8 @@
       contains
 
       subroutine get_synchpl_facs(xmin,xmax,p,gfac,gafac)
-      real(8), dimension(:), intent(in) :: xmin,xmax,p
-      real(8), dimension(size(xmin)), intent(out) :: gfac,gafac
+      real(kind=8), dimension(:), intent(in) :: xmin,xmax,p
+      real(kind=8), dimension(size(xmin)), intent(out) :: gfac,gafac
       integer, dimension(size(xmin)) :: ix1,ix2,iy1,iy2
 !      write(6,*) 'synchpl facs'
       call find_inds_gxp(xmax,p,gxvals,ix2,iy2)
@@ -694,16 +699,16 @@
       ! coefficients in ultrarel limit using formulas from Huang et al
       ! (2009) and Shcherbakov (2008) for transfer
       ! JAD 1/29/2010
-      real(8), intent(in), dimension(:) :: nu,n,t,b,theta
-      real(8), intent(out), dimension(size(n),11) :: e
-      real(8), dimension(size(n)) :: thetae,nuc,xm,ji, &
+      real(kind=8), intent(in), dimension(:) :: nu,n,t,b,theta
+      real(kind=8), intent(out), dimension(size(n),11) :: e
+      real(kind=8), dimension(size(n)) :: thetae,nuc,xm,ji, &
       jq,jv,ju,bnutnu
-      real(8), dimension(size(n)) :: ai,aq,av,au,rhou, &
+      real(kind=8), dimension(size(n)) :: ai,aq,av,au,rhou, &
       rhoq,rhov,xarg,eps11m22,eps12
-      real(8), dimension(size(n)) :: tm,tp,targ, &
+      real(kind=8), dimension(size(n)) :: tm,tp,targ, &
       omega0,wp2
-      real(8) :: nucminval = 1d0
-      real(8) :: thetaemin = 1d-16
+      real(kind=8) :: nucminval = 1d0
+      real(kind=8) :: thetaemin = 1d-10
 !      write(*,*) 'vars: ',size(B),size(T),size(n),size(nu)
       thetae=k*T/m/c/c+thetaemin
       ! Critical frequency for synchrotron emission:
@@ -770,8 +775,8 @@
         function shffunc(x)
         ! Fitting function F(X) from Shcherbakov (2008)
         ! JAD 1/29/2010
-        real(8), intent(in), dimension(:) :: x
-        real(8), dimension(size(x)) :: shffunc
+        real(kind=8), intent(in), dimension(:) :: x
+        real(kind=8), dimension(size(x)) :: shffunc
         shffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)*&
               dexp(-x**(1.2d0)/2.73d0)&
               -.011d0*dexp(-x/47.2d0)
@@ -779,8 +784,8 @@
 
         function jffunc(x)
           ! Fitting function F(X) from Shcherbakov (2008), modified to match Jones & Hardee small \nu/\nu_c limit. See 12/9/2014 notes.
-          real(8), intent(in), dimension(:) :: x
-          real(8), dimension(size(x)) :: jffunc,extraterm
+          real(kind=8), intent(in), dimension(:) :: x
+          real(kind=8), dimension(size(x)) :: jffunc,extraterm
           extraterm=(.011d0*exp(-x/47.2d0)-2d0**(-1d0/3d0)/3d0**(23d0/6d0)*pi*1d4*&
             (X+1d-16)**(-8d0/3d0))*(0.5d0+0.5d0*tanh((log(x)-log(120d0))/0.1d0))
           jffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)* &
@@ -791,16 +796,16 @@
         function shgfunc(x)
         ! Fitting function G(X) from Shcherbakov (2008)
         ! JAD 1/29/2010
-        real(8), intent(in), dimension(:) :: x
-        real(8), dimension(size(x)) :: shgfunc
+        real(kind=8), intent(in), dimension(:) :: x
+        real(kind=8), dimension(size(x)) :: shgfunc
         shgfunc=1d0-0.11d0*log(1d0+.035d0*x)
         end function shgfunc
         
         function beselk(x,n)
         ! Asymptotic bessel functions for small x
         ! and n=0,2
-        real(8), intent(in), dimension(:) :: x
-        real(8), dimension(size(x)) :: beselk
+        real(kind=8), intent(in), dimension(:) :: x
+        real(kind=8), dimension(size(x)) :: beselk
         integer, intent(in) :: n
         if(n.eq.0) then 
           beselk=-log(x/2d0)-.5772d0 
@@ -816,8 +821,8 @@
         ! I_Q(x) fit using asymptotic expansions to integral in Huang et al
         ! (2009)
         ! JAD 1/28/2010
-        real(8), intent(in), dimension(:) :: x
-       real(8), dimension(size(x)) :: iqx
+        real(kind=8), intent(in), dimension(:) :: x
+       real(kind=8), dimension(size(x)) :: iqx
         iqx=2.5651d0*(1d0+.93193d0/x**(1d0/3d0)+.499873d0/x**(2d0/3d0))* &
        dexp(-1.8899d0*x**(1d0/3d0))
         end function iqx
@@ -827,8 +832,8 @@
        ! I_V(x) fit using asymptotic expansions to integral in Huang et al
        ! (2009)
        ! JAD 1/28/2010
-       real(8), intent(in), dimension(:) :: x
-       real(8), dimension(size(x)) :: ivx
+       real(kind=8), intent(in), dimension(:) :: x
+       real(kind=8), dimension(size(x)) :: ivx
        ivx=(1.81384d0/x+3.42319d0/x**(2d0/3d0)+0.0292545d0/ &
        sqrt(x)+2.03773d0/ &
        x**(1d0/3d0))*dexp(-1.8899d0*x**(1d0/3d0))
@@ -837,8 +842,8 @@
        function iix(x)
        ! Fitting function I(x) from Mahadevan et al (1996)
        ! JAD 1/29/2010
-       real(8), intent(in), dimension(:) :: x
-       real(8), dimension(size(x)) :: iix
+       real(kind=8), intent(in), dimension(:) :: x
+       real(kind=8), dimension(size(x)) :: iix
        iix=2.5651d0*(1d0+1.92d0/x**(1d0/3d0)+.9977d0/x**(2d0/3d0))* &
        dexp(-1.8899d0*x**(1d0/3d0))
        end function iix
@@ -851,12 +856,12 @@
       !
       ! JAD 11/25/2008
       use phys_constants, only: k, m, c, c2, ec=>e, pi
-      real(8), dimension(:), intent(in) :: nu,n,B,T
-      real(8), dimension(size(n),11), intent(out) :: e
-      real(8), dimension(size(n)) :: thetae,nucrit,xm,jnu,anu
+      real(kind=8), dimension(:), intent(in) :: nu,n,B,T
+      real(kind=8), dimension(size(n),11), intent(out) :: e
+      real(kind=8), dimension(size(n)) :: thetae,nucrit,xm,jnu,anu
       
       thetae=k*T/m/c2
-      nucrit = 3.*ec*B/(4*pi*m*c)*thetae**2.+1.  ! This is actually nucrit/z**2 where z=E/kT
+      nucrit = 3d0*ec*B/(4*pi*m*c)*thetae**2d0+1d0  ! This is actually nucrit/z**2 where z=E/kT
       xm     = nu/nucrit
       jnu=4.43d-30/2d0*nu*n*ipx(xm)/thetae**2
       ! Calculate anu from LTE:
@@ -869,8 +874,8 @@
       function ipx(x) result(i)
       ! I'(x) as defined in Mahadevan et. al. (1998)
       ! JAD 6/26/2007
-      real(8), dimension(:), intent(in) :: x
-      real(8), dimension(size(x)) :: i
+      real(kind=8), dimension(:), intent(in) :: x
+      real(kind=8), dimension(size(x)) :: i
       i=4.0505d0/exp(log(x)/6.)*(1+.40d0/sqrt(sqrt(x))+0.5316d0/sqrt(x))* &
        exp(-1.8899d0*exp(log(x)/3.))
       end function ipx
@@ -879,8 +884,8 @@
 
       subroutine synchemisnoabs(nu,n,T,B,e)
 !     To calculate the synchotron emissivity in cgs units with no absorption
-      real(8), dimension(:), intent(in) :: nu,n,T,B
-      real(8), dimension(size(nu),11), intent(out) :: e
+      real(kind=8), dimension(:), intent(in) :: nu,n,T,B
+      real(kind=8), dimension(size(nu),11), intent(out) :: e
       call synchemis(nu,n,T,B,e)
 ! now set absorption coefs = 0
       e(:,5:11)=0.
@@ -890,8 +895,8 @@
       ! Planck spectrum for array of T, scalar nu in cgs units.
       ! JAD 2/2/2009
       use phys_constants, only: h,c2,k
-      real(8), intent(in), dimension(:) :: T,nu
-      real(8), dimension(size(T)) :: bnu
+      real(kind=8), intent(in), dimension(:) :: T,nu
+      real(kind=8), dimension(size(T)) :: bnu
 !      write(6,*) 'bnu: ',T,nu
       bnu = 2d0*h*nu/c2*nu*nu/(exp(h*nu/k/T)-1d0)
       end function bnu

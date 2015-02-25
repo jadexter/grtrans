@@ -9,11 +9,11 @@
        implicit none
 
        type geokerr_args
-         double precision :: u0,uout,uin,offset,mu0,phi0
+         real(kind=8) :: u0,uout,uin,offset,mu0,phi0
          integer :: usegeor,phit,mufill,ncase,kext,next, &
                     nup
-         double precision :: a
-         double precision, dimension(:), allocatable :: uf,muf, &
+         real(kind=8) :: a
+         real(kind=8), dimension(:), allocatable :: uf,muf, &
                                                      su,sm,alpha,beta, &
                                                      l,q2,t0
          integer, dimension(:), allocatable :: tpm,tpr
@@ -22,8 +22,8 @@
        type geo
          type (four_Vector) :: x0,k0
          type (geokerr_args) :: gk
-         double precision, dimension(:), allocatable :: lambda
-         double precision, dimension(:), allocatable :: tpmarr, tprarr
+         real(kind=8), dimension(:), allocatable :: lambda
+         real(kind=8), dimension(:), allocatable :: tpmarr, tprarr
          integer :: lindx=25,npts
          type (four_Vector),  dimension(:), allocatable :: x,k
        end type geo
@@ -48,13 +48,13 @@
          ufarr,mufarr,alarr,bearr,q2arr,larr,smarr,suarr, &
          tpmarr,tprarr)
          integer, intent(in) :: nro,nphi,nup,nrotype,standard
-         double precision, intent(in) :: a1,a2,b1,b2,rcut,a,uout
-         double precision, intent(out), dimension(nro*nphi) :: alarr, &
+         real(kind=8), intent(in) :: a1,a2,b1,b2,rcut,a,uout
+         real(kind=8), intent(out), dimension(nro*nphi) :: alarr, &
                                       bearr,ufarr,mufarr, &
                                       q2arr,larr,smarr,suarr
          integer, intent(out), dimension(nro*nphi) :: tpmarr,tprarr
-         double precision, intent(inout) :: u0,mu0
-         double precision, intent(out) :: offset
+         real(kind=8), intent(inout) :: u0,mu0
+         real(kind=8), intent(out) :: offset
          end subroutine initialize_camera_geokerr
        end interface get_pixel_locations
 
@@ -64,7 +64,7 @@
                             uout,uin,rcut,nrotype,a1,a2,b1,b2,nro,nphi,nup)
          integer, intent(in) :: nro,nphi,nup,nrotype,standard
          type (geokerr_args), intent(inout) :: geargs
-         double precision, intent(in) :: a1,a2,b1,b2,rcut,a,uout,uin,mu0,phi0
+         real(kind=8), intent(in) :: a1,a2,b1,b2,rcut,a,uout,uin,mu0,phi0
          logical :: use_geokerr
 !         write(6,*) 'a: ',a
          geargs%a=a
@@ -150,8 +150,8 @@
          subroutine load_geodesic(g,gunit)
          type (geo), intent(inout) :: g
          integer, intent(in) :: gunit
-         double precision :: ufi,mufi,dti,dphii,lambdai,tpmi,tpri
-         double precision :: alpha,beta,nup
+         real(kind=8) :: ufi,mufi,dti,dphii,lambdai,tpmi,tpri
+         real(kind=8) :: alpha,beta,nup
          integer :: k
          write(6,*) 'load geodesic: ',gunit
          read(gunit,*) alpha,beta,nup
@@ -253,8 +253,8 @@
 
          subroutine interp_geo_point(lam,g)
          type (geo), intent(inout) :: g
-         double precision, intent(in) :: lam
-         double precision :: weight
+         real(kind=8), intent(in) :: lam
+         real(kind=8) :: weight
          call get_weight(g%lambda,lam,g%lindx,weight)
          g%x0=(1d0-weight)*g%x(g%lindx)+weight*g%x(g%lindx+1)
 !         write(6,*) 'after'
@@ -266,7 +266,7 @@
          subroutine geokerr_wrapper(g)
          type (geo), intent(inout) :: g
 !         type (motion_constants), intent(in) :: pixel
-         double precision, dimension(:), allocatable :: &
+         real(kind=8), dimension(:), allocatable :: &
                               ufi,mufi, &
                               dti,dphi,lambdai
          integer, dimension(:), allocatable :: tpmi,tpri
@@ -330,6 +330,21 @@
 !         write(6,*) 'geo assign: ',g%x%data(3)
 !         g%x%data(1)=DTI(i1:i2)
          g%x%data(4)=g%gk%phi0-DPHI(i1:i2)
+! fixes for pole-on viewing and strange turning point behaviors from IDL code
+! if this is a pole on case then need to correct phi:
+         if (abs(g%gk%mu0).eq.1d0) then
+!            write(6,*) 'pole fix'
+            g%x%data(4)=g%x%data(4)+sign(1d0,g%gk%mu0)*atan(g%gk%beta(1),g%gk%alpha(1))
+!            write(6,*) 'geo phi: ',dphi(i1:i2)
+!            write(6,*) 'geo phi: ',g%x%data(4),sign(1d0,g%gk%mu0),atan(g%gk%beta(1),g%gk%alpha(1))
+!            write(6,*) 'geo mu: ', MUFI(i1:i2)
+         endif
+! Klugey fix for the initial sign / turning point number rarely
+! getting messed up from geokerr:
+!         if (sign(1d0,mufi(2)-mufi(1)).eq.sign(1d0,mufi(3)-mufi(2))) then 
+!            tpmi(1)=tpmi(2)
+!            su=sign(ufi(2)-ufi(1)); sm=sign(mufi(2)-mufi(1))*(-1)**tpmi(1)
+!         endif
 !         write(6,*) 'after fvec', g%npts
 ! do differences forwards in time rather than backwards JAD 1/14/2013
          if (g%npts.ne.1) then 
@@ -349,7 +364,7 @@
 !         g%gk%t0=DTI(1)
 !         write(6,*) 't0: ',g%gk%t0, 1./g%gk%u0
 !         g%x(1)%data(1)=0d0
-! ADD IN COMPUTATION OF K FROM X
+! COMPUTATION OF K FROM X
          g%k=calc_nullp(g%gk%q2(1),g%gk%l(1),g%gk%a, &
          g%x%data(2),cos(g%x%data(3)),g%gk%SU(1) &
         *((-1)**g%tprarr),(g%gk%SM(1)*(-1)**g%tpmarr),1,1)

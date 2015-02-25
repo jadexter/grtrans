@@ -57,7 +57,7 @@
          end subroutine ftpkye
          subroutine ftpkyd(unit,kname,kval,dec,kdesc,status)
          integer, intent(in) :: unit, dec
-         double precision, intent(in) :: kval
+         real(kind=8), intent(in) :: kval
          integer, intent(inout) :: status
          character(len=20), intent(in) :: kname,kdesc
          end subroutine ftpkyd
@@ -209,7 +209,7 @@
           nullval, &
          values,anyf,status)
          integer, intent(in) :: unit,group,fpixel,nelements,nullval
-         double precision, intent(out), dimension(:) :: values
+         real(kind=8), intent(out), dimension(:) :: values
          integer, intent(inout) :: status
          integer, intent(out) :: anyf
          call ftgpvd(unit,group,fpixel,nelements,nullval,values,anyf, &
@@ -220,7 +220,7 @@
          ,nullval, &
          values,anyf,status)
          integer, intent(in) :: unit,group,fpixel,nelements,nullval
-         double precision, intent(out), dimension(:,:) :: values
+         real(kind=8), intent(out), dimension(:,:) :: values
          integer, intent(inout) :: status
          integer, intent(out) :: anyf
          call ftgpvd(unit,group,fpixel,nelements,nullval,values,anyf, &
@@ -231,7 +231,7 @@
          values,status)
          integer, intent(in) :: unit,group,fpixel,nelements
          integer, intent(inout) :: status
-         double precision, intent(in), dimension(:) :: values
+         real(kind=8), intent(in), dimension(:) :: values
          call ftpprd(unit,group,fpixel,nelements,values,status)
          end subroutine write_fits_array_dp
 
@@ -239,7 +239,7 @@
          values,status)
          integer, intent(in) :: unit,group,fpixel,nelements
          integer, intent(inout) :: status
-         double precision, intent(in), dimension(:,:) :: values
+         real(kind=8), intent(in), dimension(:,:) :: values
          call ftpprd(unit,group,fpixel,nelements,values,status)
          end subroutine write_fits_image_dp
 
@@ -262,7 +262,7 @@
          subroutine aftpkyd(unit,kname,kval, &
          decimal,kdesc,status)
          integer, intent(in) :: unit,decimal
-         double precision, intent(in) :: kval
+         real(kind=8), intent(in) :: kval
          integer, intent(inout) :: status
          character(len=20), intent(in) :: kname,kdesc
          call ftpkyd(unit,kname,kval,decimal,kdesc,status)

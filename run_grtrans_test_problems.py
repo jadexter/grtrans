@@ -3,46 +3,46 @@ import pickle
 import numpy as np
 import copy
 
-def run_test_problems(save=0,pgrtrans=0):
+def run_test_problems(save=0,pgrtrans=0,nosphacc=0):
     # run grtrans test problems
-    tol=1e-3; failed=[]
-    x=gr.grtrans()
+    tol=1e-3; failed=[]; xlist=[]
+    xlist.append(gr.grtrans())
     if pgrtrans==0:
-        x.compile_grtrans()
+        xlist[-1].compile_grtrans()
     else:
-        x.compile_pgrtrans()
+        xlist[-1].compile_pgrtrans()
     passed=0; max_passed=0
+    if nosphacc <= 0:
 # sphacc
-#    x.write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=15,nmu=1,fmin=2.41e10,fmax=6.31e14,ename='POLSYNCHTH',nvals=4,spin=0.,mbh=10.,standard=1,uout=.003,nn=[100,100,100")
+#    xlist[-1].write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=15,nmu=1,fmin=2.41e10,fmax=6.31e14,ename='POLSYNCHTH',nvals=4,spin=0.,mbh=10.,standard=1,uout=.003,nn=[100,100,100")
 # New tests of 1d intensity profile & full spectrum 12/14/2012
-    x.write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn=[10000,1,100],gridvals=[0.,400.,0.,0.],uout=.0025,oname='sphacc_abs.out')
-    if pgrtrans==0:
-        x.run_grtrans()
-        x.read_grtrans_output()
-    else:
-        x.run_pgrtrans(fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn=[10000,1,100],gridvals=[0.,400.,0.,0.],uout=.0025,oname='sphacc_abs.out')
-        x.calc_spec_pgrtrans((np.shape(x.ivals))[2])
-    if save==0:
-        i = pickle.load(open('test_grtrans_sphacc_intensity.p','rb'))
+        xlist[-1].write_grtrans_inputs('inputs.in',fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn=[10000,1,100],gridvals=[0.,400.,0.,0.],uout=.0025,oname='sphacc_abs.out')
         if pgrtrans==0:
-            terr = np.sum(np.abs(x.ivals[:,0,14]-i))/np.sum(np.abs(i))
+            xlist[-1].run_grtrans()
+            xlist[-1].read_grtrans_output()
         else:
-            terr = np.sum(np.abs(x.ivals[0,:,14]-i))/np.sum(np.abs(i))
-        print 'terr: ',terr
-        if terr < tol: passed+=1
-        else: failed.append('sphacc intensity')
-        max_passed+=1
-        i = pickle.load(open('test_grtrans_sphacc_spectrum.p','rb'))
-        terr = np.sum(np.abs(x.spec-i))/np.sum(np.abs(i))
-        print 'terr: ',terr
-        if terr < tol: passed+=1
-        else: failed.append('sphacc spectrum')
-        max_passed+=1
-    else:
-        pickle.dump(x.ivals[:,0,14],open('test_grtrans_sphacc_intensity.p','wb'))
-        pickle.dump(x.spec,open('test_grtrans_sphacc_spectrum.p','wb'))
+            xlist[-1].run_pgrtrans(fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn=[10000,1,100],gridvals=[0.,400.,0.,0.],uout=.0025,oname='sphacc_abs.out')
+            xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
+        if save==0:
+            i = pickle.load(open('test_grtrans_sphacc_intensity.p','rb'))
+            if pgrtrans==0:
+                terr = np.sum(np.abs(xlist[-1].ivals[:,0,14]-i))/np.sum(np.abs(i))
+            else:
+                terr = np.sum(np.abs(xlist[-1].ivals[0,:,14]-i))/np.sum(np.abs(i))
+            print 'terr: ',terr
+            if terr < tol: passed+=1
+            else: failed.append('sphacc intensity')
+            max_passed+=1
+            i = pickle.load(open('test_grtrans_sphacc_spectrum.p','rb'))
+            terr = np.sum(np.abs(xlist[-1].spec-i))/np.sum(np.abs(i))
+            print 'terr: ',terr
+            if terr < tol: passed+=1
+            else: failed.append('sphacc spectrum')
+            max_passed+=1
+        else:
+            pickle.dump(xlist[-1].ivals[:,0,14],open('test_grtrans_sphacc_intensity.p','wb'))
+            pickle.dump(xlist[-1].spec,open('test_grtrans_sphacc_spectrum.p','wb'))
 
-    xlist = [x]
 # toyjet
     xlist.append(gr.grtrans())
     if pgrtrans==0:

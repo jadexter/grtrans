@@ -4,8 +4,8 @@
 !     public, everything by default, but can specify any 
       type four_Vector
 !        private
-        double precision, dimension(4) :: data ! component values
-        double precision, dimension(10) :: metric ! metric
+        real(kind=8), dimension(4) :: data ! component values
+        real(kind=8), dimension(10) :: metric ! metric
       end type four_Vector
  
       interface size
@@ -72,7 +72,7 @@
 
         function add_Double_to_four_Vector (v, r) result (new) ! overload + 
         type (four_Vector), intent(in) :: v 
-        double precision,          intent(in) :: r 
+        real(kind=8),          intent(in) :: r 
         type (four_Vector)             :: new ! new = v + r 
         new%data = v%data + r ; end function 
     
@@ -84,13 +84,13 @@
         new%data = a%data + b%data    ; end function add_four_Vector 
 
         subroutine assign (name, values)
-        double precision, intent(in) :: values(4)
+        real(kind=8), intent(in) :: values(4)
         type (four_Vector), intent(inout) :: name
         name%data=values
         end subroutine assign
      
 !        function assign (values) result (name) ! array to vector constructor
-!        double precision, intent(in) :: values(4) ! given rank 1 array 
+!        real(kind=8), intent(in) :: values(4) ! given rank 1 array 
 !        integer          :: length ! array size 
 !        type (four_Vector)    :: name  ! four_Vector to create 
 !        length = size(values); allocate ( name%data(length) ) 
@@ -115,7 +115,7 @@
         function dot_four_Vector (a, b) result (c) ! overload * 
         type (four_Vector), intent(in) :: a, b
         type (four_Vector) :: d
-        double precision                      :: c 
+        real(kind=8)                      :: c 
 !        if ( a%size /= b%size ) stop "Sizes differ in dot_four_Vector"
         d=lower(a) ! change a to co-variant
         c = dot_product (d%data, b%data) ; end function dot_four_Vector 
@@ -143,9 +143,9 @@
         end do
         end function lower_arr
 
-        subroutine equal_Double (new, R) ! overload =, double precision to vector 
+        subroutine equal_Double (new, R) ! overload =, real(kind=8) to vector 
         type (four_Vector), intent(inout) :: new 
-        double precision,          intent(in)    :: R 
+        real(kind=8),          intent(in)    :: R 
 !        if ( associated (new%data) ) deallocate (new%data) 
 !        allocate ( new%data(1) ); new%size = 1 
         new%data = R            ; end subroutine equal_Double 
@@ -168,8 +168,8 @@
      
         function make_four_Vector (values, m_values) result(v) ! Optional Constructor 
 !        integer, optional, intent(in) :: len ! number of values 
-        double precision, optional, intent(in) :: values(4)    ! given values
-        double precision, optional, intent(in) :: m_values(10) ! metric values 
+        real(kind=8), optional, intent(in) :: values(4)    ! given values
+        real(kind=8), optional, intent(in) :: m_values(10) ! metric values 
         type (four_Vector)                 :: v 
 !        if ( present (len) ) then ! create vector data 
 !          v%size = len ; allocate ( v%data(len) ) 
@@ -184,22 +184,22 @@
         function normalize_four_Vector (name)  result (new) 
         type (four_Vector), intent(in) :: name 
         type (four_Vector)             :: new 
-        double precision               :: total, nil = epsilon(nil) ! tolerance
+        real(kind=8)               :: total, nil = epsilon(nil) ! tolerance
         total = sqrt ( name*name ) ! use raise/lower op
         if ( total < nil ) then ; new%data = 0.d0 ! avoid division by 0 
         else                  ; new%data = name%data/total 
         end if                  ; end function normalize_four_Vector 
         
         function double_mult_four_Vector (r, v) result (new) ! overload * 
-        double precision,          intent(in) :: r 
+        real(kind=8),          intent(in) :: r 
         type (four_Vector), intent(in) :: v 
         type (four_Vector)             :: new ! new = r * v 
         new%data = r * v%data         
         end function double_mult_four_Vector 
       
-        function subtract_Double (v, r) result (new) ! vector-double precision, overload - 
+        function subtract_Double (v, r) result (new) ! vector-real(kind=8), overload - 
         type (four_Vector), intent(in) :: v 
-        double precision,          intent(in) :: r 
+        real(kind=8),          intent(in) :: r 
         type (four_Vector)             :: new ! new = v + r 
         new%data = v%data - r         ; end function subtract_double 
 
@@ -211,14 +211,14 @@
         function values (name) result (array) ! accessor member
 
         type (four_Vector), intent(in) :: name 
-        double precision                      :: array(4) 
+        real(kind=8)                      :: array(4) 
         array = name % data ; end function values 
 
         function four_Vector_ (values, metric) result(name) ! Public constructor 
 !        integer,      intent(in) :: length ! array size 
-        double precision, intent(in) :: values(4) ! given
-        double precision, optional, intent(in) :: metric(10)
-!        double precision, pointer            :: pt_to_val(:) ! pointer to array 
+        real(kind=8), intent(in) :: values(4) ! given
+        real(kind=8), optional, intent(in) :: metric(10)
+!        real(kind=8), pointer            :: pt_to_val(:) ! pointer to array 
         type (four_Vector)            :: name ! four_Vector to create 
         if(.not.(present(metric))) then 
           name=four_Vector(values,(/-1.,0.,0.,0.,1.,0.,0.,1.,0.,1./))
@@ -229,25 +229,25 @@
 
         function four_Vector_max_value (a) result (v) ! accessor member 
         type (four_Vector), intent(in) :: a 
-        double precision                      :: v 
+        real(kind=8)                      :: v 
         v = maxval ( a%data ); end function four_Vector_max_value 
 
         function four_Vector_min_value (a) result (v) ! accessor member 
         type (four_Vector), intent(in) :: a 
-        double precision                      :: v 
+        real(kind=8)                      :: v 
         v = minval ( a%data ) ; end function four_Vector_min_value 
 
-        function four_Vector_mult_double (v, r) result (new) ! vector*double precision, overload * 
+        function four_Vector_mult_double (v, r) result (new) ! vector*real(kind=8), overload * 
         type (four_Vector), intent(in) :: v 
-        double precision,          intent(in) :: r 
+        real(kind=8),          intent(in) :: r 
         type (four_Vector)             :: new            ! new = v * r 
-!        if ( v%size < 1 ) stop "Zero size in four_Vector_mult_double precision" 
+!        if ( v%size < 1 ) stop "Zero size in four_Vector_mult_real(kind=8)" 
         new = Double_mult_four_Vector (r, v)
         end function four_Vector_mult_double 
 
         function add_Double_to_four_Vector_arr (v, r) result (new) ! overload + 
         type (four_Vector), intent(in), dimension(:) :: v 
-        double precision,          intent(in)  :: r 
+        real(kind=8),          intent(in)  :: r 
         type (four_Vector), dimension(size(v)) :: new ! new = v + r 
         new%data(1) = v%data(1) + r
         new%data(2) = v%data(2) + r
@@ -264,7 +264,7 @@
      
         subroutine assign_arr (name,values)
 ! array to vector constructor
-        double precision, intent(in) :: values(:,:) ! given rank 1 array 
+        real(kind=8), intent(in) :: values(:,:) ! given rank 1 array 
         integer          :: i ! array size 
         type (four_Vector), dimension(size(values,2)), intent(inout) &
            :: name  
@@ -273,7 +273,7 @@
         end subroutine assign_arr
 
         subroutine assign_metric(name,values)
-        double precision, intent(in), dimension(10) :: values
+        real(kind=8), intent(in), dimension(10) :: values
         type (four_Vector) :: name
         name%metric=values
         end subroutine assign_metric
@@ -299,14 +299,14 @@
         end subroutine assign_metric_arr_real_same
 
         subroutine assign_metric_arr_same(name,values)
-        double precision, intent(in), dimension(10) :: values
+        real(kind=8), intent(in), dimension(10) :: values
         type (four_Vector), dimension(:) :: name
         integer :: i
         do i=1,size(name); name(i)%metric=values; enddo
         end subroutine assign_metric_arr_same
 
         subroutine assign_metric_arr(name,values)
-        double precision, intent(in), dimension(:,:) :: values
+        real(kind=8), intent(in), dimension(:,:) :: values
         type (four_Vector), dimension(:) :: name
         integer :: i
         do i=1,size(values,2); name(i)%metric=values(:,i); enddo
@@ -330,7 +330,7 @@
         function dot_four_Vector_arr (a, b) result (c) ! overload * 
         type (four_Vector), intent(in), dimension(:) :: a, b
         type (four_Vector) :: d
-        double precision,dimension(size(a)) :: c
+        real(kind=8),dimension(size(a)) :: c
         integer :: i
         do i=1,size(a)
           d=lower(a(i)) ! change a to co-variant
@@ -342,7 +342,7 @@
         type (four_Vector), intent(in), dimension(:) :: a
         type (four_Vector), intent(in) :: b
         type (four_Vector) :: d
-        double precision,dimension(size(a)) :: c
+        real(kind=8),dimension(size(a)) :: c
         integer :: i
         do i=1,size(a)
           d=lower(a(i)) ! change a to co-variant
@@ -354,7 +354,7 @@
         type (four_Vector), intent(in), dimension(:) :: b
         type (four_vector), intent(in) :: a
         type (four_Vector) :: d
-        double precision,dimension(size(b)) :: c
+        real(kind=8),dimension(size(b)) :: c
         integer :: i
         d=lower(a)
         do i=1,size(b)
@@ -377,9 +377,9 @@
 !        a%data(2)+a%metric(9)*a%data(3)+a%metric(10)*a%data(4)/)
 !        end function lower_arr
 
-        subroutine equal_Double_arr (new, R) ! overload =, double precision to vector 
+        subroutine equal_Double_arr (new, R) ! overload =, real(kind=8) to vector 
         type (four_Vector), intent(inout), dimension(:) :: new 
-        double precision, intent(in) :: R 
+        real(kind=8), intent(in) :: R 
         do i=1,size(new);new(i)%data=R;enddo 
         end subroutine equal_Double_arr 
 
@@ -399,9 +399,9 @@
      
         function make_four_Vector_arr (values, m_values) result(v) ! Optional Constructor 
 !        integer, optional, intent(in) :: len ! number of values 
-        double precision, intent(in) :: values(:,:)    
+        real(kind=8), intent(in) :: values(:,:)    
 ! given values
-        double precision, intent(in) :: m_values(:,:) 
+        real(kind=8), intent(in) :: m_values(:,:) 
 ! metric values 
         type (four_Vector), dimension(size(values,2)) :: v 
         integer :: i
@@ -416,7 +416,7 @@
         function normalize_four_Vector_arr (name)  result (new) 
         type (four_Vector), intent(in), dimension(:) :: name 
         type (four_Vector), dimension(size(name))    :: new 
-        double precision          :: total, nil=epsilon(nil) 
+        real(kind=8)          :: total, nil=epsilon(nil) 
         integer :: i
 ! tolerance
         do i=1,size(name)
@@ -426,7 +426,7 @@
         end if; enddo; end function normalize_four_Vector_arr  
         
         function double_mult_four_Vector_arr (r, v) result (new) ! overload * 
-        double precision, intent(in) :: r 
+        real(kind=8), intent(in) :: r 
         type (four_Vector), intent(in), dimension(:) :: v 
         type (four_Vector), dimension(size(v)) :: new ! new = r * v 
         integer :: i
@@ -438,9 +438,9 @@
         integer                   :: n 
         n = size(name) ; end function size_four_Vector 
       
-        function subtract_Double_arr (v, r) result (new) ! vector-double precision, overload - 
+        function subtract_Double_arr (v, r) result (new) ! vector-real(kind=8), overload - 
         type (four_Vector), intent(in), dimension(:) :: v 
-        double precision, intent(in) :: r 
+        real(kind=8), intent(in) :: r 
         type (four_Vector), dimension(size(v)) :: new ! new = v + r 
         integer :: i
         do i=1,size(v); new(i)%data = v(i)%data - r; enddo
@@ -471,14 +471,14 @@
 
         function values_arr (name) result (array) ! accessor member
         type (four_Vector), intent(in), dimension(:) :: name 
-        double precision :: array(4,size(name)) 
+        real(kind=8) :: array(4,size(name)) 
         integer :: i
         do i=1,size(name); array(:,i)=name(i)%data ; enddo
         end function values_arr 
 
-        function four_Vector_mult_double_arr (v, r) result (new) ! vector*double precision, overload * 
+        function four_Vector_mult_double_arr (v, r) result (new) ! vector*real(kind=8), overload * 
         type (four_Vector), intent(in), dimension(:) :: v 
-        double precision, intent(in) :: r 
+        real(kind=8), intent(in) :: r 
         type (four_Vector), dimension(size(v)) :: new  ! new = v * r 
         new = Double_mult_four_Vector_arr (r, v)
         end function four_Vector_mult_double_arr

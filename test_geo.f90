@@ -13,7 +13,7 @@
   integer :: i,gunit,status,j,l
   character(len=40) :: ifile='inputs.in'
   type (four_vector), dimension(:), allocatable :: kdifft
-  double precision :: dummy, geodiff1, geodiff2, maxgeodiff, geodiff3
+  real(kind=8) :: dummy, geodiff1, geodiff2, maxgeodiff, geodiff3
 
   gunit=12
   call read_inputs(ifile)

@@ -11,8 +11,8 @@
   type (geo) :: g
   type (geokerr_args) :: gargs
   integer :: gunit,i,status
-  double precision, dimension(1) :: rshift=1., polarpsi,cosne
-  double precision :: a1,a2,b1,b2,rcut,a,uout,uin,mu0
+  real(kind=8), dimension(1) :: rshift=1., polarpsi,cosne
+  real(kind=8) :: a1,a2,b1,b2,rcut,a,uout,uin,mu0
   logical :: use_geokerr
   integer :: nro,nphi,nup,nrotype,standard
 

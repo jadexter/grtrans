@@ -10,11 +10,11 @@
 
       implicit none
 
-      double precision, dimension(:), allocatable :: r, th, s2psi, c2psi, chi, cosne, pssave, &
+      real(kind=8), dimension(:), allocatable :: r, th, s2psi, c2psi, chi, cosne, pssave, &
            pcsave, cssave, ccsave, angsave, gsave, psi
-      double precision :: q2,l,alpha,beta,su,sm
-      double precision, dimension(:), allocatable :: s2xi,c2xi,ang,rshift,vrl,vtl,vpl
-      double precision, dimension(:,:), allocatable :: aahat,bbhat, grshift, kbang
+      real(kind=8) :: q2,l,alpha,beta,su,sm
+      real(kind=8), dimension(:), allocatable :: s2xi,c2xi,ang,rshift,vrl,vtl,vpl
+      real(kind=8), dimension(:,:), allocatable :: aahat,bbhat, grshift, kbang
       type (four_Vector), dimension(:), allocatable :: uhat,bhat,khat,aa
       integer :: gunit, status, i
       type (geo) :: g

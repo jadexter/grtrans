@@ -3,9 +3,9 @@
 
        implicit none
 
-       double precision, allocatable, dimension(:,:,:) :: ivals!,ab
-       double precision, allocatable, dimension(:,:) :: ab
-       double precision, allocatable, dimension(:) :: freqs
+       real(8), allocatable, dimension(:,:,:) :: ivals!,ab
+       real(8), allocatable, dimension(:,:) :: ab
+       real(8), allocatable, dimension(:) :: freqs
 
        contains
 
@@ -16,7 +16,7 @@
             cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout)
            
              use omp_lib
        !       use grtrans_inputs
@@ -36,29 +36,30 @@
                  nmdot,nload,extra,i1,i2
             integer :: nro,nphi,nup,tempi
             logical, intent(in) :: use_geokerr
-            double precision, intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
+            real(kind=8), intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
                  fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
-            double precision :: a1,a2,b1,b2
+            real(kind=8) :: a1,a2,b1,b2
             character(len=100), intent(in) :: ename,fname,iname,stype,outfile
-            double precision, dimension(:), allocatable :: mdots,mu0
-!            double precision, dimension(nfreq), intent(out) :: freqs
-            double precision, dimension(4),intent(in) :: gridvals
-            double precision :: spin
+            real(kind=8), dimension(:), allocatable :: mdots,mu0
+!            real(kind=8), dimension(nfreq), intent(out) :: freqs
+            real(kind=8), dimension(4),intent(in) :: gridvals
+            real(kind=8) :: spin
             integer, dimension(3), intent(in) :: nn
 ! FLUID ARGUMENTS
             character(len=40), intent(in) :: fdfile,fhfile,fgfile,fsim
             integer, intent(in) :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
                  fnr,foffset,fdindf,fmagcrit,fbl06
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
-                 ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta,ftp,fnp
+                 ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta,ftp,fnp, &
+                 frin,frout,fthin,fthout,fphiin,fphiout
             !INPUTS====================
             !character(len=40), intent(in) :: outfile !,ifile
             !       character(len=40) :: outfile,ifile
             integer :: nextra=0, inum, gunit, i, ncams, j, m, l, nparams, iii
             real(kind=8) :: wtime
             type (ray_set), dimension(:), allocatable :: c
-!            double precision, dimension(2,nn(1)*nn(2),nmdot*nt*nfreq*nmu), intent(out) :: ab
-!            double precision, dimension(nvals,nn(1)*nn(2),nmdot*nt*nfreq*nmu), intent(out) :: ivals
+!            real(kind=8), dimension(2,nn(1)*nn(2),nmdot*nt*nfreq*nmu), intent(out) :: ab
+!            real(kind=8), dimension(nvals,nn(1)*nn(2),nmdot*nt*nfreq*nmu), intent(out) :: ivals
             type (geokerr_args) :: gargs
             type (fluid_args) :: fargs
             type (source_params), dimension(:), allocatable :: sparams
@@ -138,7 +139,7 @@
             call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout)
             call load_fluid_model(fname,spin,fargs)
             if(nup.eq.1.and.nvals.eq.4) call load_chandra_tab24()
             do j=1,nmu
@@ -193,8 +194,10 @@
             if(nup.eq.1.and.nvals.eq.4) call del_chandra_tab24()
             !       write(6,*) 'Write camera'
             allocate(ivals(nvals,nro*nphi,NCAMS))
+            ivals=0d0
 !            allocate(ab(2,nro*nphi,NCAMS))
             allocate(ab(2,nro*nphi))
+            ab=0d0
             ab(:,:) = c(1)%pixloc
             do m=1,ncams
                if(outfile.ne."") call kwrite_raytrace_camera(c(m),&                           
