@@ -9,11 +9,11 @@
          subroutine polyvl(NDER,XX,YFIT,YP,N,X,C,WORK,IERR)
          integer, intent(in) :: NDER,N
          integer, intent(out) :: IERR
-         double precision, intent(in), dimension(N) :: X,C
-         double precision, intent(in) :: XX
-         double precision, intent(out) :: YFIT
-         double precision, intent(in), dimension(:) :: YP
-         double precision, intent(in), dimension(:) :: WORK
+         real(kind=8), intent(in), dimension(N) :: X,C
+         real(kind=8), intent(in) :: XX
+         real(kind=8), intent(out) :: YFIT
+         real(kind=8), intent(in), dimension(:) :: YP
+         real(kind=8), intent(in), dimension(:) :: WORK
          end subroutine polyvl
        end interface
 
@@ -29,8 +29,8 @@
        interface polint
          subroutine polint(N,X,Y,C)
          integer, intent(in) :: N
-         double precision, intent(in), dimension(N) :: X,Y
-         double precision, intent(out), dimension(N) :: C
+         real(kind=8), intent(in), dimension(N) :: X,Y
+         real(kind=8), intent(out), dimension(N) :: C
          end subroutine polint
        end interface
 
@@ -43,8 +43,8 @@
 
        interface locate
          subroutine dlocate(xx,x,indx)
-         double precision, dimension(:), intent(in) :: xx
-         double precision, intent(in) :: x
+         real(kind=8), dimension(:), intent(in) :: xx
+         real(kind=8), intent(in) :: x
          integer, intent(out) :: indx
          end subroutine dlocate
          subroutine locate(xx,x,indx)
@@ -57,8 +57,8 @@
        interface hunt
          subroutine dhunt(xx,x,jlo)
          integer, intent(inout) :: jlo
-         double precision, intent(in) :: x
-         double precision, dimension(:), intent(in) :: xx
+         real(kind=8), intent(in) :: x
+         real(kind=8), dimension(:), intent(in) :: xx
          end subroutine dhunt
          subroutine hunt(xx,x,jlo)
          integer, intent(inout) :: jlo
@@ -70,10 +70,10 @@
        contains
 
          subroutine dget_weight(xx,x,jlo,weight)
-         double precision, intent(in) :: x
-         double precision, dimension(:), intent(in) :: xx
+         real(kind=8), intent(in) :: x
+         real(kind=8), dimension(:), intent(in) :: xx
          integer, intent(inout) :: jlo
-         double precision, intent(out) :: weight
+         real(kind=8), intent(out) :: weight
          call hunt(xx,x,jlo)
          weight=(x-xx(jlo))/(xx(jlo+1)-xx(jlo))
          end subroutine dget_weight
@@ -114,9 +114,9 @@
         ! Trilinearly interpolate given points (xd,yd,zd) assumed to be normalized so grid spacing is 1 in each direction.
         ! Based on formula from wikipedia.
         ! JAD 9/8/2008
-        double precision, intent(in), dimension(:) :: xd,yd
-        double precision, intent(in), dimension(size(xd),4) :: vv
-        double precision, dimension(size(xd)) :: y,w1,w2
+        real(kind=8), intent(in), dimension(:) :: xd,yd
+        real(kind=8), intent(in), dimension(size(xd),4) :: vv
+        real(kind=8), dimension(size(xd)) :: y,w1,w2
         ! Interpolate along y
         w1=vv(:,1)*(1.-yd)+vv(:,2)*yd
         w2=vv(:,3)*(1.-yd)+vv(:,4)*yd
@@ -128,9 +128,9 @@
         ! Trilinearly interpolate given points (xd,yd,zd) assumed to be normalized so grid spacing is 1 in each direction.
         ! Based on formula from wikipedia.
         ! JAD 9/8/2008
-        double precision, intent(in), dimension(:) :: xd,yd,zd
-        double precision, intent(in), dimension(size(xd),8) :: vv
-        double precision, dimension(size(xd)) :: y,i1,i2,j1,j2,w1,w2
+        real(kind=8), intent(in), dimension(:) :: xd,yd,zd
+        real(kind=8), intent(in), dimension(size(xd),8) :: vv
+        real(kind=8), dimension(size(xd)) :: y,i1,i2,j1,j2,w1,w2
 !        write(6,*) 'dtrilin'
         ! First interpolate along z:
         i1=vv(:,1)*(1.-zd)+vv(:,2)*zd
@@ -148,9 +148,9 @@
         ! Quadrilinearly interpolate given points (td,xd,yd,zd) assumed to be normalized so grid spacing is 1 in each direction.
         ! Based on trilinear interpolation formula from wikipedia.
         ! JAD 9/8/2008
-        double precision, intent(in), dimension(:) :: td,xd,yd,zd
-        double precision, intent(in), dimension(size(td),16) :: vv
-        double precision, dimension(size(td)) :: y,i1,i2,j1,j2,k1, &
+        real(kind=8), intent(in), dimension(:) :: td,xd,yd,zd
+        real(kind=8), intent(in), dimension(size(td),16) :: vv
+        real(kind=8), dimension(size(td)) :: y,i1,i2,j1,j2,k1, &
          k2,l1,l2,m1,m2,n1,n2,w1,w2
         ! First interpolate along z:
         i1=vv(:,1)*(1.-zd)+vv(:,2)*zd

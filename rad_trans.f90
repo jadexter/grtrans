@@ -5,9 +5,9 @@
        use grtrans_inputs
        implicit none
        type rad_trans
-         double precision, dimension(:,:), allocatable :: I
-         double precision, dimension(:), allocatable :: tau
-         double precision :: nu
+         real(kind=8), dimension(:,:), allocatable :: I
+         real(kind=8), dimension(:), allocatable :: tau
+         real(kind=8) :: nu
          integer :: neq,iflag,onpts,npts,ename,idex
        end type rad_trans
         

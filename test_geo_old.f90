@@ -13,16 +13,16 @@
       integer :: unit, status, gunit, i
       integer, dimension(1) :: naxes
       integer :: tpm,tpr
-!      double precision :: a1,a2,b1,b2,rcut,a
-      double precision, dimension(:), allocatable :: alarr, &
+!      real(kind=8) :: a1,a2,b1,b2,rcut,a
+      real(kind=8), dimension(:), allocatable :: alarr, &
        bearr,q2arr,larr,suarr,smarr,ufarr,mufarr
       integer, dimension(:), allocatable :: tpmarr, tprarr
-      double precision :: u0,uf,offset,uout
-      double precision, dimension(:), allocatable :: &
+      real(kind=8) :: u0,uf,offset,uout
+      real(kind=8), dimension(:), allocatable :: &
                                      tpri,tpmi,lambdai, &
                                       dti,dphi,ufi,mufi
       integer :: usegeor,mufill,phit
-      double precision, dimension(:), allocatable :: intensity
+      real(kind=8), dimension(:), allocatable :: intensity
       character(len=20) :: outfile='test_geo.out'
  
       call read_inputs()

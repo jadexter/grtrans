@@ -47,9 +47,9 @@
       contains
 
         function findx2harm(x2,args) result(diff)
-        double precision, intent(in) :: x2
-        double precision, intent(in), dimension(:) :: args
-        double precision :: h, theta, diff
+        real(kind=8), intent(in) :: x2
+        real(kind=8), intent(in), dimension(:) :: args
+        real(kind=8) :: h, theta, diff
         h=args(2); theta=args(1)
         diff=theta-pi*x2-.5*(1-h)*sin(2.*pi*x2)
         end function findx2harm
@@ -79,7 +79,7 @@
           type (four_vector), dimension(size(r)) :: uks
           real, intent(in), optional :: hin
           real :: hval
-          double precision, dimension(size(r)) :: ur, uth
+          real(kind=8), dimension(size(r)) :: ur, uth
           real, dimension(size(r)) :: dthdx2
           write(6,*) 'read harm umksh2uks present h'
           if (present(hin)) then
@@ -101,7 +101,7 @@
         subroutine harm_vals(x0,a,rho,p,b,u,bmag)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
-        double precision, dimension(size(x0)) :: done
+        real(kind=8), dimension(size(x0)) :: done
         real, dimension(size(x0)) :: x2,x1,zm,theta,fone, &
          vpl0,vrl0,vtl0,rd,td,rttd,zr,dzero, &
          vr0,vth0,vph0,bth,dummy,tt,ttd,zt,zphi,zpp
@@ -385,7 +385,7 @@
 
 
         subroutine initialize_harm_model(a,ifile,df,hf,ntt,indft)
-        double precision, intent(in) :: a
+        real(kind=8), intent(in) :: a
         integer :: nx, status, nhead
         character(len=20), intent(in), optional :: ifile
         character(len=20) :: default_ifile='harm.in'

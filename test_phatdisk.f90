@@ -7,7 +7,7 @@
   use emissivity, only: bbemis
 
   real, dimension(:,:), allocatable :: fnu, fnuthin
-  double precision, dimension(:,:), allocatable :: K
+  real(kind=8), dimension(:,:), allocatable :: K
   real, dimension(:), allocatable :: omega, T, omegathin, rthin, r, ftemp
   integer :: nr, i
   real :: a, rmax

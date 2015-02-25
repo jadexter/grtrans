@@ -46,7 +46,7 @@
 !        type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         real, intent(in), dimension(:) :: r,phi
-!        double precision, dimension(size(r)) :: done
+!        real(kind=8), dimension(size(r)) :: done
         real, dimension(size(r)) :: x2,x1,fone, &
          rd,pd,zr,dzero,dummy
         real, dimension(int(sqrt(real(size(rc_arr))))) :: uniqx1 &
@@ -175,7 +175,7 @@
         end subroutine read_numdisk_inputs
 
         subroutine initialize_numdisk_model(ifile,df,ts,rs)
-!        double precision, intent(in) :: a
+!        real(kind=8), intent(in) :: a
         real :: aa
         real, dimension(:), allocatable :: b
         character(len=20), intent(in), optional :: ifile

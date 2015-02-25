@@ -1,12 +1,13 @@
   module fluid_model_powerlaw
-! Semi-analytic RIAF model from Yuan, Quataert, Narayan (2003)
-! And Broderick+ (2009)
+! power law model with inputs in B, T, n, assumes toroidal magnetic field 
+! and velocity vectors 
 
   use phys_constants, only: c2, pi, mp
 
   implicit none
 
-  real :: pl_pnth, pl_n0, pl_t0, pl_nnth0, pl_beta, pl_pn, pl_pt
+  real :: pl_pnth, pl_n0, pl_t0, pl_nnth0, pl_beta, pl_pn, pl_pt, &
+       pl_rin, pl_rout, pl_thin, pl_thout, pl_phiin, pl_phiout
   
   interface powerlaw_vals
     module procedure powerlaw_vals
@@ -22,9 +23,11 @@
 
   contains
 
-    subroutine init_powerlaw(n0,t0,nnth0,pnth,beta,pn,pt)
+    subroutine init_powerlaw(n0,t0,nnth0,pnth,beta,pn,pt,rin,rout,thin,thout, &
+         phiin,phiout)
 ! assign inputs, defaults for one zone model w/ Gaussian height
-      real, intent(in), optional :: n0,t0,nnth0,pnth,beta,pn,pt
+      real, intent(in), optional :: n0,t0,nnth0,pnth,beta,pn,pt, &
+           rin,rout,thin,thout,phiin,phiout
       write(6,*) 'init powerlaw: ',present(n0),present(t0),present(nnth0),&
            present(pnth),present(beta)
       if(present(pnth)) then
@@ -62,6 +65,36 @@
       else
          pl_beta = 10.
       endif
+      if(present(rin)) then
+         pl_rin = rin
+      else
+         pl_rin = 0.
+      endif
+      if(present(rout)) then
+         pl_rout = rout
+      else
+         pl_rout = 1e8
+      endif
+      if(present(thin)) then
+         pl_thin = thin
+      else
+         pl_thin = -10.
+      endif
+      if(present(thout)) then
+         pl_thout = thout
+      else
+         pl_thout = 10.
+      endif
+      if(present(phiin)) then
+         pl_phiin = phiin
+      else
+         pl_phiin = -1e4
+      endif
+      if(present(phiout)) then
+         pl_phiout = phiout
+      else
+         pl_phiout = 1e4
+      endif
       write(6,*) 'fluid model powerlaw inputs: ',pl_pnth,pl_n0,pl_t0,pl_nnth0,pl_beta,pl_pn,pl_pt
     end subroutine init_powerlaw
 
@@ -85,6 +118,11 @@
       vth = 0.*r
       ! stationary vel to mimic non-rel
       omega = 0.*r
+      where(r.gt.pl_rout.or.r.lt.pl_rin.or.mu.lt.pl_thin.or. &
+           mu.gt.pl_thout)
+         neth = 0.
+         nenth = 0.
+      endwhere
 !      write(6,*) 'powerlaw_vals vals: ',r,z,neth,nenth,te
      end subroutine powerlaw_vals
 

@@ -140,11 +140,12 @@ C  For NROTYPE=1, use a circular grid:
 C  The range of observed radii I'm taking to be logarithmically spaced
 C  from R=0 to RCUT:
           ABMAX=RCUT**2
-          R1=ZERO 
+          R1=A1
           R2=LOG(TWO)
           CALL GAULEG(R1,R2,RO,WRO,NRO,NRO)
           DO 5 I=1,NRO
-            RO(I)=RCUT*(EXP(RO(I))-ONE)
+c            RO(I)=RCUT*(EXP(RO(I))-EXP(R1))
+             RO(I)=R1*(RCUT/R1)**(FLOAT(I)/NRO)
 5         CONTINUE
 C  If NROTYPE > 1, use a rectangular grid:
         ELSE
@@ -183,8 +184,8 @@ c could swap ordering to go across alpha first, and then up in beta. might make 
             BETA=B1+(B2-B1)*(DBLE(J-1)+0.5D0)/DBLE(NPHI)
 !            write(6,*) 'nrotype: ',alpha,beta
           ELSE
-            IF(NPHI.NE.1.D0) THEN 
-              PHI=TWO*PI*DBLE(J-1)/DBLE(NPHI-1)
+            IF(NPHI.NE.1.D0) THEN
+              PHI=TWO*PI*(DBLE(J-1)+0.5D0)/DBLE(NPHI)
             ELSE
               PHI=0.D0
             ENDIF
@@ -261,7 +262,7 @@ C Setting TPR=1 doesn't mean that a turning point is necessarily present, but th
               BETA=B1+(B2-B1)*(DBLE(J-1)+0.5D0)/DBLE(NPHI)
             ELSE
               IF(NPHI.NE.1.D0) THEN 
-                PHI=TWO*PI*DBLE(J-1)/DBLE(NPHI-1)
+                PHI=TWO*PI*(DBLE(J-1)+0.5D0)/DBLE(NPHI)
               ELSE
                 PHI=0.D0
               ENDIF

@@ -25,10 +25,10 @@
         integer, parameter :: WRITE_GEO=0
         integer :: EXTRA_QUANTS=0
 !        integer, dimension(3) :: stats
-!        double precision, parameter :: MAX_TAU = 10d0
-        double precision :: LBH, MBH
-!        double precision :: ortol=1.d-6, oatol=1.d-8, hmax
-!        double precision, dimension(:), allocatable :: ss
+!        real(kind=8), parameter :: MAX_TAU = 10d0
+        real(kind=8) :: LBH, MBH
+!        real(kind=8) :: ortol=1.d-6, oatol=1.d-8, hmax
+!        real(kind=8), dimension(:), allocatable :: ss
          type (fluid) :: f
          type (rad_trans) :: r
          type (geo) :: g
@@ -61,14 +61,14 @@
          type (source_params), dimension(:), intent(in) :: sparams
          type (source_params) :: sp
          type (emis_params) :: ep
-!         double precision, intent(in) :: mbh1,mdot
-         double precision, intent(in), dimension(:) :: freqs
+!         real(kind=8), intent(in) :: mbh1,mdot
+         real(kind=8), intent(in), dimension(:) :: freqs
          integer, intent(in) :: gunit,i,l,nup, nfreq, nparams, extra
          character(len=20), intent(in) :: iname,fname,ename
-         double precision :: fac
-         double precision, dimension(:), allocatable :: s2xi,c2xi, &
+         real(kind=8) :: fac
+         real(kind=8), dimension(:), allocatable :: s2xi,c2xi, &
           rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy
-         double precision, dimension(:,:), allocatable :: tau_arr
+         real(kind=8), dimension(:,:), allocatable :: tau_arr
          integer :: k,npow,status,j,nf,nitems,m,kk,taudex,ii
          integer, dimension(:), allocatable :: inds
          npow=3; j=0; status=0; k=0
@@ -155,8 +155,11 @@
 !                  write(6,*) 'ej1: ',e%j(:,1)
 !                  write(6,*) 'ej2: ',e%j(:,2)
 !                  write(6,*) 'ej4: ',e%j(:,4)
-                  if(any(isnan(e%j))) then
+                  if(any(isnan(e%j).or.isnan(e%K))) then
                      write(6,*) 'NaN in emissivity at i: ',i
+!                     write(6,*) 'NaN in emissivity where: ',maxloc(isnan(e%j))
+!                     write(6,*) 'NaN in emissivity where: ',maxloc(isnan(e%K))
+                     write(6,*) 'NaN in emissivity fac LBH: ',fac,LBH
                      write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
                   endif
 !               write(6,*) 'emis j: ',e%j(:,1)
@@ -307,6 +310,8 @@
                      write(9,*) e%j(:,3)
                      write(9,*) e%K(:,3)
                      write(9,*) e%K(:,6)
+                     write(9,*) s2xi
+                     write(9,*) c2xi
                      close(unit=9)
                   endif
                   call del_rad_trans(r)
@@ -350,9 +355,9 @@
 !         type (fluid), intent(in) :: f
 !         type (emis), intent(inout) :: e
          type (source_params), intent(inout) :: sp
-         double precision, dimension(e%npts) :: ncgs,bcgs,tcgs,ncgsnth
-         double precision, dimension(:), allocatable :: freqarr
-         double precision, dimension(:,:), allocatable :: fnu
+         real(kind=8), dimension(e%npts) :: ncgs,bcgs,tcgs,ncgsnth
+         real(kind=8), dimension(:), allocatable :: freqarr
+         real(kind=8), dimension(:,:), allocatable :: fnu
 !         write(6,*) 'convert', size(f%fnu)
          call convert_fluid_vars(f,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,sp)
 !         write(6,*) 'sz: ',size(ncgs), size(bcgs), size(tcgs)
@@ -363,7 +368,7 @@
 
          subroutine subtest()
 ! Routine to test memory allocation
-           double precision, dimension(:), allocatable ::  subtest1,subtest2, &
+           real(kind=8), dimension(:), allocatable ::  subtest1,subtest2, &
                 subtest3, subtest4, subtest5, subtest6
            allocate(subtest1(1)); allocate(subtest2(2)); allocate(subtest3(4))
            allocate(subtest4(8)); allocate(subtest5(16)); allocate(subtest6(32))
@@ -375,9 +380,9 @@
 ! Subroutine to do CPS80 polarization for single points
 ! For now just uses Chandrasekhar table for degree, but could change that
 ! JAD 4/20/2012
-         double precision, dimension(:), intent(in) :: rshift
+         real(kind=8), dimension(:), intent(in) :: rshift
          real, dimension(g%npts) :: interpI,interpdel
-         double precision, dimension(g%npts) :: polarpsi,s2psi,c2psi,cosne
+         real(kind=8), dimension(g%npts) :: polarpsi,s2psi,c2psi,cosne
 !         write(6,*) 'rmu: ',g%x%data(2), g%x%data(3)
            call calc_polar_psi(g%x%data(2),cos(g%x%data(3)), &
                   g%gk%q2,g%gk%a, &

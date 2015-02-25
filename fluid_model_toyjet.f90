@@ -42,7 +42,7 @@
         subroutine toyjet_vals(x0,a,rho,p,b,u,bmag)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
-        double precision, dimension(size(x0)) :: done
+        real(kind=8), dimension(size(x0)) :: done
         real, dimension(size(x0)) :: x2,x1,zm,theta,fone, &
          vpl0,vrl0,vtl0,p0,rho0,bph0,bth0,rd,td,zr,dzero,vr0,vth0,vph0,bth,dummy
         real, dimension(int(sqrt(real(size(rc_arr))))) :: uniqx1 &
@@ -176,7 +176,7 @@
         end subroutine read_toyjet_inputs
 
         subroutine initialize_toyjet_model(a,ifile,df)
-        double precision, intent(in) :: a
+        real(kind=8), intent(in) :: a
         real :: aa
         integer :: nx, status
         real, dimension(:), allocatable :: b

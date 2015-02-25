@@ -9,12 +9,12 @@
 
       implicit none
 
-      double precision, dimension(:), allocatable :: r, th
-      double precision :: q2,l,alpha,beta,su,sm
-      double precision, dimension(:), allocatable :: s2xi,c2xi,c2psi,s2psi,ang,rshift,cosne
-      double precision, dimension(:,:), allocatable :: aahat,bbhat
+      real(kind=8), dimension(:), allocatable :: r, th
+      real(kind=8) :: q2,l,alpha,beta,su,sm
+      real(kind=8), dimension(:), allocatable :: s2xi,c2xi,c2psi,s2psi,ang,rshift,cosne
+      real(kind=8), dimension(:,:), allocatable :: aahat,bbhat
       type (four_Vector), dimension(:), allocatable :: uhat,bhat,khat,aa,kdifft
-      double precision :: maxang, maxangdiff, maxgeodiff,maxkbdiff
+      real(kind=8) :: maxang, maxangdiff, maxgeodiff,maxkbdiff
       integer :: gunit, status
       type (geo) :: g
       type (geokerr_args) :: gargs
@@ -26,7 +26,7 @@
       call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta,&
-            fbl06)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout)
 
       write(6,*) 'inputs read'
       call load_fluid_model(fname,spin,fargs)

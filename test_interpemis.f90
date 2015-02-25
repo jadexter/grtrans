@@ -4,8 +4,8 @@
 
     implicit none
 
-    double precision, dimension(:), allocatable :: nu, freqarr, jnu, anu
-    double precision, dimension(:,:), allocatable :: K
+    real(kind=8), dimension(:), allocatable :: nu, freqarr, jnu, anu
+    real(kind=8), dimension(:,:), allocatable :: K
     integer :: nr, nf, i
 
     nr=5; nf=2

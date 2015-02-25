@@ -15,7 +15,7 @@
   real :: fmin,fmax, wmin, wmax, rmax, sigt, fcol
   integer :: nw, nfreq_tab, nr
   real, dimension(:), allocatable :: freq_tab, w, r_tab, om_tab
-  double precision, dimension(:,:), allocatable :: fnu_tab
+  real(kind=8), dimension(:,:), allocatable :: fnu_tab
 
   interface phatdisk_vals
     module procedure phatdisk_vals

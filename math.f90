@@ -19,19 +19,19 @@
        contains
 
        pure function dot_product_arr(a,b) result(dot)
-       double precision, dimension(:,:), intent(in) :: a,b
-       double precision, dimension(size(a,1)) :: dot
+       real(kind=8), dimension(:,:), intent(in) :: a,b
+       real(kind=8), dimension(size(a,1)) :: dot
        integer :: i
        dot=0d0
        do i=1,size(a,2); dot=dot+a(:,i)*b(:,i); enddo
        end function dot_product_arr
 
        function tsum(x,y)
-       double precision, intent(in), dimension(:) :: x
-       double precision, intent(in), dimension(:) :: y
+       real(kind=8), intent(in), dimension(:) :: x
+       real(kind=8), intent(in), dimension(:) :: y
        integer :: n
-       double precision, dimension(size(x)) :: tsum
-       double precision, dimension(size(x)-1) :: xdif, yavg
+       real(kind=8), dimension(size(x)) :: tsum
+       real(kind=8), dimension(size(x)-1) :: xdif, yavg
        n=size(x)
        xdif=x(2:n)-x(1:n-1)
        yavg=(y(1:n-1)+y(2:n))/2d0
@@ -41,8 +41,8 @@
        end function tsum
 
        function cum_sum(x,cumu)
-       double precision, intent(in), dimension(:) :: x
-       double precision, dimension(size(x)) :: cum_sum
+       real(kind=8), intent(in), dimension(:) :: x
+       real(kind=8), dimension(size(x)) :: cum_sum
        integer :: i
        integer, intent(in) :: cumu
        do i=1,size(x)

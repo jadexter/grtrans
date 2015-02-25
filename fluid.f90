@@ -45,13 +45,13 @@
               dindf,magcrit,bl06
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta, &
-              np,tp
+              np,tp,rin,rout,thin,thout,phiin,phiout
       end type
 
       type source_params
-!        double precision, dimension(:), allocatable :: mdot,lleddeta,mu
-        double precision :: nfac,bfac,mbh,mdot,p1,p2,gmax,gminval,jetalphaval,muval
-        double precision, dimension(:), allocatable :: gmin,jetalpha,mu
+!        real(kind=8), dimension(:), allocatable :: mdot,lleddeta,mu
+        real(kind=8) :: nfac,bfac,mbh,mdot,p1,p2,gmax,gminval,jetalphaval,muval
+        real(kind=8), dimension(:), allocatable :: gmin,jetalpha,mu
         integer :: type
       end type
 
@@ -114,13 +114,15 @@
 
         subroutine assign_fluid_args(fargs,dfile,hfile,gfile,sim,nt,indf,nfiles,jonfix, &
              nw,nfreq_tab,nr,offset,dindf,magcrit,rspot,r0spot,n0spot,tscl,rscl, &
-             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06,np,tp)
+             wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06,np,tp, &
+             rin,rout,thin,thout,phiin,phiout)
           type (fluid_args), intent(inout) :: fargs
           character(len=40), intent(in) :: dfile,hfile,gfile,sim
           integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf, &
                magcrit,bl06
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
-               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,np,tp
+               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,np,tp, &
+               rin,rout,thin,thout,phiin,phiout
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
 !          write(6,*) 'assign fluid args: ',fargs%dfile
           fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
@@ -133,11 +135,13 @@
           fargs%mbh = mbh; fargs%fcol = fcol; fargs%mdot = mdot
           fargs%nscl = nscl; fargs%nnthscl = nnthscl; fargs%nnthp = nnthp
           fargs%beta = beta; fargs%bl06 = bl06; fargs%np = np; fargs%tp=tp
+          fargs%rin = rin; fargs%rout = rout; fargs%thin = thin
+          fargs%thout = thout; fargs%phiin = phiin; fargs%phiout = phiout
 !          write(6,*) 'assign fluid args: ',jonfix,offset
         end subroutine assign_fluid_args
 
         subroutine load_fluid_model(fname,a,fargs)
-        double precision, intent(in) :: a
+        real(kind=8), intent(in) :: a
         character(len=20), intent(in) :: fname
         character(len=20) :: ifile
         type (fluid_args) :: fargs
@@ -149,7 +153,9 @@
 !           call init_sariaf()
         elseif(fname=='POWERLAW') then
            call init_powerlaw(real(fargs%nscl),real(fargs%tscl),real(fargs%nnthscl), &
-                real(fargs%nnthp),real(fargs%beta),real(fargs%np),real(fargs%tp)) !alwinremark
+                real(fargs%nnthp),real(fargs%beta),real(fargs%np),real(fargs%tp), &
+                real(fargs%rin),real(fargs%rout),real(fargs%thin),real(fargs%thout), &
+                real(fargs%phiin),real(fargs%phiout)) !alwinremark
 !           call init_powerlaw()
         elseif(fname=='MB') then
 !          call intiialize_mb_model(a)
@@ -189,7 +195,7 @@
         end subroutine load_fluid_model
 
         subroutine advance_fluid_timestep(fname,dt)
-        double precision, intent(in) :: dt
+        real(kind=8), intent(in) :: dt
         character(len=20), intent(in) :: fname
         if(fname=='COSMOS') then
 !         call advance_cosmos_timestep(dt)
@@ -212,8 +218,8 @@
         character(len=20), intent(in) :: fname
         type (fluid), intent(out) :: f
         integer, intent(in) :: nup
-        double precision, intent(in) :: a
-!        double precision, intent(inout) :: uin
+        real(kind=8), intent(in) :: a
+!        real(kind=8), intent(inout) :: uin
 !        write(6,*) 'init: ',nup,a,fname
         if(fname=='PHATDISK') then
            f%model=PHATDISK; f%nfreq=size(freq_tab)
@@ -272,7 +278,7 @@
         end subroutine initialize_fluid_model
  
 !        subroutine initialize_num_fluid_model(f,a)
-!        double precision, intent(in) :: a
+!        real(kind=8), intent(in) :: a
 !        type (fluid), intent(inout) :: f
 !  !      write(6,*) 'fnm: ',f%model
 !        SELECT CASE (f%model)
@@ -341,7 +347,7 @@
         subroutine get_fluid_vars_single(x0,k0,a,f)
         type (four_vector), intent(in) :: x0, k0
         type (fluid), intent(inout) :: f
-        double precision, intent(in) :: a
+        real(kind=8), intent(in) :: a
  ! !      write(6,*) 'fluid: ',size(x0),f%model
         SELECT CASE(f%model)
           CASE (SPHACC)
@@ -362,7 +368,7 @@
         subroutine get_fluid_vars_arr(x0,k0,a,f)
         type (four_vector), intent(in), dimension(:) :: x0, k0
         type (fluid), intent(inout) :: f
-        double precision, intent(in) :: a
+        real(kind=8), intent(in) :: a
  ! !      write(6,*) 'fluid: ',size(x0),f%model
         SELECT CASE(f%model)
           CASE (SPHACC)
@@ -399,9 +405,9 @@
         subroutine convert_fluid_vars_arr(f,ncgs,ncgsnth,bcgs,tcgs,fnuvals,freqvals,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(inout) :: sp
-        double precision, intent(out), dimension(size(f%rho)) :: ncgs,ncgsnth,bcgs,tcgs
-        double precision, intent(out), dimension(:), allocatable :: freqvals
-        double precision, intent(out), dimension(:,:), allocatable :: fnuvals
+        real(kind=8), intent(out), dimension(size(f%rho)) :: ncgs,ncgsnth,bcgs,tcgs
+        real(kind=8), intent(out), dimension(:), allocatable :: freqvals
+        real(kind=8), intent(out), dimension(:,:), allocatable :: fnuvals
 !        write(6,*) 'fluid convert: ',f%model,size(bcgs)
         SELECT CASE(f%model)
           CASE (SPHACC)
@@ -571,9 +577,9 @@
         subroutine convert_fluidvars_thickdisk(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
-        double precision, dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        double precision, dimension(size(f%rho)) :: rhocgs,pcgs
-        double precision :: lcgs,tcgs,mdot
+        real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
+        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
+        real(kind=8) :: lcgs,tcgs,mdot
         ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
         ! JAD 11/26/2012 adapted from IDL code
         ! Black hole mass sets time and length scales:
@@ -613,9 +619,9 @@
         subroutine convert_fluidvars_mb09(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
-        double precision, dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        double precision, dimension(size(f%rho)) :: rhocgs,pcgs
-        double precision :: lcgs,tcgs,mdot
+        real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
+        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
+        real(kind=8) :: lcgs,tcgs,mdot
         ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
         ! JAD 11/26/2012 adapted from IDL code
         ! Black hole mass sets time and length scales:
@@ -649,9 +655,9 @@
         subroutine convert_fluidvars_harm(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
-        double precision, dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        double precision, dimension(size(f%rho)) :: rhocgs,pcgs
-        double precision :: lcgs,tcgs,mdot
+        real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
+        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
+        real(kind=8) :: lcgs,tcgs,mdot
         ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
         ! JAD 11/26/2012 adapted from IDL code
         ! Black hole mass sets time and length scales:
@@ -686,7 +692,7 @@
 
         subroutine convert_fluidvars_toyjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        double precision, dimension(size(f%rho)), &
+        real(kind=8), dimension(size(f%rho)), &
           intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
         !real :: bfac=70., nfac=2.
@@ -696,7 +702,7 @@
 
         subroutine convert_fluidvars_hotspot(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        double precision, dimension(size(f%rho)), &
+        real(kind=8), dimension(size(f%rho)), &
           intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
         ncgs=f%rho; bcgs=f%bmag
@@ -704,7 +710,7 @@
 
         subroutine convert_fluidvars_schnittman_hotspot(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        double precision, dimension(size(f%rho)), &
+        real(kind=8), dimension(size(f%rho)), &
           intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
         ncgs=f%rho; bcgs=1d0
@@ -712,7 +718,7 @@
 
         subroutine convert_fluidvars_thindisk(f,tcgs,ncgs)
         type (fluid), intent(in) :: f
-        double precision, dimension(size(f%rho)), intent(out) :: tcgs,ncgs
+        real(kind=8), dimension(size(f%rho)), intent(out) :: tcgs,ncgs
 !        write(6,*) 'convert thindisk: ',size(f%rho),size(ncgs),size(tcgs)
         tcgs=f%rho
         ncgs=1.
@@ -720,7 +726,7 @@
 
         subroutine convert_fluidvars_numdisk(f,tcgs,ncgs)
         type (fluid), intent(in) :: f
-        double precision, dimension(size(f%rho)), intent(out) :: tcgs,ncgs
+        real(kind=8), dimension(size(f%rho)), intent(out) :: tcgs,ncgs
 !        write(6,*) 'convert numdisk: ',size(f%rho),size(ncgs),size(tcgs)
         tcgs=f%rho
         ncgs=1.
@@ -728,8 +734,8 @@
 
         subroutine convert_fluidvars_phatdisk(f,fnu,nu)
         type (fluid), intent(in) :: f
-        double precision, dimension(:,:), allocatable, intent(out) :: fnu
-        double precision, dimension(:), allocatable, intent(out) :: nu
+        real(kind=8), dimension(:,:), allocatable, intent(out) :: fnu
+        real(kind=8), dimension(:), allocatable, intent(out) :: nu
         allocate(fnu(size(f%fnu,1),size(f%fnu,2)))
         allocate(nu(size(freq_tab)))
         fnu=f%fnu; nu=freq_tab
@@ -772,7 +778,7 @@
         subroutine convert_fluidvars_sphacc(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
-        double precision, dimension(size(f%rho)),  &
+        real(kind=8), dimension(size(f%rho)),  &
           intent(inout) :: ncgs,ncgsnth,bcgs,tcgs
 !        write(6,*) 'convert', size(f%rho),size(ncgs)
 !        write(6,*) 'convert',size(bcgs),size(tcgs)
@@ -865,7 +871,7 @@
 
         subroutine convert_fluidvars_constant(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        double precision, dimension(size(f%rho)), &
+        real(kind=8), dimension(size(f%rho)), &
           intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
         ncgs=f%rho; bcgs=f%bmag; ncgsnth=f%rho
@@ -1184,9 +1190,9 @@
 
         subroutine convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        double precision :: riaf_n0, riaf_beta
-!        double precision :: riaf_t0 !no longer used
-        double precision, dimension(size(f%rho)), &
+        real(kind=8) :: riaf_n0, riaf_beta
+!        real(kind=8) :: riaf_t0 !no longer used
+        real(kind=8), dimension(size(f%rho)), &
              intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
 !        riaf_n0 = sp%mdot !4.e7 
@@ -1211,8 +1217,8 @@
 
         subroutine convert_fluidvars_powerlaw(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        double precision :: n0, beta
-        double precision, dimension(size(f%rho)), &
+        real(kind=8) :: n0, beta
+        real(kind=8), dimension(size(f%rho)), &
              intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
         ncgs = f%rho
@@ -1251,9 +1257,9 @@
         
         subroutine assign_source_params(sp,ncgs,tcgs,ncgsnth)
           type (source_params), intent(inout) :: sp
-          double precision, dimension(:), intent(in) :: ncgs,tcgs
-          double precision, dimension(:), intent(inout) :: ncgsnth
-          double precision, dimension(size(ncgs)) :: x,one,gmin,gmax,zero,factor
+          real(kind=8), dimension(:), intent(in) :: ncgs,tcgs
+          real(kind=8), dimension(:), intent(inout) :: ncgsnth
+          real(kind=8), dimension(size(ncgs)) :: x,one,gmin,gmax,zero,factor
           zero=0d0
           one=1d0
           gmax=sp%gmax

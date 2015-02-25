@@ -5,11 +5,11 @@
       module odepack
       implicit none
       
-      double precision, dimension(:), allocatable :: rwork
+      real(kind=8), dimension(:), allocatable :: rwork
       integer, dimension(:), allocatable :: iwork
       integer :: jt, itol, iopt, itask, lrw, liw, istate, neq
-      double precision :: rtol,atol
-      double precision :: tsave
+      real(kind=8) :: rtol,atol
+      real(kind=8) :: tsave
 
       interface lsoda_init
         module procedure lsoda_init
@@ -25,12 +25,12 @@
         external f, jac
         integer, intent(in) :: neq, itol, itask, liw, lrw,jt,iopt
         integer, intent(inout) :: istate
-        double precision, intent(in) :: tout
-        double precision, intent(in) :: atol,rtol
-        double precision, intent(inout) :: t
-        double precision, intent(inout), dimension(neq) :: y
+        real(kind=8), intent(in) :: tout
+        real(kind=8), intent(in) :: atol,rtol
+        real(kind=8), intent(inout) :: t
+        real(kind=8), intent(inout), dimension(neq) :: y
         integer, intent(inout), dimension(liw) :: iwork
-        double precision, intent(inout), dimension(lrw) :: rwork
+        real(kind=8), intent(inout), dimension(lrw) :: rwork
         end subroutine dlsoda
 !        module procedure lsoda_basic
       end interface
@@ -40,17 +40,17 @@
         subroutine lsoda_basic(f,y,t,oatol,ortol,jac,yout,mt,mxs,si, &
         hmin,hmax)
         external f, jac
-        double precision, intent(inout), dimension(:) :: y
-        double precision, intent(in), dimension(:) :: t
-!        double precision, intent(out), dimension(size(t)) :: tarr
-        double precision, intent(out), dimension(size(y),size(t)) :: &
+        real(kind=8), intent(inout), dimension(:) :: y
+        real(kind=8), intent(in), dimension(:) :: t
+!        real(kind=8), intent(out), dimension(size(t)) :: tarr
+        real(kind=8), intent(out), dimension(size(y),size(t)) :: &
                                                              yout
-        double precision, intent(in) :: oatol, ortol
+        real(kind=8), intent(in) :: oatol, ortol
         integer, intent(out), optional, dimension(3) :: si
         integer, intent(in), optional :: mt,mxs
         integer :: oiopt,oitask,ojt,oneq,npts,i
-        double precision :: tout, t0
-        double precision, intent(in), optional :: hmin, hmax
+        real(kind=8) :: tout, t0
+        real(kind=8), intent(in), optional :: hmin, hmax
         character(len=50) :: errmsg
         oneq=size(y)
         npts=size(t)
@@ -102,8 +102,8 @@
 
         subroutine lsoda_wrapper(f,y,t,jac,errmsg)
         external f, jac
-        double precision, intent(inout), dimension(:) :: y
-        double precision, intent(inout) :: t
+        real(kind=8), intent(inout), dimension(:) :: y
+        real(kind=8), intent(inout) :: t
         character(len=50), optional, intent(out) :: errmsg
 !        write(6,*) 'lsoda: ',neq,y(1:2),tsave,t
 !        write(6,*) 'args: ',itol,rtol,atol,itask
@@ -121,12 +121,12 @@
         subroutine lsoda_init(y,t,oatol,ortol, &
         oiopt,oitask,ojt,oneq)
 !        external f, jac
-        double precision, intent(inout), dimension(:) :: y
-        double precision, intent(inout) :: t
+        real(kind=8), intent(inout), dimension(:) :: y
+        real(kind=8), intent(inout) :: t
         integer, optional :: oiopt, oitask, ojt, oneq
 !        integer :: oiopt, oitask, ojt
-!        double precision, intent(in), dimension(:) :: oatol, ortol
-        double precision, intent(in) :: oatol, ortol
+!        real(kind=8), intent(in), dimension(:) :: oatol, ortol
+        real(kind=8), intent(in) :: oatol, ortol
 !        character(len=50), optional, intent(out) :: errmsg
         if (present(oneq)) then
           neq=oneq

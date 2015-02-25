@@ -165,10 +165,10 @@
 !MORE INPUTS
         integer, intent(in) :: standard,nrotype,nvals,nfreq,nmu,cflag, nt,nmdot,nload,extra
         logical, intent(in) :: use_geokerr
-        double precision, intent(in) :: mumax,mumin,spin,rcut,mbh,uout,uin, & 
+        real(kind=8), intent(in) :: mumax,mumin,spin,rcut,mbh,uout,uin, & 
            fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
         character(len=100), intent(in) :: ename,fname,iname,stype
-        double precision, dimension(4),intent(in) :: gridvals
+        real(kind=8), dimension(4),intent(in) :: gridvals
         integer, dimension(3), intent(in) :: nn
         character(len=20) :: tch,tcha
 !End INPUTS
