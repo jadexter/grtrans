@@ -19,9 +19,9 @@
       integer, dimension(:), allocatable :: dumps
       real :: tstep, h, dx1, dx2, dx3, gam, startx1, startx2, startx3, dt, &
            r0, rin, rout
-      real(8) :: xbr,toffset=0.,asim,tcur
+      real(kind=8) :: xbr,toffset=0.,asim,tcur
       real, dimension(:), allocatable :: t
-      real(8), dimension(:), allocatable :: x1_arr, x2_arr, x3_arr, r_arr, th_arr, ph_arr
+      real(kind=8), dimension(:), allocatable :: x1_arr, x2_arr, x3_arr, r_arr, th_arr, ph_arr
       real, dimension(:), allocatable :: rho_arr, p_arr, u0_arr, vrl_arr, &
         vpl_arr, vtl_arr
       real, dimension(:), allocatable :: b0_arr, br_arr, bth_arr, bph_arr
@@ -79,10 +79,10 @@
         function calcrmks(x1,xbr) result(r)
           ! Compute r given x1 for Jon's simulations                                                                 
           ! JAD 7/24/2011
-          real(8), intent(in), dimension(:) :: x1
-          real(8), intent(in) :: xbr
-          real(8) :: npow2
-          real(8), dimension(size(x1)) :: r, xi
+          real(kind=8), intent(in), dimension(:) :: x1
+          real(kind=8), intent(in) :: xbr
+          real(kind=8) :: npow2
+          real(kind=8), dimension(size(x1)) :: r, xi
           npow2=10d0
           where(x1.gt.xbr)
              xi=x1+(x1-xbr)**npow2
@@ -95,9 +95,9 @@
         function calcrmks_single(x1,xbr) result(r)
           ! Compute r given x1 for Jon's simulations                                                                 
           ! JAD 7/24/2011
-          real(8), intent(in) :: x1,xbr
-          real(8) :: npow2
-          real(8) :: r, xi
+          real(kind=8), intent(in) :: x1,xbr
+          real(kind=8) :: npow2
+          real(kind=8) :: r, xi
           npow2=10d0
           if(x1.gt.xbr) then
              xi=x1+(x1-xbr)**npow2
@@ -108,11 +108,11 @@
         end function calcrmks_single
 
         function umks2uks(fum,x1,x2,xbr) result(uks)
-          real(8), intent(in), dimension(:) :: x1,x2
+          real(kind=8), intent(in), dimension(:) :: x1,x2
           type (four_vector), dimension(:), intent(in) :: fum
-          real(8), intent(in) :: xbr
+          real(kind=8), intent(in) :: xbr
           type (four_vector), dimension(size(fum)) :: uks
-          real(8), dimension(size(x1)) :: r,dr,dx2,dx1,drdx1,dthdrnum,dthdx2num
+          real(kind=8), dimension(size(x1)) :: r,dr,dx2,dx1,drdx1,dthdrnum,dthdx2num
           ! Convert four-vectors from MKS to KS numerically using central differences.
           ! JAD 5/24/2010
           ! These parameters are from comparing numerical and analytical values 
@@ -176,7 +176,7 @@
 
         function calcthmks6_single(x2,r) result(theta)
           ! Calculates \theta for Jon's defcoord = 1401
-          ! JAD 5/14/2010, fortran 12/28/2012    
+          ! JAD 5/14/2010, fortran 12/28/2012
           real, intent(in) :: x2,r
           real :: th,r0r,r1jet,njet,r0jet,rsjet,qjet, &
                rs,r0,r0jet3,rsjet3,h0,ntheta,htheta,rsjet2,r0jet2,myhslope,th2, &
@@ -210,10 +210,10 @@
         end function calcthmks6_single
 
         function calcthmks6_8(x2,r) result(theta)
-          real(8), intent(in), dimension(:) :: x2, r
-          real(8), dimension(size(x2)) :: theta,myhslope,th2, &
+          real(kind=8), intent(in), dimension(:) :: x2, r
+          real(kind=8), dimension(size(x2)) :: theta,myhslope,th2, &
                th0,switch0,switch2,theta1,theta2,arctan2
-          real(8) :: r0r,r1jet,njet,r0jet,rsjet,qjet, &
+          real(kind=8) :: r0r,r1jet,njet,r0jet,rsjet,qjet, &
                rs,r0,r0jet3,rsjet3,h0,ntheta,htheta,rsjet2,r0jet2
           r0r=0.
           r1jet=2.8
@@ -247,8 +247,8 @@
         function calcthmks6_8single(x2,r) result(theta)
           ! Calculates \theta for Jon's defcoord = 1401
           ! JAD 5/14/2010, fortran 12/28/2012    
-          real(8), intent(in) :: x2,r
-          real(8) :: th,r0r,r1jet,njet,r0jet,rsjet,qjet, &
+          real(kind=8), intent(in) :: x2,r
+          real(kind=8) :: th,r0r,r1jet,njet,r0jet,rsjet,qjet, &
                rs,r0,r0jet3,rsjet3,h0,ntheta,htheta,rsjet2,r0jet2,myhslope,th2, &
                th0,switch0,switch2,theta1,theta2,arctan2,theta
           r0r=0.
@@ -316,9 +316,9 @@
         end function findx2mks
         
         function findx1mks(x1,args) result(diff)
-          real(8), intent(in), dimension(:) :: args
-          real(8), intent(in) :: x1
-          real(8) :: xbr,npow2,r,xi,diff
+          real(kind=8), intent(in), dimension(:) :: args
+          real(kind=8), intent(in) :: x1
+          real(kind=8) :: xbr,npow2,r,xi,diff
         ! Compute x1 given r for Jon's simulations 
           xbr=args(2)
           npow2=10d0
@@ -344,13 +344,13 @@
         subroutine thickdisk_vals(x0,a,rho,p,b,u,bmag)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
-        real(8), dimension(size(x0)) :: done
+        real(kind=8), dimension(size(x0)) :: done
         real, dimension(size(x0)) :: x2,x1,x3,zm,theta,fone, &
          vpl0,vrl0,vtl0,rd,td,pd,rttd,zr,dzero, &
          vr0,vth0,vph0,bth,dummy,tt,ttd,zt,zphi,zpp
-        real(8), dimension(nx1) :: uniqx1,uniqr
-        real(8), dimension(nx2) :: uniqx2
-        real(8), dimension(nx3) :: uniqx3,uniqp
+        real(kind=8), dimension(nx1) :: uniqx1,uniqr
+        real(kind=8), dimension(nx2) :: uniqx2
+        real(kind=8), dimension(nx3) :: uniqx3,uniqp
         real, dimension(size(x0),2**(ndim+1)) :: ppi,rhoi,vrli,vtli, &
          vpli,bri,bthi,bphi,b0i,u0i
         real, dimension(size(x0)) :: dth,minp
@@ -413,6 +413,8 @@
         ux3=lx3+1
         lx2=merge(lx2,one,lx2.ge.1)
         ux2=merge(ux2,nx2,ux2.le.nx2)
+        lx3=merge(lx3,one,lx3.ge.1)
+        ux3=merge(ux3,nx3,ux3.le.nx3)
 ! Deal with poles
 !        write(6,*) 'poles',size(zr),size(uniqx2(lx2)),size(uniqx2(ux2))
         where(ux2.ne.lx2)
@@ -586,8 +588,8 @@
         character(len=hstr_len) :: header_str
         integer, intent(out) :: header_len
 !        integer, intent(in) :: nhead
-        real(8), dimension(nhead) :: header
-   real(8)      :: tcur,mbh,qbh
+        real(kind=8), dimension(nhead) :: header
+   real(kind=8)      :: tcur,mbh,qbh
         ! Read thickdisk header file
         ! JAD 11/24/2012 based on previous IDL codes
         ! header format from thickdisk dump.c
@@ -636,11 +638,11 @@
 !        integer :: dlen
         integer :: gdetpos,rhopos,ppos,vpos,bpos,glen
         integer, intent(in), optional :: mdot
-        real(8), dimension(:), allocatable :: gdet, header, udotu, bdotu, rho, p
-        real(8), dimension(:,:), allocatable :: grid, data, tmetric
-        real(8), intent(out) :: tcur
-!        real(8), dimension(:), allocatable :: tempval
-        real(8) :: tsteppartf,realstartx1, &
+        real(kind=8), dimension(:), allocatable :: gdet, header, udotu, bdotu, rho, p
+        real(kind=8), dimension(:,:), allocatable :: grid, data, tmetric
+        real(kind=8), intent(out) :: tcur
+!        real(kind=8), dimension(:), allocatable :: tempval
+        real(kind=8) :: tsteppartf,realstartx1, &
              realstartx2,realstartx3,dx1,dx2,dx3,gamval,aval,r0val,rinval,routval, &
              hslope,localdt,mbhval,qbhval
         integer(4) :: is,ie,js,je,ks,ke,whichdump,whichdumpversion,numcolumns,defcoordval, &
@@ -806,14 +808,14 @@
         subroutine read_thickdisk_fieldline_file(data_file,tcur,rho,p,u,b,jonfix,binary,test)
         character(len=file_len), intent(in) :: data_file
         type (four_vector), intent(inout), dimension(:) :: u,b
-        real(8), dimension(:), allocatable, intent(inout) :: rho,p
+        real(kind=8), dimension(:), allocatable, intent(inout) :: rho,p
         integer, intent(in), optional :: jonfix,test,binary
-        real(8), intent(out) :: tcur
-        real(8), dimension(:), allocatable :: header,b0,bsqorho,condmaxbsqorhorhs, &
+        real(kind=8), intent(out) :: tcur
+        real(kind=8), dimension(:), allocatable :: header,b0,bsqorho,condmaxbsqorhorhs, &
              one,zero,rinterp
         real(4), dimension(:,:), allocatable :: data
         type (four_vector), dimension(:), allocatable :: uks,bks
-        real(8) :: maxbsqorhofar,maxbsqorhohigh,maxbsqorhonear,maxuu0high
+        real(kind=8) :: maxbsqorhofar,maxbsqorhohigh,maxbsqorhonear,maxuu0high
         integer :: n,rhopos,ppos,vpos,bpos,i,nelem
         character(len=field_header_length) :: dummy
 !           dlen=11
@@ -966,10 +968,10 @@
         end subroutine read_thickdisk_fieldline_file
 
         subroutine calc_thickdisk_mdot(mdot)
-        real(8), dimension(nx1), intent(out) :: mdot
-        real(8) :: dph
-        real(8), dimension(nx1,nx2) :: dth
-        real(8), dimension(nx1,nx2,nx3) :: gdet
+        real(kind=8), dimension(nx1), intent(out) :: mdot
+        real(kind=8) :: dph
+        real(kind=8), dimension(nx1,nx2) :: dth
+        real(kind=8), dimension(nx1,nx2,nx3) :: gdet
         mdot=surf_integral(reshape(dble(-rho_arr*vrl_arr),(/nx1,nx2,nx3/)),&
              reshape(r_arr,(/nx1,nx2,nx3/)),&
              reshape(th_arr,(/nx1,nx2,nx3/)),reshape(ph_arr,(/nx1,nx2,nx3/)),asim)
@@ -981,13 +983,13 @@
              totpower2dth)
         ! calculate jet and wind power using definitions from mckinney et al. 2012
         ! this assumes data loaded is four-velocity rather than lnrf vels
-        real(8), dimension(nx1), intent(out) :: jet_power, wind_power, therm, kinetic, &
+        real(kind=8), dimension(nx1), intent(out) :: jet_power, wind_power, therm, kinetic, &
              jet_magenergy,jet_vel,jetmom,jet_totpower,wind_therm,wind_kinetic
-        real(8), dimension(nx1,nx2), intent(out) :: gaminf_az,jetpower2d,therm2d,thermout2d, &
+        real(kind=8), dimension(nx1,nx2), intent(out) :: gaminf_az,jetpower2d,therm2d,thermout2d, &
              jetvel2d, jetmom2d, totpower2d,therm2dth,thermout2dth,totpower2dth,jetpower2dth
         integer, dimension(nx1,nx2,nx3) :: wjet, wwind
         type (four_vector), dimension(nx1*nx2*nx3) :: ucov,bcov,u,b
-        real(8), dimension(nx1,nx2,nx3) :: trtem,trtkin,trttherm,trttot,trtpa, &
+        real(kind=8), dimension(nx1,nx2,nx3) :: trtem,trtkin,trttherm,trttot,trtpa, &
              r3,t3,p3,massflux,specenth,trtemth,trtkinth,trtthermth,trttotth, &
              trtpath
         ! the above four_vector arrays use a huge amount of memory with high res simulations because of 4x metric
@@ -1091,14 +1093,14 @@
 
         subroutine calc_thickdisk_shellavg_properties(vr,ur,smri,pmag,pmagnowt,pgas,pgasnowt,beta,thetad,bz, &
              rhoint,vr2,alphamag,omega,bzcov,bphi,bphicov,pgas2d,pmag2d)
-        real(8), dimension(nx1), intent(out) :: vr, ur, pmag, &
+        real(kind=8), dimension(nx1), intent(out) :: vr, ur, pmag, &
              pgas, beta, thetad,  smri, bz, rhoint, vr2,alphamag,omega, &
              pmagnowt, pgasnowt, bzcov, bphi, bphicov
-        real(8), dimension(nx1) :: vtha, lammri
-        real(8), dimension(nx1,nx3) :: theta0,rhoth
-        real(8), dimension(nx1,nx2) :: pgas2d, pmag2d
-        real(8), dimension(nx1*nx2*nx3) :: theta03
-        real(8), dimension(nx1,nx2,nx3) :: theta3,r3,t3,p3,thetadd,lamdd
+        real(kind=8), dimension(nx1) :: vtha, lammri
+        real(kind=8), dimension(nx1,nx3) :: theta0,rhoth
+        real(kind=8), dimension(nx1,nx2) :: pgas2d, pmag2d
+        real(kind=8), dimension(nx1*nx2*nx3) :: theta03
+        real(kind=8), dimension(nx1,nx2,nx3) :: theta3,r3,t3,p3,thetadd,lamdd
         integer :: i,j
         type (four_vector), dimension(nx1*nx2*nx3) :: ucov,bcov,u,b
         write(6,*) 'start of thickdisk shellavg'
@@ -1180,8 +1182,8 @@
 
         subroutine initialize_thickdisk_model(a,transform,ifile,gf,df,ntt,nft,indft,jf, &
              off,simt,dindft,mct)
-        real(8), intent(in) :: a
-        real(8) :: tcur, tstep_test
+        real(kind=8), intent(in) :: a
+        real(kind=8) :: tcur, tstep_test
         integer :: nx, status, writeall
         integer, intent(in) :: transform
         character(len=20), intent(in), optional :: ifile
@@ -1251,14 +1253,14 @@
         end subroutine initialize_thickdisk_model
 
         subroutine load_thickdisk_data(nt,transform)
-        real(8), dimension(:), allocatable :: rho,p
+        real(kind=8), dimension(:), allocatable :: rho,p
         real, dimension(:), allocatable :: vrl, vtl, vpl
         type (four_vector), dimension(:), allocatable :: u, b
         integer, intent(in) :: nt, transform
         character(len=file_len) :: data_file
         character(len=20) :: append
         integer :: k
-        real(8) :: tcur, tstep_test
+        real(kind=8) :: tcur, tstep_test
         allocate(rho(n)); allocate(p(n))
         allocate(vrl(n)); allocate(vtl(n)); allocate(vpl(n))
         allocate(u(n)); allocate(b(n))
@@ -1320,7 +1322,7 @@
         end subroutine load_thickdisk_data
 
         subroutine advance_thickdisk_timestep(dtobs)
-        real(8), intent(in) :: dtobs
+        real(kind=8), intent(in) :: dtobs
         integer :: nupdate
         nupdate = floor(dtobs / tstep)
         toffset = toffset+dtobs-tstep*nupdate
