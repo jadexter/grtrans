@@ -511,8 +511,7 @@
         real(kind=8), intent(in), dimension(:,:) :: metric
         real(kind=8), intent(out), dimension(size(r)) :: f1,f2,f3
         real(kind=8), dimension(size(r)) :: g03,g11,g22,g33, &
-         cth,sth,k0,k1,k2,k3,gam1,gam2,gam3,del1,del2,del3,g1t,g2t, &
-         d1t,d2t,denom,f1o,f2o,f3o
+         cth,sth,k0,k1,k2,k3,gam1,gam2,gam3,del1,del2,del3,denom
 !  !      write(6,*) 'perpk', size(metric,1), size(metric,2)
         g03=metric(:,4); g11=metric(:,5)
         g22=metric(:,8); g33=metric(:,10)
@@ -530,10 +529,10 @@
         del1=r*k0-r*a*sth*sth*k3
         del2=a*cth*sth*(r*r+a*a)*k3-a*a*sth*cth*k0
         del3=r*a*sth*sth*k1+a*cth*sth*(r*r+a*a)*k2
-        g1t=gam1-gam3*g11*k1/(g33*k3+g03*k0)
-        g2t=gam2-gam3*g22*k2/(g33*k3+g03*k0)
-        d1t=del1-del3*g11*k1/(g33*k3+g03*k0)
-        d2t=del2+del3*g22*k2/(g33*k3+g03*k0)
+!        g1t=gam1-gam3*g11*k1/(g33*k3+g03*k0)
+!        g2t=gam2-gam3*g22*k2/(g33*k3+g03*k0)
+!        d1t=del1-del3*g11*k1/(g33*k3+g03*k0)
+!        d2t=del2+del3*g22*k2/(g33*k3+g03*k0)
 !        write(6,*) 'transport perpk denom: ',g33*k3+g03*k0
 !        write(6,*) 'transport perpk g03: ',g03
 !        write(6,*) 'transport perpk a: ',a,a.eq.0d0

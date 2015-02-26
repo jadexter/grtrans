@@ -334,7 +334,7 @@
 ! if this is a pole on case then need to correct phi:
          if (abs(g%gk%mu0).eq.1d0) then
 !            write(6,*) 'pole fix'
-            g%x%data(4)=g%x%data(4)+sign(1d0,g%gk%mu0)*atan(g%gk%beta(1),g%gk%alpha(1))
+            g%x%data(4)=g%x%data(4)+sign(1d0,g%gk%mu0)*atan2(g%gk%beta(1),g%gk%alpha(1))
 !            write(6,*) 'geo phi: ',dphi(i1:i2)
 !            write(6,*) 'geo phi: ',g%x%data(4),sign(1d0,g%gk%mu0),atan(g%gk%beta(1),g%gk%alpha(1))
 !            write(6,*) 'geo mu: ', MUFI(i1:i2)
@@ -353,13 +353,17 @@
 !           g%x%data(1)=g%gk%t0(1)-DTI(i1:i2)
            g%x%data(1)=DTI(1)-DTI(i1:i2)-g%gk%t0(1)
 !           write(6,*) 't0: ',g%gk%t0(1)
+           g%tpmarr=TPMI(i1:i2)
+           g%tprarr=TPRI(i1:i2)
          else
            g%lambda=LAMBDAI(1)
            g%x%data(1)=DTI(1)
+           g%tpmarr=TPMI(1)
+           g%tprarr=TPRI(1)
          endif
 !         write(6,*) 'TPMI: ',MUFI,TPMI
-         g%tpmarr=TPMI(i1:i2)
-         g%tprarr=TPRI(i1:i2)
+!         g%tpmarr=TPMI(i1:i2)
+!         g%tprarr=TPRI(i1:i2)
 !         write(6,*) 'tprarr: ',g%tprarr
 !         g%gk%t0=DTI(1)
 !         write(6,*) 't0: ',g%gk%t0, 1./g%gk%u0

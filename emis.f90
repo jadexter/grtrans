@@ -374,9 +374,9 @@
 
          subroutine assign_emis_params(e,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,nf)
          type (emis), intent(inout) :: e
-         real(kind=8), dimension(e%npts), intent(in) :: bcgs,ncgs,tcgs,ncgsnth
-         real(kind=8), dimension(nf), intent(in) :: freqarr
-         real(kind=8), dimension(e%npts,nf), intent(in) :: fnu
+         real(kind=8), dimension(:), intent(in) :: bcgs,ncgs,tcgs,ncgsnth
+         real(kind=8), dimension(:), intent(in) :: freqarr
+         real(kind=8), dimension(:,:), intent(in) :: fnu
          integer, intent(in) :: nf
          SELECT CASE (e%type)
            CASE (EHYBRIDTHPL)
@@ -386,15 +386,15 @@
            CASE (EHYBRIDPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth 
            CASE (EPOLSYNCHTH)
-             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EPOLSYNCHPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
            CASE (ESYNCHPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
            CASE (ESYNCHTHAV)
-             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (ESYNCHTHAVNOABS)
-             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EBB)
              e%tcgs=tcgs
            CASE (EFBB)

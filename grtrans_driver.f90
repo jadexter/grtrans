@@ -358,11 +358,9 @@
          real(kind=8), dimension(e%npts) :: ncgs,bcgs,tcgs,ncgsnth
          real(kind=8), dimension(:), allocatable :: freqarr
          real(kind=8), dimension(:,:), allocatable :: fnu
-!         write(6,*) 'convert', size(f%fnu)
          call convert_fluid_vars(f,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,sp)
 !         write(6,*) 'sz: ',size(ncgs), size(bcgs), size(tcgs)
 !         write(6,*) 'alloc: ',allocated(e%ncgs),allocated(e%bcgs),allocated(e%tcgs)
-
          call assign_emis_params(e,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,f%nfreq)
          end subroutine convert_model
 

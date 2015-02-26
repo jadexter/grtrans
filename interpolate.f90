@@ -178,7 +178,7 @@
         ! Based on formula from wikipedia.
         ! JAD 9/8/2008
         real, intent(in), dimension(:) :: xd,yd
-        real, intent(in), dimension(size(xd),4) :: vv
+        real, intent(in), dimension(:,:) :: vv
         real, dimension(size(xd)) :: y,w1,w2
         ! Interpolate along y
         w1=vv(:,1)*(1.-yd)+vv(:,2)*yd
@@ -192,7 +192,7 @@
         ! Based on formula from wikipedia.
         ! JAD 9/8/2008
         real, intent(in), dimension(:) :: xd,yd,zd
-        real, intent(in), dimension(size(xd),8) :: vv
+        real, intent(in), dimension(:,:) :: vv
         real, dimension(size(xd)) :: y,i1,i2,j1,j2,w1,w2
 !        write(6,*) 'trilin'
         ! First interpolate along z:
@@ -212,7 +212,7 @@
         ! Based on trilinear interpolation formula from wikipedia.
         ! JAD 9/8/2008
         real, intent(in), dimension(:) :: td,xd,yd,zd
-        real, intent(in), dimension(size(td),16) :: vv
+        real, intent(in), dimension(:,:) :: vv
         real, dimension(size(td)) :: y,i1,i2,j1,j2,k1, &
          k2,l1,l2,m1,m2,n1,n2,w1,w2
         ! First interpolate along z:

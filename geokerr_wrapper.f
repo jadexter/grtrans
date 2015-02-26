@@ -409,7 +409,7 @@ C Reset nup value in case it's changed.
      &               RDC,RJC,TU01,TU02,TU03,TU04,TWO,UPLUS,MUMINUS,MUPLUS
       PARAMETER (ONE=1.D0,TWO=2.D0)
       DOUBLE PRECISION, INTENT(OUT), DIMENSION(NUP+NPTS-2*KEXT) :: UFI,MUFI,DTI,DPHI,LAMBDAI
-      INTEGER, INTENT(OUT), DIMENSION(NUP) :: TPMI,TPRI
+      INTEGER, INTENT(OUT), DIMENSION(NUP+NPTS-2*KEXT) :: TPMI,TPRI
 !      write(6,*) 'geokerr inputs: ',alpha,beta,q2,l,a,su,sm,tpm,tpr,offset,usegeor,mufill,uout,npts,nup
       L2=L*L
 !      NPTS=0
@@ -2976,7 +2976,8 @@ c This is the quartic complex case with 2 real roots.
             elseif(u0.ge.u3) then
               ncase=8
             else
-              write(6,*) 'WARNING--Unphysical Quartic Real. Inputs modified.'
+              write(6,*) 'WARNING--Unphysical Quartic Real. 
+     &                      Inputs modified.'
               if(su.eq.1) then
                 u0=u3
               else
@@ -3357,9 +3358,9 @@ c Table 2 Row 8
 *       
       INTEGER I,J,JJ,ITS,MAXM,ncc
       DOUBLE PRECISION EPS
-      PARAMETER (EPS=1.d-6,MAXM=7)
+      PARAMETER (EPS=1d-6,MAXM=7)
       COMPLEX*16 AD(MAXM),X,B,C,XSUM,XSTART
-      COMPLEX*16 A(MAXM),ROOTS(MAXM-1)
+      COMPLEX*16 A(M+1),ROOTS(M)
 *       
       IF(M.GT.MAXM-1) THEN
         WRITE(6,*) 'M too large in ZROOTS'
@@ -3378,11 +3379,17 @@ c Table 2 Row 8
 * root, or if the previous root was complex, start at its complex
 * conjugate (since the coefficients are real):
         X=XSTART
-         if(J.lt.M.and.dimag(ROOTS(J+1)).ne.0.d0.and.ncc.eq.0) then
-           XSTART=DCMPLX(dble(roots(J+1)),-dble(roots(J+1)))
+*         if(J.lt.M.and.dimag(ROOTS(J+1)).ne.0.d0.and.ncc.eq.0) then
+         if(J.lt.M) then
+            if(dimag(ROOTS(J+1)).ne.0.d0.and.ncc.eq.0) then
+               XSTART=DCMPLX(dble(roots(J+1)),-dble(roots(J+1)))
 * Since we have chosen the second root to start at the complex conjugate,
 * we don't want to use its complex conjugate again as a starting root:
-           ncc=1
+               ncc=1
+            else
+               XSTART=DCMPLX(0.D0,0.D0)
+               ncc=0
+            endif
          else
            XSTART=DCMPLX(0.D0,0.D0)
            ncc=0
