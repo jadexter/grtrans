@@ -144,6 +144,9 @@
 !        write(6,*) 'bmag: ',bmag
 !        bmag0=sqrt(max(((normu(zfb0,zfb0,((zr),(acos(zm))),a,/bl)),(fltarr(size(zm)))),dim=2))
         ! Correct \theta, \phi components for reflecting sol'n
+        ! assume reflection is that \hat{z} stays same for field (flux),
+        ! then assume that \hat{\phi} stays unchanged (L_z)
+        ! flips for velocity. so need to flip v^th and b^r. 
 !        vtl0=sign(fone,zm)*vtl0
 !        b%data(3)=sign(fone,zm)*b%data(3)
 !        b%data(2)=sign(fone,zm)*b%data(2)

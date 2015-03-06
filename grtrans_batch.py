@@ -82,7 +82,7 @@ class grtrans_inputs:
         self.srout=1e8
         self.sthin=-10.
         self.sthout=10.
-        self.sphiin=-1e4
+        self.sphiin=0.
         self.sphiout=1e4
         self.hrspot=1.5
         self.hr0spot=6.0

@@ -88,7 +88,7 @@
       if(present(phiin)) then
          pl_phiin = phiin
       else
-         pl_phiin = -1e4
+         pl_phiin = 0.
       endif
       if(present(phiout)) then
          pl_phiout = phiout
@@ -96,6 +96,7 @@
          pl_phiout = 1e4
       endif
       write(6,*) 'fluid model powerlaw inputs: ',pl_pnth,pl_n0,pl_t0,pl_nnth0,pl_beta,pl_pn,pl_pt
+      write(6,*) 'fluid model powerlaw inputs cuts: ',pl_rin,pl_rout,pl_thin,pl_thout
     end subroutine init_powerlaw
 
     subroutine powerlaw_vals(a,mu,u,neth,te,B,vr,vth,omega, &
@@ -113,16 +114,17 @@
       nenth = pl_nnth0 * ((rs)**(-pl_pnth))*exp(-.5*(z/a2)**2.)
       te = pl_t0 * (rs)**(-pl_pt)
       ! roughly equipartition from B+09
-      B = sqrt(8.*pi* neth * mp * c2 / rs / 12. / pl_beta)
+!      B = sqrt(8.*pi* neth * mp * c2 / rs / 12. / pl_beta)
       vr = 0.*r
       vth = 0.*r
-      ! stationary vel to mimic non-rel
-      omega = 0.*r
+! velocity scaling in terms of c for equatorial plane, default is stationary to mimic non-rel one zone model
+      omega = pl_phiin/r
       where(r.gt.pl_rout.or.r.lt.pl_rin.or.mu.lt.pl_thin.or. &
            mu.gt.pl_thout)
          neth = 0.
          nenth = 0.
       endwhere
+      B = sqrt(8.*pi* neth * mp * c2 / rs / 12. / pl_beta)
 !      write(6,*) 'powerlaw_vals vals: ',r,z,neth,nenth,te
      end subroutine powerlaw_vals
 

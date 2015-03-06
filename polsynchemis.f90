@@ -709,6 +709,7 @@
       omega0,wp2
       real(kind=8) :: nucminval = 1d0
       real(kind=8) :: thetaemin = 1d-10
+      integer :: testindx
 !      write(*,*) 'vars: ',size(B),size(T),size(n),size(nu)
       thetae=k*T/m/c/c+thetaemin
       ! Critical frequency for synchrotron emission:
@@ -760,6 +761,10 @@
 !      rhoq=0.; rhov=0
       e=reshape((/ji,jq,ju,jv,ai,aq,au,av, &
       rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
+!      testindx=maxloc(B,1)
+!      write(6,*) 'emis testindx: ',e(testindx,:)
+!      write(6,*) 'emis ang nu: ',theta(testindx),nu(testindx)
+!      write(6,*) 'emis n b t: ',n(testindx),thetae(testindx),b(testindx)
 !      write(6,*) 'ai: ',ai, e(:,5), e(:,1), ji
  !     write(6,*) 'reshape: ',maxval(emis(:,1)), maxval(emis(:,5))
       if(any(isnan(jq))) then
