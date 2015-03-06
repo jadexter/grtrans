@@ -11,7 +11,7 @@
                   ESYNCHPL=3,EPOLSYNCHPL=4,EBREMS=5,ELINE=6, &
                   EIRON=7,EBB=8,EBBPOL=9,EINTERP=10,EFBB=11,ERHO=12, &
                   ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20, &
-                  EHYBRIDTH=21, EHYBRIDPL=22
+                  EHYBRIDTH=21, EHYBRIDPL=22, EMAXJUTT=23
 
        type emis
          real(kind=8), dimension(:,:), allocatable :: j,K
@@ -179,6 +179,9 @@
          if(ename=='POLSYNCHTH') then
             e%type=EPOLSYNCHTH
             e%neq=4
+         if(ename=='MAXJUTT') then
+            e%type=EMAXJUTT
+            e%neq=4
          elseif(ename.eq.'HYBRIDTH') then
             e%type=EHYBRIDTH 
             e%neq=4
@@ -252,6 +255,9 @@
              allocate(e%bcgs(npts))
              allocate(e%ncgsnth(npts)); allocate(e%p(npts))
              call initialize_polsynchpl(e%neq) !I guess this is right?
+           CASE (EMAXJUTT) !alwinnote 2015/03/05
+             allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
+             allocate(e%bcgs(npts))
            CASE (EPOLSYNCHTH)
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
              allocate(e%bcgs(npts))
@@ -295,6 +301,17 @@
 
          integer :: i
          select  case(e%type)
+           case(emaxjutt)
+!alwinnote 2015/03/05 Below is just copied from ehybridthpl not currently functional
+!need to ensure unit conversions are safe before continuing
+!convert theta_min in units of theta = kT/m_e c^2 to tcgs units
+!nu is just a frequency
+!ncgs just gets multiplied by dimensionless weights
+!bcgs is just an input
+              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
+              call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
+               e%gmax,Kpl)
+              K = Kth + Kpl
            case(ehybridthpl)
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
@@ -385,6 +402,8 @@
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth 
            CASE (EHYBRIDPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth 
+           CASE (EMAXJUTT) !alwinnote 2015/03/05
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EPOLSYNCHTH)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EPOLSYNCHPL)
@@ -500,6 +519,9 @@
              deallocate(e%bcgs); deallocate(e%incang)
              deallocate(e%ncgsnth); deallocate(e%p)
              call del_polsynchpl(e%neq)              
+           CASE (EMAXJUTT) !alwinnote 2015/03/05
+             deallocate(e%tcgs); deallocate(e%ncgs)
+             deallocate(e%bcgs); deallocate(e%incang)
            CASE (EPOLSYNCHTH)
              deallocate(e%tcgs); deallocate(e%ncgs)
              deallocate(e%bcgs); deallocate(e%incang)
@@ -609,6 +631,8 @@
            CASE (EHYBRIDPL) !alwinnote
              call emis_model_synchth(e,ep%mu)
              call emis_model_synchpl(e,ep%gmin,ep%gmax,ep%p1)
+           CASE (EMAXJUTT) !alwinnote 2015/03/05
+             call emis_model_synchth(e,ep%mu)
            CASE (EPOLSYNCHTH)
              call emis_model_synchth(e,ep%mu)
            CASE (EPOLSYNCHPL)
