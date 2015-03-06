@@ -171,3 +171,8 @@ calcgmin::
 
 sariaf:
 	f2py -c fluid_model_sariaf.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m sariaf $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
+
+
+
+maxjutt:
+	f2py -c calc_maxjutt.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m calc_maxjutt $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
