@@ -189,9 +189,9 @@ c could swap ordering to go across alpha first, and then up in beta. might make 
             ELSE
               PHI=0.D0
             ENDIF
-C Calculate impact parameters at infinity for observer at phi0=-pi/2:
-            ALPHA=RO(I)*SIN(PHI)
-            BETA=-RO(I)*COS(PHI)
+C Calculate impact parameters at infinity for observer at phi0=0:
+            ALPHA=RO(I)*COS(PHI)
+            BETA=RO(I)*SIN(PHI)
           ENDIF
 c ******************************************************************
 C Calculate the angular momentum and Carter's constant of motion:
@@ -267,8 +267,8 @@ C Setting TPR=1 doesn't mean that a turning point is necessarily present, but th
                 PHI=0.D0
               ENDIF
 C Calculate impact parameters at infinity:
-              ALPHA=RO(I)*SIN(PHI)
-              BETA=-RO(I)*COS(PHI)
+              ALPHA=RO(I)*COS(PHI)
+              BETA=RO(I)*SIN(PHI)
             ENDIF
 c ******************************************************************
 C Calculate the angular momentum and Carter's constant of motion:

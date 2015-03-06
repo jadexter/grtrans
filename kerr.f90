@@ -602,7 +602,7 @@
         real(kind=8), dimension(size(r),3) :: bphat
         type (four_Vector), dimension(size(r)) :: &
              ekt,ekr,ekm,ekp,stb,srb,spb,smb,aa,ahat
-        integer :: i, nr
+        integer :: i, nr, testindx
         real(kind=8) :: kap1,kap2
         one=1d0; mone=-one; angmin=-0.99d0; angmax=0.99d0
         eps=epsilon(eps)
@@ -695,21 +695,18 @@
            bpdotbb=bhat%data(2)*bbhat(:,1)+bhat%data(3)*bbhat(:,2)+bhat%data(4)*bbhat(:,3)
            s2xi=-2d0*aadotbp*bpdotbb/(aadotbp**2d0+bpdotbb**2d0)
            c2xi=(bpdotbb*bpdotbb-aadotbp*aadotbp)/(aadotbp**2d0+bpdotbb**2d0)
-!           sxi=aadotbp/sqrt(bpdotbp)
-!           cxi=-bpdotbb/sqrt(bpdotbp)
            angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
         elsewhere
-!           sxi=0d0
-!           cxi=one
            s2xi=0d0
            c2xi=one
            angnorm=0.5d0
         endwhere
-!        write(6,*) 'bperp bp: ',bpdotbp
-!        write(6,*) 'bperp bdotb: ',bdotb
-!        write(6,*) 'bperp aadotbp: ',aadotbp
-!        write(6,*) 'bperp s2xi: ',s2xi
-!        write(6,*) 'bperp c2xi: ',c2xi
+!        testindx=maxloc(bdotb,1)
+!        write(6,*) 'bperp bp: ',bpdotbp(testindx)
+!        write(6,*) 'bperp bdotb: ',bdotb(testindx)
+!        write(6,*) 'bperp aadotbp: ',aadotbp(testindx)
+!        write(6,*) 'bperp s2xi: ',s2xi(testindx)
+!        write(6,*) 'bperp c2xi: ',c2xi(testindx)
 !        write(6,*) 'unit vectors: ',dot_product(bbhat,bbhat),dot_product(aahat,aahat),sqrt(knorm)
 !        write(6,*) 'orthogonal: ',dot_product(aahat,bbhat),(aahat(:,1)*khatr+aahat(:,2)*khatm+aahat(:,3)*khatp)/sqrt(knorm), &
 !             (bbhat(:,1)*khatr+bbhat(:,2)*khatm+bbhat(:,3)*khatp)/sqrt(knorm)
@@ -736,6 +733,16 @@
         ang=acos(merge(merge(angnorm,angmax,angnorm.le.angmax),angmin, &
          angnorm.ge.angmin))
         g=-1d0/khat%data(1)
+!        write(6,*) 'comoving ortho ang g: ',ang(testindx),g(testindx)
+!        write(6,*) 'comoving ortho r th: ',r(testindx),th(testindx)
+!        write(6,*) 'comoving ortho vectors a: ',aahat(testindx,1), &
+!             aahat(testindx,2),aahat(testindx,3)
+!        write(6,*) 'comoving ortho vectors k: ',khat(testindx)%data(2),&
+!             khat(testindx)%data(3),khat(testindx)%data(4)
+!        write(6,*) 'comoving ortho vectors b: ',bbhat(testindx,1),&
+!             bbhat(testindx,2),bbhat(testindx,3)
+!        write(6,*) 'comoving ortho vectors B: ',bhat(testindx)%data(2),&
+!             bhat(testindx)%data(3),bhat(testindx)%data(4)
 !        write(6,*) 'comoving ortho: ',u*u
 !        write(6,*) 'comoving ortho: ',k*k
 !        write(6,*) 'comoving ortho khat: ',khatr
