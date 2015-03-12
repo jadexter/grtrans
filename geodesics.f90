@@ -5,27 +5,28 @@
        use class_four_vector
        use interpolate, only: get_weight
        use kerr, only: calc_nullp, kerr_metric, bl2ks
+!       use class_geokerr, only: geokerr
 
        implicit none
 
        type geokerr_args
-         real(kind=8) :: u0,uout,uin,offset,mu0,phi0
-         integer :: usegeor,phit,mufill,ncase,kext,next, &
-                    nup
-         real(kind=8) :: a
-         real(kind=8), dimension(:), allocatable :: uf,muf, &
+          real(kind=8) :: u0,uout,uin,offset,mu0,phi0
+          integer :: usegeor,phit,mufill,ncase,kext,next, &
+               nup
+          real(kind=8) :: a
+          real(kind=8), dimension(:), allocatable :: uf,muf, &
                                                      su,sm,alpha,beta, &
                                                      l,q2,t0
-         integer, dimension(:), allocatable :: tpm,tpr
-       end type
+          integer, dimension(:), allocatable :: tpm,tpr
+       end type geokerr_args
 
        type geo
-         type (four_Vector) :: x0,k0
-         type (geokerr_args) :: gk
-         real(kind=8), dimension(:), allocatable :: lambda
-         real(kind=8), dimension(:), allocatable :: tpmarr, tprarr
-         integer :: lindx=25,npts
-         type (four_Vector),  dimension(:), allocatable :: x,k
+          type (four_Vector) :: x0,k0
+          type (geokerr_args) :: gk
+          real(kind=8), dimension(:), allocatable :: lambda
+          real(kind=8), dimension(:), allocatable :: tpmarr, tprarr
+          integer :: lindx=25,npts
+          type (four_Vector),  dimension(:), allocatable :: x,k
        end type geo
 
        interface construct_geodesic
@@ -41,21 +42,21 @@
           module procedure initialize_geo_tabs
        end interface
 
-       interface get_pixel_locations
-         subroutine initialize_camera_geokerr(standard,a1,a2, &
-         b1,b2,rcut, &
-         nrotype,nro,nphi,nup,u0,uout,mu0,a,offset, &
-         ufarr,mufarr,alarr,bearr,q2arr,larr,smarr,suarr, &
-         tpmarr,tprarr)
-         integer, intent(in) :: nro,nphi,nup,nrotype,standard
-         real(kind=8), intent(in) :: a1,a2,b1,b2,rcut,a,uout
-         real(kind=8), intent(out), dimension(nro*nphi) :: alarr, &
-                                      bearr,ufarr,mufarr, &
-                                      q2arr,larr,smarr,suarr
-         integer, intent(out), dimension(nro*nphi) :: tpmarr,tprarr
-         real(kind=8), intent(inout) :: u0,mu0
-         real(kind=8), intent(out) :: offset
-         end subroutine initialize_camera_geokerr
+       interface  get_pixel_locations
+          subroutine initialize_camera_geokerr(standard,a1,a2, &
+               b1,b2,rcut, &
+               nrotype,nro,nphi,nup,u0,uout,mu0,a,offset, &
+               ufarr,mufarr,alarr,bearr,q2arr,larr,smarr,suarr, &
+               tpmarr,tprarr)
+            integer, intent(in) :: nro,nphi,nup,nrotype,standard
+            real(kind=8), intent(in) :: a1,a2,b1,b2,rcut,a,uout
+            real(kind=8), intent(out), dimension(nro*nphi) :: alarr, &
+                 bearr,ufarr,mufarr, &
+                 q2arr,larr,smarr,suarr
+            integer, intent(out), dimension(nro*nphi) :: tpmarr,tprarr
+            real(kind=8), intent(inout) :: u0,mu0
+            real(kind=8), intent(out) :: offset
+          end subroutine initialize_camera_geokerr
        end interface get_pixel_locations
 
        contains
@@ -78,8 +79,12 @@
               geargs%phit=1
               if(nup.gt.1) then
                  geargs%mufill=1
-                 geargs%kext=3
-                 geargs%next=60
+!                 geargs%kext=3
+!                 geargs%next=60
+! provisional idea to scale these with nup to improve accuracy for large nup
+                 geargs%kext=ceiling(3d0*geargs%nup/400d0)
+                 geargs%next=ceiling(60d0*geargs%nup/400d0)
+                 write(6,*) 'kext next: ',geargs%kext,geargs%next
               else
                  geargs%mufill=0
                  geargs%kext=0

@@ -2,6 +2,7 @@
 
     use odepack, only: lsoda_basic
     use interpolate, only: get_weight, locate
+    use math, only: tsum
 
     implicit none
 
@@ -125,19 +126,8 @@
 !        real(kind=8), intent(in), optional :: maxt
     ! Subroutine to call integration routine for RT equation
     ! JAD 2/28/2011 moved from grtrans_driver 8/7/2014
-     ! assign global data
-!        call init_radtrans_integrate_data()
-!        allocate(tau(gnpts))
-!        allocate(s0(size(sinput)))
- !       allocate(jj(size(ej,1),size(ej,2)))
-!        allocate(KK(size(eK,1),size(eK,2)))
-!        allocate(intensity(rneq,rnpts))
-!        allocate(s(size(sinput))); allocate(ss(size(sinput)))
-!        write(6,*) 'radtrans_integrate: ',sinput
         s0=sinput; s=sinput; ss=sinput; intensity=0d0
-!        write(6,*) 'radtrans_integrate: ',s
         tau = tauin
-!        write(6,*) 'made it to integrate'
         jj=ej; KK=eK
         if(any(isnan(jj))) then
            write(6,*) 'nan in radtrans_integrate j'
@@ -152,14 +142,20 @@
            write(6,*) 'radtrans_integrate K5: ',KK(:,5)
            write(6,*) 'radtrans_integrate K7: ',KK(:,7)
         endif
-        !write(6,*) 'jj: ',jj
-        !write(6,*) 'KK: ',KK
         if (iflag==0) then
            call radtrans_integrate_lsoda()
         elseif (iflag==1) then
-           call radtrans_integrate_delo(s,tau,jj,KK(:,1:4),KK(:,5:7),PP,QQ,imm)
+           if(nequations==4) then
+              call radtrans_integrate_delo(s,tau,jj,KK(:,1:4),KK(:,5:7),PP,QQ,imm)
+           else
+              call radtrans_integrate_quadrature(s,jj(:,1),KK(:,1))
+           endif
         elseif (iflag==2) then
-           call radtrans_integrate_formal(s,jj,KK(:,1:4),KK(:,5:7),OO)
+           if(nequations==4) then
+              call radtrans_integrate_formal(s,jj,KK(:,1:4),KK(:,5:7),OO)
+           else
+              call radtrans_integrate_quadrature(s,jj(:,1),KK(:,1))
+           endif
         endif
 !        write(6,*) 'assign intensity', size(rI,1), size(rI,2), size(intensity,1), size(intensity,2), nptsout
 !        rI(1:nequations,1:nptsout) = intensity(1:nequations,1:nptsout);
@@ -169,16 +165,11 @@
            write(6,*) 'NaN in integrate ej: ',ej
            write(6,*) 'NaN in integrate jj 2: ',jj
            write(6,*) 'NaN in integrate eK: ',eK
-!           write(6,*) 'NaN in integrate KK: ',KK
         endif
-!        deallocate(jj); deallocate(KK)
-!        deallocate(s); deallocate(ss); deallocate(s0); deallocate(tau)
-!        deallocate(intensity)
         return
       end subroutine integrate
   
       subroutine radtrans_integrate_lsoda()
-!        real(kind=8), dimension(:), intent(inout) :: I0
         real(kind=8), dimension(4) :: I0
         real(kind=8), dimension(npts) :: dummy
         real(kind=8), dimension(:,:), allocatable :: tau_arr
@@ -186,16 +177,11 @@
         integer, dimension(:), allocatable :: inds
         real(kind=8) :: weight
         integer :: lamdex,i,ii,i1,i2,taudex
-      !         
-!         write(6,*) 'Kmax: ',size(KK), size(jj)
-!         write(6,*) 'tau: ',tau(2),maxval(tau),MAX_TAU
-!         fac=max(1d0,tau(npts)); jj=jj*fac
         i1=1; i2=nptstot
         I0 = 0d0
         if(maxval(tau).le.MAX_TAU) then
            lamdex=npts
         else
-!           write(6,*) 'locate', size(tau), maxval(tau), tau(2)
            call locate(tau,MAX_TAU,lamdex)
            lamdex=lamdex+1
          !           write(6,*) 'locate', lamdex
@@ -239,82 +225,20 @@
  !        write(6,*) 'lam: ',s0
 ! try to figure out hmax:
         ss(1:npts)=s0(npts:1:-1)
-        s(i1:i2)=s(i2:i1:-1)        
+        s(i1:i2)=s(i2:i1:-1)
 !        write(6,*) 'integrate s: ',minval(s), maxval(s), i1, i2, lamdex
 ! should make this the start of grtrans_integrate_lsoda and put everything else in general integrate subroutine since it's generic to all methods
         if(nequations==4) then
-         !           s(i1:i2)=s(i2:i1:-1)
-!            write(6,*) 'lsoda basic'
-           ! test I0:
-!           I0(1) = jj(npts-i1,1)/KK(npts-i1,1)
            call lsoda_basic(radtrans_lsoda_calc_rhs,I0(1:nequations), &
                 s(i1:i2),oatol, &
                 ortol,radtrans_lsoda_calc_jac,intensity(:,i1:i2), &
                 1,100000,stats,hmax=hmax)
-!           write(6,*) 'after lsoda'
         else
-!           write(6,*) 'rneq: ',neq,size(I)
-!           write(6,*) 'si: ',s(lamdex),jj(lamdex,1),KK(lamdex,1)
-!           write(6,*) 'si: ',bcgs(lamdex),ncgs(lamdex)
-!           s(i1:i2)=s(npts)-s(i2:i1:-1)
-!            s(i1:i2)=s(i2:i1:-1)
-!           write(6,*) 's: ',s,i1,i2
            call lsoda_basic(radtrans_lsoda_calc_rhs_npol, &
               I0(1:nequations),s(i1:i2),oatol, &
               ortol,radtrans_lsoda_calc_jac_npol,intensity(:,i1:i2), &
               1,100000,stats,hmax=hmax)
-!           call lsoda_basic(radtrans_lsoda_calc_rhs_npol,
-!     &      I0(1:neq),s(npts)-s(lamdex:1:-1),oatol,
-!     &      ortol,radtrans_lsoda_calc_jac_npol,intensity(:,lamdex:1:-1),
-!     &      1,100000,stats,hmax=10d0)
-!          write(6,*) 'after lsoda',intensity(:,lamdex)
-!          npts=lamdex
-! quadrature solution:
-           !dummy=tsum(s0(1:npts),jj(:,1)*exp(-tau(1:npts)))
-!           do i=1,lamdex; write(6,*) 'tsum: ',s0(i),tau(i),dummy(i); enddo 
-!           write(6,*) 'dummy: ',dummy(npts),tau(npts)
-!            write(6,*) 'rshift: ',rshift
-!           write(6,*) 'occu: ',intensity(1,i1:i2)/rshift(i1:i2)**3
-            
-!           write(6,*) 'tsum: ',tsum(s0(1:npts),jj(:,1)*exp(-tau(1:npts)))
-!           write(6,*) 'tsum tau: ',tsum(tau(i1:i2),jj(:,1)/KK(:,1)*exp(-tau(i1:i2)))
-!           write(6,*) 'tsum diff: ',(intensity(1,i1:i2)-tsum(s0(1:npts),
-!     &     jj(:,1)*exp(-tau(1:npts))))/tsum(s0(1:npts),jj(:,1)*
-!     &      exp(-tau(1:npts)))
-!           write(6,*) 'didlam: ',jj(i1:i2,1)-KK(i1:i2,1)*
-!     &        tsum(s0(i1:i2),
-!     &       jj(i1:i2,1)*exp(-tau(i1:i2)))
         endif
-!         do while((intensity(1,npts).lt.0d0).or.isnan(intensity(1,npts)))
-!           npts=max(npts-1,1)
-!           if(npts==1) then
-!             npts=lamdex; I0=0d0; s=s/2d0
-!              write(6,*) 'repeat: ',s
-!             if(neq==4) then
-!               call lsoda_basic(radtrans_lsoda_calc_rhs,
-!     &          I0(1:neq),s(i1:i2),oatol,
-!     &          ortol,radtrans_lsoda_calc_jac,intensity(:,i1:i2),
-!     &          1,100000,stats,hmax=10d0)
-!             else
-!               write(6,*) 'lsoda basic: ',neq
-!               call lsoda_basic(radtrans_lsoda_calc_rhs_npol,
-!     &          I0(1:neq),s(i1:i2),oatol,
-!     &          ortol,radtrans_lsoda_calc_jac_npol,
-!     &          intensity(:,i1:i2),
-!     &          1,100000,stats,hmax=10d0)
-!             endif                   
-!           endif
-!         enddo
-! Negative total intensity
-!         write(6,*) 'made it'
-!         write(6,*) 'r: ',size(I), maxval(I)
-!         write(6,*) 'integrate: ',intensity(1,:)-s0
-! Now make intensity from occupation number:
- !        do i=1,neq
- !          intensity(i,i1:i2)=intensity(i,i1:i2)/
- !    &           rshift(i1:i2)**3
-         !         enddo
-!        deallocate(ss)
         if(isnan(intensity(1,i2))) then
            write(6,*) 'NaN in integrate: ',i1,i2,s(i1:i2)
            write(6,*) 'NaN in integrate intensity: ',intensity(1,i1:i2)
@@ -333,8 +257,7 @@
 !         real(kind=8), intent(out), dimension(neq,neq) :: jac
         real(kind=8), dimension(neq) :: j
         real(kind=8), dimension(1+neq*(neq-1)/2) :: K
-        real(kind=8) :: rshift
-        call radtrans_aux(neq,lam,j,K,rshift)
+        call radtrans_aux(neq,lam,j,K)
         call radtrans_rhs_form(neq,j,K,dIdlam,I)
 !         write(6,*) 'dIdlam: ',lam,dIdlam
 !         write(6,*) 'jk: ',jj(1),jj(2),j(4)
@@ -352,9 +275,8 @@
 !         real(kind=8), intent(out), dimension(neq,neq) :: jac
         real(kind=8), dimension(neq) :: j
         real(kind=8), dimension(1+neq*(neq-1)/2) :: K
-        real(kind=8) :: rshift
-        call radtrans_aux(neq,lam,j,K,rshift)
-        call radtrans_rhs_form_npol(neq,j,K,rshift,dIdlam,I)
+        call radtrans_aux(neq,lam,j,K)
+        call radtrans_rhs_form_npol(neq,j,K,dIdlam,I)
 !         didlam=didlam*1e25
 !         write(6,*) 'dIdlam: ',lam,dIdlam
 !         write(6,*) 'jk: ',j(1),j(2),j(4)
@@ -377,13 +299,12 @@
 !        endif
       end subroutine radtrans_rhs_form
 
-      subroutine radtrans_rhs_form_npol(neq,j,K,rshift,dIdlam,I)
+      subroutine radtrans_rhs_form_npol(neq,j,K,dIdlam,I)
         integer, intent(in) :: neq
         real(kind=8), intent(in), dimension(neq) :: j
         real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
         real(kind=8), intent(out), dimension(neq) :: dIdlam
         real(kind=8), intent(in), dimension(neq) :: I
-        real(kind=8), intent(in) :: rshift
 !         write(6,*) 'rhs npol: ',size(I),size(K),size(J)
 !         dIdlam(1)=maxval((/j(1)-K(1)*I(1),0d0/))
         dIdlam(1)=j(1)-K(1)*I(1)
@@ -442,9 +363,8 @@
         real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
         real(kind=8), dimension(neq) :: j
         real(kind=8), dimension(1+neq*(neq-1)/2) :: K
-        real(kind=8) :: rshift
 !         write(6,*) 'jac: ',nrowpd
-        call radtrans_aux(neq,lam,j,K,rshift)
+        call radtrans_aux(neq,lam,j,K)
         call radtrans_jac_form(neq,j,K,nrowpd,pd)
         !         write(6,*) 'pd: ', pd
         return
@@ -461,55 +381,29 @@
         real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
         real(kind=8), dimension(neq) :: j
         real(kind=8), dimension(1+neq*(neq-1)/2) :: K
-        real(kind=8) :: rshift
 !         write(6,*) 'jac: ',nrowpd
-        call radtrans_aux(neq,lam,j,K,rshift)
+        call radtrans_aux(neq,lam,j,K)
         call radtrans_jac_form_npol(neq,j,K,nrowpd,pd)
 !         write(6,*) 'pd: ', pd
         return
       end subroutine radtrans_lsoda_calc_jac_npol
 
-      subroutine radtrans_aux(neq,lam,j,K,rshift)
+      subroutine radtrans_aux(neq,lam,j,K)
         integer, intent(in) :: neq
         real(kind=8), intent(in) :: lam
-        real(kind=8), intent(out) :: rshift
         real(kind=8), intent(out), dimension(neq) :: j
         real(kind=8), intent(out), dimension(1+neq*(neq-1)/2) :: K
         real(kind=8) :: weight
-      !         real(kind=8), dimension(size(s0)) :: dummy
         integer :: indx,uindx
-!         call interp_geo_point(lam,g)
+!         call interp_geo_point(lam,gOB)
 !         call get_fluid_vars(x0,f)
 !         call calc_emissivity(nu,f,e)
 !         call calc_emissivity(e)
  !        call locate(s0,lam,lindx)
-!         write(6,*) 'aux: ',lam,size(s0)
-!         write(6,*) 'glam: ',s0
- ! NEED TO ADD ASSIGNMENT OF SS
         call get_weight(ss,lam,lindx,weight)
-!         call get_weight(s0(1:npts),lam,lindx,weight)
- !        write(6,*) 'sz: ',size(j),size(K),size(j,2),size(K,2)
-!          j=exp((1d0-weight)*log(j(lindx,:))+weight*log(j(lindx+1,:)))
-!          K=exp((1d0-weight)*log(K(lindx,:))+weight*log(K(lindx+1,:)))
-!          rshift=exp((1d0-weight)*log(rshift(lindx))+ &
-!               weight*log(rshift(lindx+1)))
         indx=npts-lindx+1; uindx=minval((/indx+1,npts/))
-        !          write(6,*) 'j: ',j
         j=(1d0-weight)*jj(indx,:)+weight*jj(uindx,:)
         K=(1d0-weight)*KK(indx,:)+weight*KK(uindx,:)
-!          write(6,*) 'j: ',j,weight,indx,uindx,jj(indx,:),jj(uindx,:)
-!          write(6,*) 'j: ',lam,lindx,jj
-!          j=j(lindx,:)
-!          K=K(lindx,:)
-!         write(6,*) 'lindx: ',lam,indx,lindx,weight,size(K),size(j)
- !        write(6,*) 'lindx2: ',jj(lindx,1),jj(lindx+1,1),K(lindx,1),K(lindx+1,1),j,K
-     !    write(6,*) 'ek: ',K(:,1)
-!         evals=interp_emis(lam)
-!         j=j
-!         K=K
-!         call calc_rad_trans_coefs(j,K)
-!         j=1d0
-!         K=0d0
       end subroutine radtrans_aux
 
       subroutine calc_O(a,rho,dx,identity,O,M1,M2,M3,M4)
@@ -549,56 +443,10 @@
            M4(:,3) = (/aq*rhov-av*rhoq,aq*au+rhoq*rhou,au*au+rhou*rhou-(a2+p2)/2d0,au*av+rhou*rhov/)
            M4(:,4) = (/au*rhoq-aq*rhou,av*aq+rhov*rhoq,au*av+rhou*rhov,av*av+rhov*rhov-(a2+p2)/2d0/)
            M4=2d0/theta*M4
-!           M2 = 1./theta*(/((0.,lam2*aq-sig*lam1*rhoq,lam2*au-sig*lam1*rhou,lam2*av-sig*lam1*rhov),(lam2*aq-sig*lam1*rhoq,0.,sig*lam1*av+lam2*rhov,-sig*lam1*au-lam2*rhou),(lam2*au-sig*lam1*rhoq,-sig*lam1*av-lam2*rhov,0.,sig*lam1*aq+lam2*rhoq),(lam2*av-sig*lam1*rhov,sig*lam1*au+lam2*rhou,-sig*lam1*aq-lam2*rhoq,0.)))
-!           M3 = 1./theta*array(((0.,lam1*aq+sig*lam2*rhoq,lam1*au+sig*lam2*rhou,lam1*av+sig*lam2*rhov),(lam1*aq+sig*lam2*rhoq,0.,-sig*lam2*av+lam1*rhov,sig*lam2*au-lam1*rhou),(lam1*au+sig*lam2*rhou,sig*lam2*av-lam1*rhov,0.,-sig*lam2*aq+lam1*rhoq),(lam1*av+sig*lam2*rhov,-sig*lam2*au+lam1*rhou,sig*lam2*aq-lam1*rhoq,0.)))
-!           M4 = 2d0/theta*array((((a2+p2)/2d0,av*rhou-au*rhov,aq*rhov-av*rhoq,au*rhoq-aq*rhou),(au*rhov-av*rhou,aq**2d0+rhoq**2d0-(a2+p2)/2d0,aq*au+rhoq*rhou,av*aq+rhov*rhoq),(av*rhoq-aq*rhov,aq*au+rhoq*rhou,au**2d0+rhou**2d0-(a2+p2)/2d0,au*av+rhou*rhov),(aq*rhou-au*rhoq,av*aq+rhoq*rhov,av*au+rhou*rhov,av**2d0+rhov**2d0-(a2+p2)/2d0)))
            O = onopol*(1d0/2d0*(cosh(lam1*dx)+cos(lam2*dx))*M1 - sin(lam2*dx)*M2-sinh(lam1*dx)*M3+1d0/2d0 &
                 *(cosh(lam1*dx)-cos(lam2*dx))*M4)
         endif
       end subroutine calc_O
-
-        
-
-!      subroutine imatrix_4(a,b)
-!        real(kind=8), dimension(:,:,:), intent(in) :: a
-!        real(kind=8), dimension(size(a,1),4,4), intent(out) :: b
-!        real(kind=8), dimension(size(a,1)) :: detA
-!        integer :: i
-!        real(kind=8), dimension(size(a,1)) :: a11,a21,a31,a41,a12,&
-!             a22,a32,a42,a13,a23,a33,a43,a14,a24,a34,a44
-!        a11 = a(:,1,1); a12 = a(:,2,1); a13 = a(:,3,1); a14 = a(:,4,1)
-!        a21 = a(:,1,2); a22 = a(:,2,2); a23 = a(:,3,2); a24 = a(:,4,2)
-!        a31 = a(:,1,3); a32 = a(:,2,3); a33 = a(:,3,3); a34 = a(:,4,3)
-!        a41 = a(:,1,4); a42 = a(:,2,4); a43 = a(:,3,4); a44 = a(:,4,4)
-        
-!        b(:,1,1) = a22*a33*a44 + a23*a34*a42 + a24*a32*a43 - a22*a34*a43 - a23*a32*a44 - a24*a33*a42
-!        b(:,2,1) = a12*a34*a43 + a13*a32*a44 + a14*a33*a42 - a12*a33*a44 - a13*a34*a42 - a14*a32*a43
-!        b(:,3,1) = a12*a23*a44 + a13*a24*a42 + a14*a22*a43 - a12*a24*a43 - a13*a22*a44 - a14*a23*a42
-!        b(:,4,1) = a12*a24*a33 + a13*a22*a34 + a14*a23*a32 - a12*a23*a34 - a13*a24*a32 - a14*a22*a33
-!        b(:,1,2) = a21*a34*a43 + a23*a32*a44 + a24*a33*a41 - a21*a33*a44 - a23*a34*a41 - a24*a31*a43
-!        b(:,2,2) = a11*a33*a44 + a13*a34*a41 + a14*a31*a43 - a11*a34*a43 - a13*a31*a44 - a14*a33*a41
-!        b(:,3,2) = a11*a24*a43 + a13*a21*a44 + a14*a23*a41 - a11*a23*a44 - a13*a24*a41 - a14*a21*a43
-!        b(:,4,2) = a11*a23*a34 + a13*a24*a31 + a14*a21*a33 - a11*a24*a33 - a13*a21*a34 - a14*a23*a31
-!        b(:,1,3) = a21*a32*a44 + a22*a34*a41 + a24*a31*a42 - a21*a34*a42 - a22*a31*a44 - a24*a32*a41
-!        b(:,2,3) = a11*a34*a42 + a12*a31*a44 + a14*a32*a41 - a11*a32*a44 - a12*a34*a41 - a14*a31*a42
-!        b(:,3,3) = a11*a22*a44 + a12*a24*a41 + a14*a21*a42 - a11*a24*a42 - a12*a21*a44 - a14*a22*a41
-!        b(:,4,3) = a11*a24*a32 + a12*a21*a34 + a14*a22*a31 - a11*a22*a34 - a12*a24*a31 - a14*a21*a32
-!        b(:,1,4) = a21*a33*a42 + a22*a31*a43 + a23*a32*a41 - a21*a32*a43 - a22*a33*a41 - a23*a31*a42
-!        b(:,2,4) = a11*a32*a43 + a12*a33*a41 + a13*a31*a42 - a11*a33*a42 - a12*a31*a43 - a13*a32*a41
-!        b(:,3,4) = a11*a23*a42 + a12*a21*a43 + a13*a22*a41 - a11*a22*a43 - a12*a23*a41 - a13*a21*a42
-!        b(:,4,4) = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 - a11*a23*a32 - a12*a21*a33 - a13*a22*a31
-
-!        detA = a11*a22*a33*a44 + a11*a23*a34*a42 + a11*a24*a32*a43 + a12*a21*a34*a43 + a12*a23*a31*a44 &
-!             + a12*a24*a33*a41 + a13*a21*a32*a44 + a13*a22*a34*a41 + a13*a24*a31*a42 + a14*a21*a33*a42 &
-!             + a14*a22*a31*a43 + a14*a23*a32*a41 - a11*a22*a34*a43 - a11*a23*a32*a44 - a11*a24*a33*a42 &
-!             - a12*a21*a33*a44 - a12*a23*a34*a41 - a12*a24*a31*a43 - a13*a21*a34*a42 - a13*a22*a31*a44 &
-!             - a13*a24*a32*a41 - a14*a21*a32*a43 - a14*a22*a33*a41 - a14*a23*a31*a42
-
-!        detA = a(:,1,1)*b(:,1,1) + a(:,2,1)*b(:,1,2) + a(:,3,1)*b(:,1,3) + a(:,4,1)*b(:,1,4)
-!        do i=1,size(a,1)
-!           b(i,:,:) = 1./detA(i)*b(i,:,:)
-!        enddo
-!      end subroutine imatrix_4
 
       subroutine imatrix_4_single(a,b)
         real(kind=8), dimension(4,4), intent(in) :: a
@@ -645,13 +493,6 @@
              - a11*a22*a43 - a12*a23*a41 - a13*a21*a42
         b(4,4) = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 &
              - a11*a23*a32 - a12*a21*a33 - a13*a22*a31
-
-!        detA = a11*a22*a33*a44 + a11*a23*a34*a42 + a11*a24*a32*a43 + a12*a21*a34*a43 + a12*a23*a31*a44 &
-!             + a12*a24*a33*a41 + a13*a21*a32*a44 + a13*a22*a34*a41 + a13*a24*a31*a42 + a14*a21*a33*a42 &
-!             + a14*a22*a31*a43 + a14*a23*a32*a41 - a11*a22*a34*a43 - a11*a23*a32*a44 - a11*a24*a33*a42 &
-!             - a12*a21*a33*a44 - a12*a23*a34*a41 - a12*a24*a31*a43 - a13*a21*a34*a42 - a13*a22*a31*a44 &
-!             - a13*a24*a32*a41 - a14*a21*a32*a43 - a14*a22*a33*a41 - a14*a23*a31*a42
-
         detA = a(1,1)*b(1,1) + a(2,1)*b(1,2) + &
              a(3,1)*b(1,3) + a(4,1)*b(1,4)
         b = b/detA
@@ -661,12 +502,9 @@
       real(kind=8), dimension(:,:), intent(in) :: a
       real(kind=8), dimension(:,:), intent(in) :: p
       real(kind=8), dimension(size(a,1),4,4), intent(out) :: Karr
-!      K = np.array(((a(0),a(1),a(2),a(3)),(a(1),a(0),p(2),-p(1)),(a(2),-p(2),a(0),p(0)),(a(3),p(1),-p(0),a(0))))
       Karr(:,1,1) = a(:,1); Karr(:,2,2) = a(:,1); Karr(:,3,3) = a(:,1); Karr(:,4,4) = a(:,1)
       Karr(:,2,1) = a(:,2); Karr(:,3,1) = a(:,3); Karr(:,4,1) = a(:,4)
       Karr(:,1,2) = a(:,2); Karr(:,1,3) = a(:,3); Karr(:,1,4) = a(:,4)
-!      Karr(:,3,2) = p(:,3); Karr(:,4,2) = -p(:,2); Karr(:,2,3) = -p(:,3); Karr(:,2,4) = p(:,2)
-!      Karr(:,4,3) = p(:,1); Karr(:,3,4) = -p(:,1)
       Karr(:,3,2) = -p(:,3); Karr(:,4,2) = p(:,2); Karr(:,2,3) = p(:,3); Karr(:,2,4) = -p(:,2)
       Karr(:,4,3) = -p(:,1); Karr(:,3,4) = p(:,1)
     end subroutine opacity_matrix
@@ -723,9 +561,6 @@
       subroutine radtrans_integrate_delo(x,tau,j,a,rho,P,Q,im)
         real(kind=8), dimension(:), intent(in) :: x,tau
         real(kind=8), dimension(:,:), intent(in) :: j,a,rho
-!        real(kind=8), intent(out), dimension(size(j,1),size(j,2)) :: P
-!        real(kind=8), intent(out), dimension(size(x),4,4) :: Q,im
-!        real(kind=8), intent(out), dimension(size(x)) :: delta
         real(kind=8), dimension(size(x),4), intent(inout) :: P
         real(kind=8), dimension(size(x),4,4), intent(inout) :: Q,im
         real(kind=8), dimension(size(x)-1) :: delta,dx
@@ -738,13 +573,9 @@
         identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &
              1d0,0d0,0d0,0d0,0d0,1d0/),(/4,4/))
         delta = tau(2:npts) - tau(1:npts-1)
-!        E = np.exp(-delta)
-!        F = 1.-E
-!        G = (1.-(1.+delta)*E)/delta
         call opacity_matrix(a,rho,Karr)
         dx = x(1:npts-1) - x(2:npts)
-!        dx = x(2:npts) - x(1:npts-1)
-!        write(6,*) 'delo integrate: ',thin,minval(dx),maxval(tau),minval(delta),maxval(delta)
+        !        write(6,*) 'delo integrate: ',thin,minval(dx),maxval(tau),minval(delta),maxval(delta)
 ! integration is from deepest point out for starting intensity I0
         intensity(:,1) = I0; iprev = I0
 ! alternative way to write this: where(delta.gt.thin) and calculate pt, qt, elsewhere() and calculate ptt, qtt and then do loop free of if statements
@@ -762,11 +593,7 @@
               call calc_delo_P(imatrix,F,G,Sp,Sp1,pt)
               call calc_delo_Q(imatrix,E,F,G,Kp1,identity,qt)
            else
-!              write(6,*) 'invert delo matrix call: ',k,dx(k),K0,a(k,1),delta(k)
-!              write(6,*) 'invert delo matrix call identity: ',identity
               call invert_delo_matrix_thin(dx(k),K0,a(k,1),delta(k),identity,matrix,imatrix)
-!              write(6,*) 'invert delo matrix after call matrix: ',matrix
-!              write(6,*) 'invert delo matrix after call imatrix: ',imatrix
               call calc_delo_P_thin(imatrix,dx(k),j(k,:),j(k+1,:),a(k,1),a(k+1,1),pt)
               call calc_delo_Q_thin(imatrix,dx(k),a(k,1),a(k+1,1),K1,identity,qt)
            endif
@@ -802,6 +629,13 @@
         end do
         return
       end subroutine radtrans_integrate_formal
+
+      subroutine radtrans_integrate_quadrature(s,j,K)
+        real(kind=8), dimension(:), intent(in) :: s,j,K
+! quadrature solution assuming I0=0, - sign from s,j,tau being tabulated backwards:
+        intensity(1,:)=-tsum(s,j*exp(-tau))
+      end subroutine radtrans_integrate_quadrature
+
 
       subroutine del_radtrans_integrate_data()
         deallocate(jj); deallocate(KK)

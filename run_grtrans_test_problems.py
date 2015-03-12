@@ -30,13 +30,13 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0):
             else:
                 terr = np.sum(np.abs(xlist[-1].ivals[0,:,14]-i))/np.sum(np.abs(i))
             print 'terr: ',terr
-            if terr < tol: passed+=1
+            if terr < (10*tol): passed+=1
             else: failed.append('sphacc intensity')
             max_passed+=1
             i = pickle.load(open('test_grtrans_sphacc_spectrum.p','rb'))
             terr = np.sum(np.abs(xlist[-1].spec-i))/np.sum(np.abs(i))
             print 'terr: ',terr
-            if terr < tol: passed+=1
+            if terr < (10*tol): passed+=1
             else: failed.append('sphacc spectrum')
             max_passed+=1
         else:
