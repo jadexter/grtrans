@@ -243,7 +243,7 @@
 
           subroutine del_pgrtrans_data()
             deallocate(ivals); deallocate(ab); deallocate(freqs)
-            deallocate(mdots); deallocate(mu0)
+!            deallocate(mdots); deallocate(mu0)
           end subroutine del_pgrtrans_data
           
         end module pgrtrans
