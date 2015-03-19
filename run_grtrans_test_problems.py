@@ -184,6 +184,6 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0):
 
     print 'tests total: ', max_passed
     print 'tests passed: ', passed
-    print 'tests failed: ',failed
+    print 'tests failed: ',failed        
 
     return passed, max_passed, failed, xlist
