@@ -69,22 +69,15 @@
          real(kind=8), dimension(:), allocatable :: s2xi,c2xi, &
           rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy
          real(kind=8), dimension(:,:), allocatable :: tau_arr
-         integer :: k,npow,status,j,nf,nitems,m,kk,taudex,ii
+         integer :: k,npow,status,j,nf,nitems,m,kk,taudex,ii,nvals
          integer, dimension(:), allocatable :: inds
          npow=3; j=0; status=0; k=0
          ep=eparams
          if(extra==1) EXTRA_QUANTS=1
-         ! these should all bes electron model inputs
-!         eparams%gmin=100.; eparams%gmax=1.e5; eparams%p1=3.5
-!         eparams%p2=3.5; eparams%mu=1./4.
-!         write(6,*) 'mdot: ',mdot,i
 ! Need to make this a decision of load geodesics from file or generate new ones, and pass 
 !gunit as last argument if loading.
 !         write(6,*) 'grtrans_driver: ',i
          call initialize_geodesic(g,gargs,i,status)
-!         write(6,*) 'geo: ',g%gk%alpha,g%gk%beta
-!         write(6,*) 'geo r: ',g%x%data(2), g%x%data(3), g%x%data(4)
-!         write(6,*) 'status: ',status
          if (WRITE_GEO==1) then
             nitems=18
 ! Dump geodesic information for debugging
@@ -124,7 +117,8 @@
             call comoving_ortho(g%x%data(2),g%x%data(3),g%gk%a, &
                  g%gk%alpha(1),g%gk%beta(1),g%gk%mu0,f%u,f%b,g%k,s2xi,c2xi, &
                  ang,rshift,cosne)
-!            call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
+            call initialize_rad_trans(r,iname,g%npts,c(1)%nvals,extra)
+            call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
             do m=1,nparams
                sp=sparams(m)
                call initialize_source_params(sp,g%npts)
@@ -148,7 +142,7 @@
                do k=1,NFREQ
                   nu=FREQS(k)/rshift
 !                  write(6,*) 'init rad trans'
-                  call initialize_rad_trans(r,iname,g%npts,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals,extra)
+!                  call initialize_rad_trans(r,iname,g%npts,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals,extra)
 !                  write(6,*) 'calc_emissivity',m,k,nfreq,nparams
 !                  write(6,*) 'i: ',i
                   call calc_emissivity(nu,e)
@@ -179,26 +173,17 @@
                      endif
                      if(g%npts.ne.1) then
                         call invariant_emis(e,rshift)
-!                     write(6,*) 'integrate: ',e%j(:,1)
-!                     write(6,*) 'integrate: ',e%j(:,2)
-!                     write(6,*) 'integrate: ',e%j(:,4)
-!                     write(6,*) 'integrate: ',e%K(:,1)
-!                     write(6,*) 'integrate: ',e%K(:,2)
-!                     write(6,*) 'integrate: ',e%j(:,1)
-                        fac=sum(e%j(:,1))
+                        fac=sum(e%j(:,1))/g%npts
 ! scale emission close to 1 so that LSODA integrates accurately and put anu in cgs units
                         e%j=e%j/fac; e%K=e%K*LBH
 !                        write(6,*) 'i: ',i
-!                        call calc_opt_depth(g%lambda(1)-g%lambda(1:g%npts),e,tau,1)
-!                        call calc_opt_depth(g%lambda(g%npts:1:-1),e,tau,1)
                         call calc_opt_depth(g%lambda(1:g%npts),e,tau,1)
                         tau = -tau
-                        call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
+!                        call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
 !                        write(6,*) 'maxtau: ',maxval(e%K(:,1)),maxval(abs(sqrt(e%K(:,5)**2.+e%K(:,6)**2.))),maxval(abs(tau))
                         call integrate(g%lambda(1:g%npts),e%j,e%K,tau,r%npts)
-! may be better to do init, del data steps separately and then can move to outside of some loops
                         r%I(1:r%neq,1:r%npts) = intensity(1:r%neq,1:r%npts)
-                        call del_radtrans_integrate_data()
+!                        call del_radtrans_integrate_data()
 !                        write(6,*) 'integrate: ',g%npts,r%neq,r%npts,r%I(1,r%npts)
                         r%I=r%I*fac
                         !write(6,*) 'integrate'
@@ -258,8 +243,8 @@
 !                     write(6,*) 'zero: ',status, size(r%I,1), size(r%I,2), r%I(:,r%npts)
                   endif
 !           write(6,*) 'after intensity', i, r%npts, r%I(:,r%npts), sum(e%j(:,1))!, e%j(:,1), e%K(:,1)
-                  if(g%npts.gt.1.and.mod(i,500).eq.0.and.mod(k,nfreq).eq.0.and.mod(m,nparams).eq.0) &
-                       write(6,*) 'save ', i, r%I(:,r%npts),l,k,m
+!                  if(g%npts.gt.1.and.mod(i,500).eq.0.and.mod(k,nfreq).eq.0.and.mod(m,nparams).eq.0) &
+!                       write(6,*) 'save ', i, r%I(:,r%npts),l,k,m
                   if(EXTRA_QUANTS==0) then
 ! this is normal situation
                      call save_raytrace_camera_pixel(c((l-1)*nfreq*nparams+(m-1)*nfreq+k), &
@@ -314,7 +299,7 @@
                      write(9,*) c2xi
                      close(unit=9)
                   endif
-                  call del_rad_trans(r)
+!                  call del_rad_trans(r)
            !           write(6,*) 'after rad'
                enddo
 !         write(6,*) 'before emis'
@@ -324,7 +309,8 @@
         !         write(6,*) 'after emis'
 !               deallocate(sparams(m)%gmin)
             enddo
-!            call del_radtrans_integrate_data()
+            call del_rad_trans(r)
+            call del_radtrans_integrate_data()
             call del_fluid_model(f)
             
      !         write(6,*) 'after fluid'

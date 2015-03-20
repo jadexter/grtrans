@@ -5,7 +5,7 @@
 
        real(8), allocatable, dimension(:,:,:) :: ivals!,ab
        real(8), allocatable, dimension(:,:) :: ab
-       real(8), allocatable, dimension(:) :: freqs
+       real(8), allocatable, dimension(:) :: freqs!,mdots,mu0
 
        contains
 
@@ -81,6 +81,8 @@
        !          write(6,*) 'read inputs nup: ',spin
             ! Compute frequencies w/ log spacing between and including fmin, fmax:
             allocate(freqs(nfreq)); allocate(mu0(nmu)); allocate(mdots(nmdot))
+            NCAMS=nmdot*nfreq*nmu*nt
+!            call init_pgrtrans_data(nro*nphi,NCAMS,nfreq,nmdot,nmu)
             if(nfreq==1) then
                freqs=(/fmin/)
             else
@@ -116,7 +118,6 @@
                sparams(iii)%p2=p2
                call assign_source_params_type(sparams(iii),stype)
             enddo
-            NCAMS=nparams*nfreq*nmu*nt
             allocate(c(NCAMS))
             if(outfile.ne."") write(6,*) 'outfile grtrans: ',outfile, NCAMS
             do m=1,NCAMS
@@ -234,8 +235,15 @@
             return
           end subroutine grtrans_main
 
+!          subroutine init_pgrtrans_data(npix,)
+!            integer, intent(in) :: npix,nmdots,nmu,nfreqs
+!            allocate(ivals(n)); allocate(ab(n)); allocate(freqs(nfreqs))
+!            allocate(mdots(nmdots)); allocate(mu0(nmu))
+!          end subroutine init_pgrtrans_data
+
           subroutine del_pgrtrans_data()
             deallocate(ivals); deallocate(ab); deallocate(freqs)
+!            deallocate(mdots); deallocate(mu0)
           end subroutine del_pgrtrans_data
           
         end module pgrtrans

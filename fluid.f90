@@ -1128,6 +1128,7 @@
         real(8), dimension(size(x0),10) :: metric
         real(8), dimension(size(x0)) :: hc,lc,d,ar,om,omtest,zero,u0!,one,two
         type (four_vector), dimension(size(x0)) :: fu
+        integer :: testindx
 
         rr = x0%data(2)
         rms = calc_rms(a)
@@ -1145,6 +1146,10 @@
         psi4 = 2.*rr/rho2
 
         call powerlaw_vals(a,ctheta,u,n,t,bmag,vr,vth,omega,nnth)
+
+!        testindx = maxloc(bmag,1)
+!        write(6,*) 'powerlaw fluidvars x0: ',x0(testindx)%data(2), &
+!             x0(testindx)%data(3),x0(testindx)%data(4)
 
 ! construct four-velocity from three-velocity
 
