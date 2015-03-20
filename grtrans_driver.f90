@@ -129,7 +129,7 @@
                sp=sparams(m)
                call initialize_source_params(sp,g%npts)
                call initialize_emis_params(ep,g%npts)
-               call initialize_emissivity(e,g%npts,f%nfreq,rshift,ang,cosne)
+               call initialize_emissivity(e,g%npts,f%nfreq,rshift,ang,cosne,emisargs)
 !               write(6,*) 'm: ',m,nparams,sparams(m)%mdot,size(sparams)
 !               allocate(sparams(m)%gmin(npts))
                MBH=sp%mbh

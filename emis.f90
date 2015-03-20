@@ -19,6 +19,7 @@
           tcgs,incang,p,ncgsnth,rshift,freqarr,fnu,deltapol,psipol
          real(kind=8) :: gmax,fcol
          real(kind=8), dimension(:), allocatable :: cosne,gmin
+         real(kind=8), dimension(:), allocatable :: args
          integer :: neq,nk,npts,type,nfreq
        end type emis
 
@@ -230,16 +231,17 @@
          e%nk=1+e%neq*(e%neq-1)/2
          end subroutine select_emissivity_values
 
-         subroutine initialize_emissivity(e,npts,nfreq,rshift,ang,cosne)
+         subroutine initialize_emissivity(e,npts,nfreq,rshift,ang,cosne,emisargs)
          type (emis), intent(inout) :: e
          integer, intent(in) :: npts, nfreq
-         real(kind=8), dimension(:), intent(in) :: rshift,ang,cosne
+         real(kind=8), dimension(:), intent(in) :: rshift,ang,cosne,emisargs
  !        write(6,*) 'init emis: ',npts,e%nk,e%neq
          allocate(e%j(npts,e%neq)); allocate(e%K(npts,e%nk))
          allocate(e%rshift(npts)); allocate(e%gmin(npts))
          allocate(e%incang(npts)); allocate(e%cosne(npts))
          e%rshift=rshift; e%incang=ang; e%cosne=cosne
          SELECT CASE (e%type)
+            
            CASE (EHYBRIDTHPL)
              allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
              allocate(e%bcgs(npts))
@@ -257,7 +259,8 @@
              call initialize_polsynchpl(e%neq) !I guess this is right?
            CASE (EMAXJUTT) !alwinnote 2015/03/05
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
-             allocate(e%bcgs(npts))
+             allocate(e%bcgs(npts)); allocate(e%args(npts))
+             e%args=emisargs
            CASE (EPOLSYNCHTH)
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
              allocate(e%bcgs(npts))
@@ -302,16 +305,8 @@
          integer :: i
          select  case(e%type)
            case(emaxjutt)
-!alwinnote 2015/03/05 Below is just copied from ehybridthpl not currently functional
-!need to ensure unit conversions are safe before continuing
-!convert theta_min in units of theta = kT/m_e c^2 to tcgs units
-!nu is just a frequency
-!ncgs just gets multiplied by dimensionless weights
-!bcgs is just an input
-              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
-              call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
-               e%gmax,Kpl)
-              K = Kth + Kpl
+!2015/03/19 Should work, not yet tested.
+              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
            case(ehybridthpl)
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
@@ -522,6 +517,7 @@
            CASE (EMAXJUTT) !alwinnote 2015/03/05
              deallocate(e%tcgs); deallocate(e%ncgs)
              deallocate(e%bcgs); deallocate(e%incang)
+             deallocate(e%args)
            CASE (EPOLSYNCHTH)
              deallocate(e%tcgs); deallocate(e%ncgs)
              deallocate(e%bcgs); deallocate(e%incang)
