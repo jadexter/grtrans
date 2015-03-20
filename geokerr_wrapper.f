@@ -189,9 +189,9 @@ c could swap ordering to go across alpha first, and then up in beta. might make 
             ELSE
               PHI=0.D0
             ENDIF
-C Calculate impact parameters at infinity for observer at phi0=-pi/2:
-            ALPHA=RO(I)*SIN(PHI)
-            BETA=-RO(I)*COS(PHI)
+C Calculate impact parameters at infinity for observer at phi0=0:
+            ALPHA=RO(I)*COS(PHI)
+            BETA=RO(I)*SIN(PHI)
           ENDIF
 c ******************************************************************
 C Calculate the angular momentum and Carter's constant of motion:
@@ -267,8 +267,8 @@ C Setting TPR=1 doesn't mean that a turning point is necessarily present, but th
                 PHI=0.D0
               ENDIF
 C Calculate impact parameters at infinity:
-              ALPHA=RO(I)*SIN(PHI)
-              BETA=-RO(I)*COS(PHI)
+              ALPHA=RO(I)*COS(PHI)
+              BETA=RO(I)*SIN(PHI)
             ENDIF
 c ******************************************************************
 C Calculate the angular momentum and Carter's constant of motion:
@@ -1764,7 +1764,7 @@ c Fourth u0 integral in Eq. (47)
             phiu01=tu03
             phiu02=tu04
           endif
-          if(uf.ne.u2) then
+          if(abs(uf-u2).gt.1d-16) then
             p(4)=-2
 c First three uf integrals in Eq. (47)
             phiu11=ellcubicreal(p,-u1,one,u2,-one,u3,-one,one,-one/uplus,rffu1,uf,u2)
@@ -2191,7 +2191,7 @@ c Fourth u0 integral in Eq. (48)
             phiu01=tu03
             phiu02=tu04
           endif
-          if(uf.ne.u2) then
+          if(abs(uf-u2).gt.1d-12) then
             p(5)=-2
 c First three uf integrals in Eq. (47)
             phiu11=ellquarticreal(p,-u1,one,u2,-one,u3,-one,u4,-one,one,-one/uplus,rffu1,uf,u2)
@@ -2343,6 +2343,9 @@ c Eq. (46)
       endif
 c Eq. (49)
       lambda=lambdau+tmu
+!      write(6,*) 'geokerr geophitime lambda: ',lambdau,tmu,phimu,tu01,tu11,ee
+!      write(6,*) 'geokerr geophitime u: ',uf,u2,u3,uf-u2
+!      write(6,*) 'geokerr geophitime phi: ',phiu11,phiu,ur
       if(l.eq.0.d0) phiu=phiu-sign(1.d0,a)*pi*tpm
       return
       end

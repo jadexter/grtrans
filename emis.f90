@@ -180,7 +180,7 @@
          if(ename=='POLSYNCHTH') then
             e%type=EPOLSYNCHTH
             e%neq=4
-         if(ename=='MAXJUTT') then
+         elseif(ename=='MAXJUTT') then
             e%type=EMAXJUTT
             e%neq=4
          elseif(ename.eq.'HYBRIDTH') then

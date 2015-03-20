@@ -47,7 +47,7 @@
         real(kind=8), intent(out), dimension(size(y),size(t)) :: &
                                                              yout
         real(kind=8), intent(in) :: oatol, ortol
-        integer, intent(out), optional, dimension(3) :: si
+        integer, intent(out), optional, dimension(4) :: si
         integer, intent(in), optional :: mt,mxs
         integer :: oiopt,oitask,ojt,oneq,npts,i
         real(kind=8) :: tout, t0
@@ -96,7 +96,7 @@
 !        write(6,*) 'N_jac: ',iwork(13)
 !        write(6,*) 'Method: ',iwork(19)
         if(present(si)) then
-          si(1)=iwork(12); si(2)=iwork(13); si(3)=iwork(19)
+          si(1)=iwork(12); si(2)=iwork(13); si(3)=iwork(19); si(4)=iwork(11)
         endif
         call lsoda_destroy()
         end subroutine lsoda_basic

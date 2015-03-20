@@ -139,15 +139,50 @@ def intensity_var(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0
         j = np.tile(j,len(x)).reshape(len(x),4)
         
     i = np.zeros((len(x),4))
-    intprev = np.zeros(4); iprev = I0; xprev = 0.; jprev = np.zeros(4)        
+    intprev = np.zeros(4); iprev = I0; xprev = 0.; jprev = np.zeros(4)
 # intensity for constant coefs is integral along path + attenuated initial intensity
     identity = np.identity(4)
     for k in range(len(x)-1):
         o[k,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],x[k+1]-x[k])
-        i[k+1,:] = (o[k,:,:]).dot(j[k,:])*(x[k+1]-x[k])+o[k,:,:].dot(intprev)
+        jj = j[k,:]
+        i[k+1,:] = o[k,:,:].dot(jj)*(x[k+1]-x[k])+o[k,:,:].dot(intprev)
         intprev = i[k+1,:]
 
     return i,o,dx
+
+def intensity_var_backwards(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0.,0.]),rho=np.array([0.,0.,0.]),I0=np.array([0.,0.,0.,0.])):
+    o = np.zeros((len(x),4,4))
+    ocum = np.zeros((len(x),4,4))
+    integrand = np.zeros((len(x),4))
+    if len(x) < 2:
+        dx = x
+    else:
+        dx = np.append(x[0],x[1:]-x[0:-1])
+    if len(np.shape(a)) < 2:
+# reform a,rho,j arrays to be of right size
+        a = np.tile(a,len(x)).reshape(len(x),4)
+        rho = np.tile(rho,len(x)).reshape(len(x),3)
+        j = np.tile(j,len(x)).reshape(len(x),4)
+        
+    i = np.zeros((len(x),4))
+    intcur = np.zeros(4)
+# intensity for constant coefs is integral along path + attenuated initial intensity
+    identity = np.identity(4)
+#    o[0,:,:],M1,M2,M3,M4 = calc_O(a[0,:],rho[0,:],x[1]-x[0])
+    ocum[0,:,:]=np.identity(4)
+    for k in np.arange(len(x)-1)+1:
+        o[k,:,:],M1,M2,M3,M4 = calc_O(a[k-1,:],rho[k-1,:],x[k]-x[k-1])
+        ocum[k,:,:]=ocum[k-1,:,:].dot(o[k,:,:])
+        jj = j[k,:]
+        integrand[k,:] = ocum[k,:,:].dot(jj)
+
+    print 'len: ',len(i[:,0]),len(integrand[:,0]), len(x)
+
+    for m in range(4):
+#        i[:,m] = scipy.integrate.cumtrapz(integrand[:,m],x,initial=0.)
+        i[:,m] = np.cumsum(integrand[:,m]*dx)
+
+    return i,o,dx,integrand
 
 
 def invert_delo_matrix_thin(dx,K,ki,delta):
