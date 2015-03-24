@@ -4,13 +4,13 @@
 
        contains
 
-         subroutine calc_maxjutt_subroutine(nu,ncgs,bcgs,tcgs,usim,incang,maxjutt_args,ktotal)
+!         subroutine calc_maxjutt_subroutine(nu,ncgs,bcgs,tcgs,usim,incang,maxjutt_args,ktotal)
          subroutine calc_maxjutt_subroutine(nu,ncgs,bcgs,tcgs,incang,maxjutt_args,ktotal)
            double precision, dimension(:), intent(in) :: nu
            double precision, dimension(:), intent(in) :: ncgs,bcgs,tcgs,incang
            double precision, dimension(:), intent(in) :: maxjutt_args
 !6 weights, 1 delta
-           double precision, dimension(:), intent(in) :: usim
+!           double precision, dimension(:), intent(in) :: usim
 
 
            double precision, dimension(size(maxjutt_args) - 1) :: weights_arr, i_arr, delta_arr
@@ -60,4 +60,5 @@
 !ktotal = ktotal + ktemp
            enddo
          end subroutine calc_maxjutt_subroutine
+
          end module calc_maxjutt

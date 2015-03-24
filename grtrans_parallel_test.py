@@ -12,7 +12,7 @@ for i in range(len(threads)):
 #    os.system('export OMP_NUM_THREADS='+threads[i])
     start = time()
 #    x.run_grtrans()
-    os.system('./run_grtrans_parallel.sh '+threads[i]+' > parallel_test_n16_2_'+threads[i]+'.out')
+    os.system('./run_grtrans_parallel.sh '+threads[i]+' > parallel_test_n16_scatter_'+threads[i]+'.out')
     end = time()
     t.append(end-start)
 
