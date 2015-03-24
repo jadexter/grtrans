@@ -28,7 +28,7 @@
 !         real :: gmin,mu
          real :: gmax,p1,p2
          integer :: nfreq_tab
-         real, dimension(:), allocatable :: freq_tab,gmin,mu
+         real, dimension(:), allocatable :: freq_tab,gmin,mu,args
        end type
 
        interface initialize_emis_params
@@ -308,7 +308,7 @@
            case(emaxjutt)
 !2015/03/19 Should work, not yet tested.
 !              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
-              call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
+!              call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
            case(ehybridthpl)
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
@@ -521,7 +521,7 @@
            CASE (EMAXJUTT) !alwinnote 2015/03/05
              deallocate(e%tcgs); deallocate(e%ncgs)
              deallocate(e%bcgs); deallocate(e%incang)
-             deallocate(e%args)
+!             deallocate(e%args)
            CASE (EPOLSYNCHTH)
              deallocate(e%tcgs); deallocate(e%ncgs)
              deallocate(e%bcgs); deallocate(e%incang)
