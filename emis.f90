@@ -4,6 +4,7 @@
        use polsynchemis, only: initialize_polsynchpl,polsynchpl, &
         polsynchth,del_polsynchpl,synchpl,bnu,synchemis,synchemisnoabs
        use chandra_tab24, only: interp_chandra_tab24
+       use calc_maxjutt, only: calc_maxjutt_subroutine
        implicit none
 
 ! Global constants for selecting emissivity
@@ -19,7 +20,7 @@
           tcgs,incang,p,ncgsnth,rshift,freqarr,fnu,deltapol,psipol
          real(kind=8) :: gmax,fcol
          real(kind=8), dimension(:), allocatable :: cosne,gmin
-         real(kind=8), dimension(:), allocatable :: args
+!         real(kind=8), dimension(:), allocatable :: args
          integer :: neq,nk,npts,type,nfreq
        end type emis
 
@@ -231,10 +232,10 @@
          e%nk=1+e%neq*(e%neq-1)/2
          end subroutine select_emissivity_values
 
-         subroutine initialize_emissivity(e,npts,nfreq,rshift,ang,cosne,emisargs)
+         subroutine initialize_emissivity(e,npts,nfreq,rshift,ang,cosne)
          type (emis), intent(inout) :: e
          integer, intent(in) :: npts, nfreq
-         real(kind=8), dimension(:), intent(in) :: rshift,ang,cosne,emisargs
+         real(kind=8), dimension(:), intent(in) :: rshift,ang,cosne
  !        write(6,*) 'init emis: ',npts,e%nk,e%neq
          allocate(e%j(npts,e%neq)); allocate(e%K(npts,e%nk))
          allocate(e%rshift(npts)); allocate(e%gmin(npts))
@@ -259,8 +260,8 @@
              call initialize_polsynchpl(e%neq) !I guess this is right?
            CASE (EMAXJUTT) !alwinnote 2015/03/05
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
-             allocate(e%bcgs(npts)); allocate(e%args(npts))
-             e%args=emisargs
+             allocate(e%bcgs(npts))!; allocate(e%args(npts))
+!             e%args=emisargs
            CASE (EPOLSYNCHTH)
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
              allocate(e%bcgs(npts))
@@ -306,7 +307,8 @@
          select  case(e%type)
            case(emaxjutt)
 !2015/03/19 Should work, not yet tested.
-              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
+!              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
+              call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
            case(ehybridthpl)
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
@@ -429,12 +431,14 @@
            type (emis_params), intent(inout) :: ep
            allocate(ep%gmin(n))
            allocate(ep%mu(n))
+           allocate(ep%args(n))
          end subroutine initialize_emis_params
 
          subroutine del_emis_params(ep)
            type (emis_params), intent(inout) :: ep
            deallocate(ep%gmin)
            deallocate(ep%mu)
+           deallocate(ep%args)
          end subroutine del_emis_params
 
          subroutine polsynchemis_wrapper(nu,e)
