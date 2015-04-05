@@ -1,11 +1,4 @@
-# compiler choice
-USEINTEL=0
-USEGNU=1
-DEBUG=0
-XEONPHI=0
-PROFILE=0
-CFITSIODIR=/afs/mpe.mpg.de/home/jdexter/cfitsio/lib
-GRTRANSDIR=/afs/mpe.mpg.de/home/jdexter/grtrans/
+include Makefile.top.sample
 
 ifeq ($(USEINTEL),1)
 FC=ifort
