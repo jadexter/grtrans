@@ -8,7 +8,7 @@
       namelist /geodata/   standard,mumin,mumax,nmu,phi0,spin, uout,uin, rcut, &
        nrotype, gridvals, nn, i1, i2
       namelist /fluiddata/ fname, dt, nt, nload, nmdot, mdotmin, mdotmax
-      namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, stype
+      namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, stype, epotherargs
       namelist /general/   use_geokerr, nvals, iname, cflag, extra
 ! namelists for fluid models
       namelist /harm/  fdfile, fgfile, fhfile, fnt, fnfiles, findf, fjonfix, &
