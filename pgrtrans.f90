@@ -16,7 +16,7 @@
             cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,epotherargs)
            
              use omp_lib
        !       use grtrans_inputs
@@ -52,6 +52,7 @@
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
                  ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta,ftp,fnp, &
                  frin,frout,fthin,fthout,fphiin,fphiout
+            real(8), dimension(:), intent(in) :: epotherargs
             !INPUTS====================
             !character(len=40), intent(in) :: outfile !,ifile
             !       character(len=40) :: outfile,ifile
@@ -106,6 +107,9 @@
             !       eparams%gmin=gmin; 
             eparams%gmax=gmax; eparams%p1=p1
             eparams%p2=p2;
+            eparams%otherargs = epotherargs
+            !alwinnote 2015/04/05
+
             nparams=size(mdots)
             allocate(sparams(nparams))
             do iii=1,nparams

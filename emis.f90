@@ -28,7 +28,8 @@
 !         real :: gmin,mu
          real :: gmax,p1,p2
          integer :: nfreq_tab
-         real, dimension(:), allocatable :: freq_tab,gmin,mu,args
+         real, dimension(:) :: otherargs
+         real, dimension(:), allocatable :: freq_tab,gmin,mu
        end type
 
        interface initialize_emis_params
@@ -298,8 +299,9 @@
          e%nfreq=nfreq
          end subroutine initialize_emissivity
 
-         subroutine calc_emissivity(nu,e)
+         subroutine calc_emissivity(nu,e,ep)
          type (emis), intent(inout) :: e
+         type (emis_params), intent(in) :: ep
          real(kind=8), intent(in), dimension(:) :: nu
          real(kind=8), dimension(e%npts,11) :: K, Kth, Kpl
 
@@ -308,7 +310,7 @@
            case(emaxjutt)
 !2015/03/19 Should work, not yet tested.
 !              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
-!              call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
+              call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,ep%otherargs,K)
            case(ehybridthpl)
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &

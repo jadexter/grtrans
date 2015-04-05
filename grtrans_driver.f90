@@ -145,7 +145,7 @@
 !                  call initialize_rad_trans(r,iname,g%npts,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals,extra)
 !                  write(6,*) 'calc_emissivity',m,k,nfreq,nparams
 !                  write(6,*) 'i: ',i
-                  call calc_emissivity(nu,e)
+                  call calc_emissivity(nu,e,ep)
 !                  write(6,*) 'ej1: ',e%j(:,1)
 !                  write(6,*) 'ej2: ',e%j(:,2)
 !                  write(6,*) 'ej4: ',e%j(:,4)
