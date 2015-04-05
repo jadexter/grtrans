@@ -31,10 +31,12 @@
 
 !           theta_min = (usim/ncgs)/a/dwsum !USIM
 
-!u_e = 1/3 ncgs k tcgs, theta_min = 1/3 k tcgs / m / c / c
-!          theta_min = k * tcgs/a/dwsum/a/m/c/c !I use a as 3 
-!           tcgs_min = m * c * c / k * theta_min
-           tcgs_min = tcgs/a/a/dwsum
+!            u_e = 3 ncgs k tcgs
+!            theta_min = 3 k tcgs / a / dwsum / m / c / c
+!            k tcgs_min = theta_min * m * c * c = 
+!            = 3 k tcgs / a / dwsum
+!            = k tcgs / dwsum
+           tcgs_min = tcgs/dwsum
 !check if that second a is necessary
 
 
@@ -57,7 +59,6 @@
               ktemp = 0d0
               call polsynchth(nu,weights_arr(i)*ncgs,bcgs,tcgs_min*delta_arr(i),incang,ktemp)
               ktotal = ktotal + ktemp
-!ktotal = ktotal + ktemp
            enddo
          end subroutine calc_maxjutt_subroutine
 
