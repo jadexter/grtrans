@@ -33,7 +33,7 @@
       real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
            ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fnp,ftp, &
            frin,frout,fthin,fthout,fphiin,fphiout
-
+      real(kind=8), dimension(:), allocatable :: epotherargs
       interface read_inputs
         module procedure read_inputs
       end interface

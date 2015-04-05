@@ -28,7 +28,7 @@
 !         real :: gmin,mu
          real :: gmax,p1,p2
          integer :: nfreq_tab
-         real, dimension(:) :: otherargs
+         real(8), dimension(:), allocatable :: otherargs
          real, dimension(:), allocatable :: freq_tab,gmin,mu
        end type
 
@@ -433,14 +433,14 @@
            type (emis_params), intent(inout) :: ep
            allocate(ep%gmin(n))
            allocate(ep%mu(n))
-           allocate(ep%args(n))
+!           allocate(ep%args(n))
          end subroutine initialize_emis_params
 
          subroutine del_emis_params(ep)
            type (emis_params), intent(inout) :: ep
            deallocate(ep%gmin)
            deallocate(ep%mu)
-           deallocate(ep%args)
+!           deallocate(ep%args)
          end subroutine del_emis_params
 
          subroutine polsynchemis_wrapper(nu,e)
