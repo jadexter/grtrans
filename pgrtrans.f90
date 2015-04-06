@@ -16,7 +16,7 @@
             cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,epotherargs)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,nepotherargs,epotherargs)
            
              use omp_lib
        !       use grtrans_inputs
@@ -34,7 +34,7 @@
 !INPUTS=====================
             integer, intent(in) :: standard,nrotype,nvals,nfreq,nmu,cflag,nt, &
                  nmdot,nload,extra,i1,i2
-            integer :: nro,nphi,nup,tempi
+            integer :: nro,nphi,nup,tempi,nepotherargs
             logical, intent(in) :: use_geokerr
             real(kind=8), intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
                  fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
@@ -52,7 +52,7 @@
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
                  ffmax,frmax,fsigt,ffcol,fmdot,fnnthp,fnnthscl,fnscl,fbeta,ftp,fnp, &
                  frin,frout,fthin,fthout,fphiin,fphiout
-            real(8), dimension(:), intent(in) :: epotherargs
+            real(8), dimension(nepotherargs), intent(in) :: epotherargs
             !INPUTS====================
             !character(len=40), intent(in) :: outfile !,ifile
             !       character(len=40) :: outfile,ifile
