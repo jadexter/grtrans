@@ -62,14 +62,6 @@ def run_unit_tests(grtrans_dir='/afs/mpe.mpg.de/home/jdexter/grtrans'):
             print 'Error in '+fluid_tests[i]+' unit test!'
             failed.append(fluid_tests[i])
             nfailed+=1
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_numdisk.f90')
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_toyjet.f90')
-
-# emissivity tests
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_emis.f90')
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_interpemis.f90')
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_interpemis_phatdisk.f90')
-
 # integration tests
 
     if nfailed==0: print 'Passed all unit tests!'

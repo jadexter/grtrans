@@ -139,13 +139,17 @@ def intensity_var(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0
         j = np.tile(j,len(x)).reshape(len(x),4)
         
     i = np.zeros((len(x),4))
-    intprev = np.zeros(4); iprev = I0; xprev = 0.; jprev = np.zeros(4)
+    intprev = I0; iprev = I0; xprev = 0.; jprev = np.zeros(4)
 # intensity for constant coefs is integral along path + attenuated initial intensity
     identity = np.identity(4)
+    o[0,:,:] = np.identity(4)
     for k in range(len(x)-1):
-        o[k,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],x[k+1]-x[k])
-        jj = j[k,:]
-        i[k+1,:] = o[k,:,:].dot(jj)*(x[k+1]-x[k])+o[k,:,:].dot(intprev)
+        o[k+1,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],x[k+1]-x[k])
+#        jj = (j[k+1,:]+j[k,:])/2.
+#        oo = (o[k+1,:,:]+o[k,:,:])/2.
+        jj=j[k,:]
+        oo=o[k,:,:]
+        i[k+1,:] = oo.dot(jj)*(x[k+1]-x[k])+oo.dot(intprev)
         intprev = i[k+1,:]
 
     return i,o,dx
