@@ -4,5 +4,5 @@ USEGNU=1
 DEBUG=0
 XEONPHI=0
 PROFILE=0
-CFITSIODIR=
-GRTRANSDIR=
+CFITSIODIR=/usr/local/lib
+GRTRANSDIR=/Users/jdexter/code/grtrans
