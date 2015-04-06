@@ -29,7 +29,7 @@
       ! fluid arguments
       character(len=40) :: fdfile,fhfile,fgfile,fsim
       integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
-           fnr,foffset,fdindf,fmagcrit,fbl06
+           fnr,foffset,fdindf,fmagcrit,fbl06,nepotherargs
       real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
            ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fnp,ftp, &
            frin,frout,fthin,fthout,fphiin,fphiout
