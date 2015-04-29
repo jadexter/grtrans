@@ -114,13 +114,15 @@ def intensity(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0.,0.
         
 # intensity for constant coefs is integral along path + attenuated initial intensity
     for k in range(len(x)):
-        o[k,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],x[-1]-x[k])
+        o[0,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],1.)
         integrand[k,:] = o[k,:,:].dot(j[k,:])
 
 #    i = np.append(np.zeros((1,4)),scipy.integrate.cumtrapz(integrand,np.transpose(np.tile(x,4).reshape((4,len(x)))),axis=0),axis=0) + o[0,:,:].dot(I0)
     intatten = o[0,:,:].dot(I0)
     for k in range(4):
         i[:,k] = np.append(0.,scipy.integrate.cumtrapz(integrand[:,k],x)) + intatten[k]
+
+        
 
     return i,o,dx,integrand
 
