@@ -568,7 +568,6 @@ C This is the symmetric roots case, where the orbit can cross the equatorial pla
         RETURN
         END
 
-*************************************************************************************
       SUBROUTINE INDEP_MUF(MUMINUS,MUPLUS,MU0,MUF,TPM0,TPMF,SM,K,NPTS,OFFSET,MUN,TPMK)
 *************************************************************************************
 *     PURPOSE: Computes appropriate MUF for use as independent variable for an arbitrary
@@ -590,44 +589,109 @@ C This is the symmetric roots case, where the orbit can cross the equatorial pla
 *     AUTHOR: Dexter & Agol (2009)
 *     DATE WRITTEN: 3/9/2009
 *     REVISIONS:****************************************************************
+      IMPLICIT NONE
             DOUBLE PRECISION MUMINUS,MUPLUS,MU0,MUF,DMU,DMU1,DMU2,DMUK,MU1,
      &                       MU2,MUB,OFFSET,SM,MUN
-            INTEGER TPM0,TPMF,K,NPTS,A1,A2,A3,A4,DTPM,TPMK,DMUKDMU1
+            INTEGER TPM0,TPMF,K,NPTS,A1,A2,A3,A4,DTPM,TPMK,DMUKDMU1,a1k,a2k,a3k
+C Check for valid solution:
+           if (muf.le.muplus.and.muf.ge.muminus) then
 C First calculate total path length:
-            DTPM=TPMF-TPM0
+           dtpm=tpmf-tpm0
+           a1=sm*(-1.)**tpm0
+           a2=sm*(-1.)**(tpmf)
+           a3=2*floor((2.*dtpm+3.-a1)/4.)-1.
+           dmu=a1*(muplus-mu0)+a2*(muf-muminus)+a3*(muplus-muminus)
+           mu1=(a1+1.)/2.*muplus+(1.-a1)/2.*muminus
+           mu2=(1.-a1)/2.*muplus+(a1+1.)/2.*muminus
+           dmu1=abs(mu1-mu0)
+           dmu2=abs(mu2-mu1)
+           dmuk=(k-offset)*dmu/float(npts)
+           dmukdmu1=int(dmuk/dmu1)
+           if(dmukdmu1.lt.0) dmukdmu1=1
+           tpmk=min(dmukdmu1,1)+max(int((dmuk-dmu1)/dmu2),0)
+!           write(6,*) 'indep muf tpmk: ',dmukdmu1,dmuk,dmu1,
+!     &        dmu2,(dmuk-dmu1)/dmu2
+!           write(6,*) 'indep muf tpmk 2: ',abs(dmukdmu1),
+!     &        min(abs(dmukdmu1),1),
+!     &        max(int((dmuk-dmu1)/dmu2),0)
+           a1k=sm*(-1)**tpm0
+           a2k=sm*(-1)**(tpmk+tpm0)
+           a3k=2.*int((2.*(tpmk)+3.-a1k)/4.)-1.
+!           write(6,*) 'indep muf: ', muminus, muplus, mu0, muf, tpm0, tp
+!     &       mf, sm, k, npts, offset, mun, tpmk
+           mun=muminus+1./a2k*(dmuk-a1k*(muplus-mu0)- 
+     &         a3k*(muplus-muminus))
+           else
+C No solution exists
+              mun=0.
+              tpmk=0
+           endif
+           tpmk=tpmk+tpm0
+!           write(6,*) 'indep muf: ',k,mun,tpmk,muplus-muf,muf-muminus
+           RETURN
+           END            
+
+
+*************************************************************************************
+c      SUBROUTINE INDEP_MUF(MUMINUS,MUPLUS,MU0,MUF,TPM0,TPMF,SM,K,NPTS,OFFSET,MUN,TPMK)
+*************************************************************************************
+*     PURPOSE: Computes appropriate MUF for use as independent variable for an arbitrary
+*              number of mu turning points.
+*
+*     INPUTS: MUMINUS,MUPLUS -- Physical turning points.
+*             MU0, MUF -- Initial and final mu. Values will be traced from MU0 to MUF
+*                         including the appropriate number of turning points.
+*             TPM0, TPMF -- Number of turning points encountered between starting MU and MU0,MUF.
+*                           If MU0 is the initial MU, TPM0=0 and TPMF=TPM.
+*             SM -- Initial sign of MU.
+*             K -- Index for current MUF to find, between 1 and NPTS.
+*             NPTS -- Total number of points between MU0 and MUF.
+*     
+*     OUTPUTS: MUN -- Appropriate MU value at index K.
+*              TPMK -- Number of turning points at index K.
+*     ROUTINES CALLED: *
+*     ACCURACY: Machine.
+*     AUTHOR: Dexter & Agol (2009)
+*     DATE WRITTEN: 3/9/2009
+*     REVISIONS:****************************************************************
+c            DOUBLE PRECISION MUMINUS,MUPLUS,MU0,MUF,DMU,DMU1,DMU2,DMUK,MU1,
+c     &                       MU2,MUB,OFFSET,SM,MUN
+c            INTEGER TPM0,TPMF,K,NPTS,A1,A2,A3,A4,DTPM,TPMK,DMUKDMU1
+C First calculate total path length:
+c            DTPM=TPMF-TPM0
 C            IF(DTPM.GT.1) WRITE(6,*) 'Warning -- TPM diff > 1'
-            A1=SM*(-1.D0)**TPM0
-            A2=SM*(-1.D0)**TPMF
+c            A1=SM*(-1.D0)**TPM0
+c            A2=SM*(-1.D0)**TPMF
 C Figure out if the next turning point reached is MUMINUS or MUPLUS:
-            MU1=(A1+1.D0)/2.D0*MUPLUS+(1.D0-A1)/2.D0*MUMINUS
-            MU2=(1.D0-A1)/2.D0*MUPLUS+(A1+1.D0)/2.D0*MUMINUS
-            DMU1=ABS(MU1-MU0)
-            DMU2=ABS(MU2-MU1)
+c            MU1=(A1+1.D0)/2.D0*MUPLUS+(1.D0-A1)/2.D0*MUMINUS
+c            MU2=(1.D0-A1)/2.D0*MUPLUS+(A1+1.D0)/2.D0*MUMINUS
+c            DMU1=ABS(MU1-MU0)
+c            DMU2=ABS(MU2-MU1)
 c Eq. (35)
-            A3=2*INT((2.D0*DBLE(DTPM)+3.D0-A1)/4.D0)-1
-            DMU=DBLE(A1)*(MUPLUS-MU0)+DBLE(A2)*(MUF-MUMINUS)+DBLE(A3)*(MUPLUS-MUMINUS)
+c            A3=2*INT((2.D0*DBLE(DTPM)+3.D0-A1)/4.D0)-1
+c            DMU=DBLE(A1)*(MUPLUS-MU0)+DBLE(A2)*(MUF-MUMINUS)+DBLE(A3)*(MUPLUS-MUMINUS)
 C            WRITE(6,*) 'DMU: ',DMU,MUF-MU0,MUPLUS,MU0,MUMINUS,MUF
 C Now get number of turning points between MU0 and our current index:
-            DMUK=DBLE(K)*DMU/DBLE(NPTS)
-            DMUKDMU1=INT(DMUK/DMU1)
-            IF(INT(DMUKDMU1).LT.0) DMUKDMU1=50 
-            TPMK=MIN(DMUKDMU1,1)+MAX(INT((DMUK-DMU1)/DMU2),0)
+c            DMUK=DBLE(K)*DMU/DBLE(NPTS)
+c            DMUKDMU1=INT(DMUK/DMU1)
+c            IF(INT(DMUKDMU1).LT.0) DMUKDMU1=50 
+c            TPMK=MIN(DMUKDMU1,1)+MAX(INT((DMUK-DMU1)/DMU2),0)
 C            WRITE(6,*) 'TPMK: ',TPMK,DMUK/DMU1,ABS(DMUK/DMU1),INT(ABS(DMUK/DMU1))
-            A4=SM*(-1.D0)**(TPMK+TPM0)
-            MUB=MU1*MOD(TPMK,2)+MU0*((SIGN(1.D0,.5D0-TPMK)+1.D0)/2.D0)+MU2*
-     &          MOD(TPMK-1,2)*(SIGN(1.D0,TPMK-.5D0)+1.D0)/2.D0
-            KMAX1=INT(DMU1/DMU*NPTS)+1
-            KMAX2=INT(DMU2/DMU*NPTS)+1
+c            A4=SM*(-1.D0)**(TPMK+TPM0)
+c            MUB=MU1*MOD(TPMK,2)+MU0*((SIGN(1.D0,.5D0-TPMK)+1.D0)/2.D0)+MU2*
+c     &          MOD(TPMK-1,2)*(SIGN(1.D0,TPMK-.5D0)+1.D0)/2.D0
+c            KMAX1=INT(DMU1/DMU*NPTS)+1
+c            KMAX2=INT(DMU2/DMU*NPTS)+1
 C            WRITE(6,*) 'A4: ',TPMK,A4
-            KEFF=K-(SIGN(1,K-KMAX1)+1.D0)/2.D0*INT(DMU1/DMU*NPTS)-
-     &        (INT(DMU2/DMU*NPTS)+1)*INT((K-KMAX1)/DBLE(KMAX2))*(SIGN(1,K-KMAX1-KMAX2)+1.D0)/2.D0
-            MUN=MUB+A4*(KEFF-OFFSET)*DMU/DBLE(NPTS)
+c            KEFF=K-(SIGN(1,K-KMAX1)+1.D0)/2.D0*INT(DMU1/DMU*NPTS)-
+c     &        (INT(DMU2/DMU*NPTS)+1)*INT((K-KMAX1)/DBLE(KMAX2))*(SIGN(1,K-KMAX1-KMAX2)+1.D0)/2.D0
+c            MUN=MUB+A4*(KEFF-OFFSET)*DMU/DBLE(NPTS)
 C            WRITE(6,*) 'KEFF: ',KEFF,DMUK,DMU,DMU1,DMU2
 C            WRITE(6,*) 'COEFS: ',MU1,MU2,A1,A2,A3,DTPM,TPMF,TPM0,SM,TPMK
 C            WRITE(6,*) 'INDEP_MUF: ',MUN,MUB,KEFF,OFFSET,DMU,NPTS,K
-            TPMK=TPMK+TPM0
-           RETURN
-           END
+c            TPMK=TPMK+TPM0
+c           RETURN
+c           END
             
 
 ******************************************************************************
