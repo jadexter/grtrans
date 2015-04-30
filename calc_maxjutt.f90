@@ -40,7 +40,6 @@
            tcgs_min = tcgs/dwsum
 !check if that second a is necessary
 
-
 !           write(6,*) weights_arr
 !           write(6,*) delta_arr
 !N array of theta_mins calculated to satisfy sum energy = usim
@@ -52,12 +51,13 @@
 !ktotal = whatever
 !convert units to cgs?
 !for i in (1,size(weights_arr)):
-!    ktemp  = polsynchth(nu,weights_arr(i)*ncgs,bcgs,thetamin*delta_arr(i),e%incang,Kth)           
+!    ktemp  = polsynchth(nu,weights_arr(i)*ncgs,bcgs,thetamin*delta_arr(i),e%incang,Kth)
 !    ktotal = ktotal + ktemp
 !return K to emis.f90
            ktotal = 0d0
            do i=1,size(weights_arr)
               ktemp = 0d0
+!              write(6,*) 'calc_maxjutt call polsynchth: ',weights_arr(i),ncgs(1),bcgs(1),tcgs_min(1)*delta_arr(1),incang(1)
               call polsynchth(nu,weights_arr(i)*ncgs,bcgs,tcgs_min*delta_arr(i),incang,ktemp)
               ktotal = ktotal + ktemp
            enddo
