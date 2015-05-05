@@ -204,7 +204,7 @@
           OM=TWO*A*R/AR
           SR=(-ONE)**TPR*SU
           ST=-(-ONE)**TPM*SM
-          ! Now, compute velocities in LNRF  
+          ! Now, compute velocities in LNRF
           OMEGA=ENU/EPSI*VPL+OM
           omega=merge(omega,zero,epsi.ne.0d0)
           GAM=ONE/SQRT(ONE-(VRL*VRL+VTL*VTL+VPL*VPL))
@@ -217,40 +217,39 @@
           G=ENU/GAM/(ONE-L*OMEGA-EMU1*ENU*VRL/RHO*SR*RR-EMU2*ENU*VTL/RHO*ST*TT)
         END FUNCTION CALCG
 
-
-
-!        function calc_kb_ang(k,b,u,r,th,a) result(ang)
+        function calc_kb_ang(k,b,u,r,th,a) result(ang)
           ! Calculate angle between wave-vector and magnetic field in fluid                                
           ! frame based on Broderick (2004) covariant method                                      
           ! JAD 2/8/2011
-!          type (four_vector), dimension(:), intent(in) :: k,b,u
-!          real(kind=8), dimension(:), intent(in) :: r,th
-!          real(kind=8), intent(in) :: a
-!          real(kind=8), dimension(size(r)) :: bdotk,bdotb,kdotk,om,angnorm,ang,zero,one, &
-!               angmin,angmax
-!          real(kind=8), dimension(size(r),10) :: metric
-!          real(kind=8), dimension(10,size(r)) :: tmetric
-!          zero=0.d0; one=1.d0; angmin=-.9999d0; angmax=0.9999d0
-!          metric=kerr_metric(r,th,a); tmetric=transpose(metric)
-!          call assign_metric(b,tmetric)
-!          call assign_metric(u,tmetric)
+          type (four_vector), dimension(:), intent(in) :: k,b,u
+          real(kind=8), dimension(:), intent(in) :: r,th
+          real(kind=8), intent(in) :: a
+          real(kind=8), dimension(size(r)) :: bdotk,bdotb,kdotk,om,angnorm,ang,zero,one, &
+               angmin,angmax, cdot2
+          real(kind=8), dimension(size(r),10) :: metric
+          real(kind=8), dimension(10,size(r)) :: tmetric
+          zero=0.d0; one=1.d0; angmin=-.9999d0; angmax=0.9999d0
+          metric=kerr_metric(r,th,a); tmetric=transpose(metric)
+          call assign_metric(b,tmetric)
+          call assign_metric(u,tmetric)
+          call assign_metric(k,tmetric)
 !          write(6,*) 'metric: ',b(1)%metric, u(1)%metric,k(1)%metric
 !          write(6,*) 'vectors: ',b(1)%data,u(1)%data,k(1)%data
-!          bdotk=b*k
-!          bdotb=b*b
-!          kdotk=k*k
-!          om=-k*u
+          bdotk=b*k
+          bdotb=b*b
+          kdotk=k*k
+          om=-k*u
 !          angnorm=bdotk/sqrt(om*om)/sqrt(bdotb)
 !          ang=acos(merge(merge(angnorm,angmax,angnorm.le.0.9999d0),angmin, &
 !               angnorm.ge.-.9999d0))
         
-!          cdot2=bdotk*bdotk/bdotb/(kdotk+om*om)
+          cdot2=bdotk*bdotk/bdotb/(kdotk+om*om)
 !          write(6,*) 'kb: ',r,th,a
 !          write(6,*) 'kb: ',k(1)%data, b(1)%data, u(1)%data
 !          write(6,*) 'cdot2: ',cdot2,bdotk,bdotb,kdotk,om*om
-!          cdot2=merge(merge(cdot2,zero,cdot2.ge.0.d0),one,cdot2.le.1.d0)
-!          ang=acos(sign(1d0,bdotk)*sqrt(cdot2))
-!        end function calc_kb_ang
+          cdot2=merge(merge(cdot2,zero,cdot2.ge.0.d0),one,cdot2.le.1.d0)
+          ang=acos(sign(1d0,bdotk)*sqrt(cdot2))
+        end function calc_kb_ang
 
 
         function calc_nullp(q2,l,a,r,mu,su,smu,rcomp,thcomp) result(k)
@@ -269,7 +268,7 @@
         if(present(thcomp)) then
 ! This is negative of RB94 to account for dlambda -> -dlambda for forward in time.
 ! see 12/11/12 notes
-          pmu=1./rho2*smu*sqrt(Mfunc/(1.d0-mu*mu))
+          pmu=1d0/rho2*smu*sqrt(Mfunc/(1.d0-mu*mu))
 !          write(6,*) 'thcomp'
         else
           pmu=-smu*sqrt(Mfunc)/rho2

@@ -12,7 +12,7 @@
        use ray_trace, only: save_raytrace_camera_pixel, ray_set
 !       use interpolate, only: get_weight, locate
        use phys_constants, only: GC => G, EC => E, CC => C, C2, MSUN
-       use kerr, only: comoving_ortho, calc_polar_psi
+       use kerr, only: comoving_ortho, calc_polar_psi, calc_kb_ang, calcg, lnrf_frame
        use chandra_tab24, only: interp_chandra_tab24
        use radtrans_integrate, only: integrate, del_radtrans_integrate_data, &
             init_radtrans_integrate_data, intensity
@@ -66,8 +66,8 @@
          integer, intent(in) :: gunit,i,l,nup, nfreq, nparams, extra
          character(len=20), intent(in) :: iname,fname,ename
          real(kind=8) :: fac
-         real(kind=8), dimension(:), allocatable :: s2xi,c2xi, &
-          rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy
+         real(kind=8), dimension(:), allocatable :: s2xi,c2xi,s2psi, &
+          rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy,vrl,vtl,vpl,cosne2
          real(kind=8), dimension(:,:), allocatable :: tau_arr
          integer :: k,npow,status,j,nf,nitems,m,kk,taudex,ii,nvals
          integer, dimension(:), allocatable :: inds
@@ -106,6 +106,7 @@
 !         write(6,*) 'after init', g%npts,c(1)%nvals
             allocate(nu(g%npts))
             allocate(s2xi(g%npts)); allocate(c2xi(g%npts))
+            s2xi=0d0; c2xi=0d0
             allocate(rshift(g%npts)); allocate(ang(g%npts))
             allocate(cosne(g%npts)); allocate(tau(g%npts))
             call initialize_fluid_model(f,fname,gargs%a,g%npts)
@@ -117,6 +118,7 @@
             call comoving_ortho(g%x%data(2),g%x%data(3),g%gk%a, &
                  g%gk%alpha(1),g%gk%beta(1),g%gk%mu0,f%u,f%b,g%k,s2xi,c2xi, &
                  ang,rshift,cosne)
+!            write(6,*) 'comoving ortho grtrans driver: ',s2xi,c2xi
             call initialize_rad_trans(r,iname,g%npts,c(1)%nvals,extra)
             call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
             do m=1,nparams
@@ -186,11 +188,12 @@
 !                        call del_radtrans_integrate_data()
 !                        write(6,*) 'integrate: ',g%npts,r%neq,r%npts,r%I(1,r%npts)
                         r%I=r%I*fac
-                        !write(6,*) 'integrate'
+!                        write(6,*) 'grtrans driver extra quants: ',EXTRA_QUANTS,r%npts
                         if (EXTRA_QUANTS==1) then
+!                           if(r%npts.gt.1) then
                            allocate(tau_arr(g%npts,6))
                            allocate(tau_temp(g%npts)); allocate(intvals(g%npts))
-                           allocate(dummy(g%npts)); allocate(inds(7))
+                           allocate(dummy(g%npts)); allocate(inds(6))
                            inds=(/1,2,3,4,5,7/)
                            !            write(6,*) 'tau_arr'
                            do ii=1,6
@@ -209,7 +212,7 @@
                            !            write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex)*g%x(1:taudex)%data(2))
                            intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(2))
                            r%tau(7)=intvals(taudex)
-                           !            write(6,*) '7'
+                              !            write(6,*) '7'
                            intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(3))
                            r%tau(8)=intvals(taudex)
                            intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(4))
@@ -225,18 +228,32 @@
                            r%tau(13)=intvals(taudex)
                            deallocate(tau_arr); deallocate(tau_temp); deallocate(intvals); deallocate(dummy)
                            deallocate(inds)
+!                           else
                         endif
                      else
 !             write(6,*) 'rshift :', size(rshift)
                         call invariant_emis(e,rshift,npow)
 !             write(6,*) 'transpol'
-!             if (e%neq==4) then
-!                call transpol(rshift)
+!             if (e%neq==4.and.EXTRA_QUANTS==1) then
+!                allocate(s2psi(g%npts))
+!                call transpol(rshift,s2psi)
 !                write(6,*) 'after emis', e%j(:,1),e%j(:,2),e%j(:,3)
 !                call subtest()
 !             endif
 !             write(6,*) 'compute intensity'
                         call grtrans_compute_intensity()
+                        if(EXTRA_QUANTS==1) then
+!                           write(6,*) 'grtrans driver extra quants npts 1'
+                           allocate(s2psi(g%npts)); s2psi=0d0
+                           allocate(cosne2(g%npts)); cosne2=0d0
+                           call transpol(rshift,s2psi,cosne2)
+                           r%tau(1)=s2xi(1)
+                           r%tau(2)=s2psi(1)
+                           r%tau(3)=cosne2(1)
+                           r%tau(4)=ang(1)
+                           r%tau(5)=cosne(1)
+                           deallocate(s2psi); deallocate(cosne2)
+                        endif
                      endif
                   else
                      r%I=0d0; r%npts=1
@@ -254,6 +271,7 @@
 !                     write(6,*) 'save: ',size(r%I(:,r%npts)),size(r%tau),&
 !                          size((/real(r%I(:,r%npts)),real(r%tau)/))
 !                     write(6,*) 'cam: ',size(c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%pixvals)
+!                     write(6,*) 'save cam extra: ',r%tau,s2xi(1),c2xi(1),status,g%npts,r%npts,EXTRA_QUANTS
                      call save_raytrace_camera_pixel(c((l-1)*nfreq*nparams+(m-1)*nfreq+k), &
                        (/real(gargs%alpha(i)),real(gargs%beta(i))/),(/real(r%I(:,r%npts)),real(r%tau)/),i)
 !                     write(6,*) 'extra'
@@ -297,6 +315,21 @@
                      write(9,*) e%K(:,6)
                      write(9,*) s2xi
                      write(9,*) c2xi
+! calculate quantities with other methods:
+                     write(9,*) calc_kb_ang(g%k,f%b,f%u,g%x%data(2),g%x%data(3),g%gk%a)
+!                     call calc_polar_psi(g%x%data(2),cos(g%x%data(3)),g%gk%q2,g%gk%a, &
+!                          g%gk%alpha,g%gk%beta,rshift,g%gk%mu0,g%k, &
+!                          c2xi,s2xi,cosne)
+!                     write(9,*) s2xi
+!                     write(9,*) c2xi
+                     allocate(vrl(g%npts)); allocate(vtl(g%npts)); allocate(vpl(g%npts))
+                     call lnrf_frame(f%u%data(2)/f%u%data(1),f%u%data(3)/f%u%data(1), &
+                          f%u%data(4)/f%u%data(1),g%x%data(2),g%gk%a,g%x%data(3), &
+                          vrl,vtl,vpl)
+                     write(9,*) calcg(1d0/g%x%data(2),cos(g%x%data(3)),g%gk%q2, &
+                          g%gk%l,g%gk%a, &
+                          g%tpmarr,g%tprarr,g%gk%su,g%gk%sm,vrl,vtl,vpl)
+                     deallocate(vrl); deallocate(vtl); deallocate(vpl)
                      close(unit=9)
                   endif
 !                  call del_rad_trans(r)
@@ -360,13 +393,14 @@
            deallocate(subtest4); deallocate(subtest5); deallocate(subtest6)
          end subroutine subtest
 
-         subroutine transpol(rshift)
+         subroutine transpol(rshift,s2psi,cosne)
 ! Subroutine to do CPS80 polarization for single points
 ! For now just uses Chandrasekhar table for degree, but could change that
 ! JAD 4/20/2012
          real(kind=8), dimension(:), intent(in) :: rshift
          real, dimension(g%npts) :: interpI,interpdel
-         real(kind=8), dimension(g%npts) :: polarpsi,s2psi,c2psi,cosne
+         real(kind=8), dimension(g%npts) :: polarpsi,c2psi
+         real(kind=8), dimension(g%npts), intent(out) :: s2psi,cosne
 !         write(6,*) 'rmu: ',g%x%data(2), g%x%data(3)
            call calc_polar_psi(g%x%data(2),cos(g%x%data(3)), &
                   g%gk%q2,g%gk%a, &
