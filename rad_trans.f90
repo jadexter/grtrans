@@ -41,7 +41,11 @@
          allocate(r%I(r%neq,r%onpts))
          r%I=0d0; r%npts=r%onpts
          if(extra.eq.1) then
-            nextra=13
+            if(npts.ne.1) then
+               nextra=13
+            else
+               nextra=5
+            endif
             allocate(r%tau(nextra))
          endif
 !         write(6,*) 'r size: ',size(r%I),neq,npts

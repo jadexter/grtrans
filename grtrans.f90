@@ -32,7 +32,13 @@
        gunit=12
        call read_inputs(ifile)
        write(6,*) 'dfile: ',fdfile
-       if(extra==1) nextra=13
+       if(extra==1) then
+          if(nup.gt.1) then
+             nextra=13
+          else
+             nextra=5
+          endif
+       endif
 ! these can later be added to a loop over emis parameter structures
 !       eparams%gmin=gmin; 
        eparams%gmax=gmax; eparams%p1=p1
@@ -53,7 +59,7 @@
        enddo
        NCAMS=nparams*nfreq*nmu*nt
        allocate(c(NCAMS))
-       write(6,*) 'outfile grtrans: ',outfile, NCAMS
+       write(6,*) 'outfile grtrans: ',outfile, NCAMS,nextra
        do m=1,NCAMS
          call initialize_raytrace_camera(c(m),nro,nphi,nvals,nextra)
        enddo

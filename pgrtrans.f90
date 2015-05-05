@@ -102,7 +102,13 @@
             !END COMPUTE INPUT AS IN READ_INPUTS================================
             
             !replace read_inputs with actual inputs
-            if(extra==1) nextra=13
+            if(extra==1) then
+               if (nup.gt.1) then
+                  nextra=13
+               else
+                  nextra=5
+               endif
+            endif
             ! these can later be added to a loop over emis parameter structures
             !       eparams%gmin=gmin; 
             eparams%gmax=gmax; eparams%p1=p1
@@ -198,7 +204,7 @@
             enddo
             if(nup.eq.1.and.nvals.eq.4) call del_chandra_tab24()
             !       write(6,*) 'Write camera'
-            allocate(ivals(nvals,nro*nphi,NCAMS))
+            allocate(ivals(nvals+nextra,nro*nphi,NCAMS))
             ivals=0d0
 !            allocate(ab(2,nro*nphi,NCAMS))
             allocate(ab(2,nro*nphi))
@@ -223,6 +229,7 @@
 !         ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&
 !         p1, p2, jetalpha, stype, &
                !         use_geokerr, nvals, iname, extra)     
+!               write(6,*) 'cm pixvals: ',c(m)%pixvals(:,1)
                ivals(:,:,m)=c(m)%pixvals
 !               ab(:,:,m)=c(m)%pixloc
                call del_raytrace_camera(c(m))
