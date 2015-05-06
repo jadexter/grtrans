@@ -536,7 +536,7 @@ C First, trace from u0 to uf or turning point:
             IF(MUFILL) THEN
 C This option uses GEOR to fill in points near u turning point, where tiny steps in u lead to large steps in mu.
 C First, calculate muf and tpm on the opposite side of the u turning point:
-              K=KMAX+KEXT+1
+              K=KMAX+KEXT
               UN=TWO*UB-(UOUT+(K-OFFSET)*DU)
 !              write(6,*) 'un: ',K,un
               CALL GEOMU(UF,UN,MU0,MUN,A,L,L2,Q2,IU,TPM1,TPR,SU,SM,NCASE,H1,

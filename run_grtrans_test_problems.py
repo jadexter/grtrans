@@ -5,7 +5,7 @@ import copy
 
 def run_test_problems(save=0,pgrtrans=0,nosphacc=0):
     # run grtrans test problems
-    tol=1e-3; failed=[]; xlist=[]
+    tol=1e-2; failed=[]; xlist=[]
     xlist.append(gr.grtrans())
     if pgrtrans==0:
         xlist[-1].compile_grtrans()

@@ -203,7 +203,7 @@
                !          call advance_fluid_timestep(fname,dt)
             enddo
             if(nup.eq.1.and.nvals.eq.4) call del_chandra_tab24()
-            !       write(6,*) 'Write camera'
+            write(6,*) 'Write camera', nvals, nextra
             allocate(ivals(nvals+nextra,nro*nphi,NCAMS))
             ivals=0d0
 !            allocate(ab(2,nro*nphi,NCAMS))
