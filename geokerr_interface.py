@@ -50,9 +50,12 @@ class geokerr:
         if (i < 0) or (i >= self.inputs.n[0]*self.inputs.n[1]):
             print 'error: invalid value of geodesic index for given camera ',i,self.inputs.n[0]*self.inputs.n[1]
 # first initialize geodesic at full length and call geokerr
-        self.npts = self.inputs.n[2]
-        class_geokerr.init_geokerr_data(self.inputs.n[2]-2*self.inputs.kext+self.inputs.next)
-        class_geokerr.call_geokerr(self.u0,self.uf[i],self.inputs.uout,self.inputs.mu0,self.muf[i],self.inputs.a,self.l[i],self.q2[i],self.alpha[i],self.beta[i],self.tpm[i],self.tpr[i],self.su[i],self.sm[i],self.npts,self.offset,self.inputs.phit,self.inputs.usegeor,self.inputs.mufill,self.inputs.kext,self.inputs.next)
+        if self.inputs.mufill==0:
+            self.npts = self.inputs.n[2]
+        else:
+            self.npts = self.inputs.n[2]-2*self.inputs.kext+self.inputs.next
+        class_geokerr.init_geokerr_data(self.npts)
+        class_geokerr.call_geokerr(self.u0,self.uf[i],self.inputs.uout,self.inputs.mu0,self.muf[i],self.inputs.a,self.l[i],self.q2[i],self.alpha[i],self.beta[i],self.tpm[i],self.tpr[i],self.su[i],self.sm[i],self.inputs.n[2],self.offset,self.inputs.phit,self.inputs.usegeor,self.inputs.mufill,self.inputs.kext,self.inputs.next)
 # now copy useful parts of geodesic
 # first iteration with just whole thing up to last point used
         self.i1=0; self.i2=self.npts
