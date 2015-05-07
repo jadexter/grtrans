@@ -8,7 +8,7 @@
       namelist /geodata/   standard,mumin,mumax,nmu,phi0,spin, uout,uin, rcut, &
        nrotype, gridvals, nn, i1, i2
       namelist /fluiddata/ fname, dt, nt, nload, nmdot, mdotmin, mdotmax
-      namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, stype, epotherargs
+      namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, stype, delta, nweights
       namelist /general/   use_geokerr, nvals, iname, cflag, extra
 ! namelists for fluid models
       namelist /harm/  fdfile, fgfile, fhfile, fnt, fnfiles, findf, fjonfix, &
@@ -21,7 +21,8 @@
            nload,extra,i1,i2
       logical :: use_geokerr
       real(kind=8) :: mumax,mumin,spin,rcut,a1,a2,b1,b2,mbh,uout,uin, & 
-           fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
+           fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2, &
+           jetalpha, delta
       character(len=100) :: ename,fname,iname,stype
       real(kind=8), dimension(:), allocatable :: freqs,mdots,mu0
       real(kind=8), dimension(4) :: gridvals
@@ -29,7 +30,7 @@
       ! fluid arguments
       character(len=40) :: fdfile,fhfile,fgfile,fsim
       integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
-           fnr,foffset,fdindf,fmagcrit,fbl06,nepotherargs
+           fnr,foffset,fdindf,fmagcrit,fbl06,nweights
       real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
            ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fnp,ftp, &
            frin,frout,fthin,fthout,fphiin,fphiout
@@ -80,12 +81,23 @@
           else
             mu0=mumin+(mumax-mumin)/(nmu-1)*(/(i-1,i=1,nmu)/)
           endif
+! new stuff for epotherargs:
+          if(nweights==1) then
+             allocate(epotherargs(2))
+             epotherargs(1)=delta
+             epotherargs(2)=1.
+          else
+             allocate(epotherargs(7))
+             epotherargs(1)=delta
+             epotherargs(2:7)=(/0.10714295,0.4459917,1.34219997, &
+                  2.17450422,1.36515333,0.52892829/)
+          endif
 !          write(6,*) 'nup: ',nup,freqs,fmax,fmin,fmin*exp(log(fmax/fmin))
         end subroutine read_inputs
 
         subroutine delete_inputs()
 ! deallocate input variables
-        deallocate(mu0); deallocate(freqs); deallocate(mdots)
+        deallocate(mu0); deallocate(freqs); deallocate(mdots); deallocate(epotherargs)
         end subroutine delete_inputs
 
       end module grtrans_inputs
