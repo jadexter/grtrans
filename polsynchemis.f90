@@ -760,6 +760,10 @@
 ! w/o Faraday:
 !      rhoq=0.!; rhov=0
 !      rhov=0.
+! w/o total absorption:
+!      ai=0.
+! w/o coupled absorption:
+!      aq=0.; av=0.
       e=reshape((/ji,jq,ju,jv,ai,aq,au,av, &
       rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
 !      testindx=maxloc(B,1)
