@@ -40,7 +40,7 @@
       end type
 
       type fluid_args
-         character(len=40) :: dfile,hfile,gfile,sim
+         character(len=100) :: dfile,hfile,gfile,sim
          integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset, &
               dindf,magcrit,bl06
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
@@ -117,14 +117,14 @@
              wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06,np,tp, &
              rin,rout,thin,thout,phiin,phiout)
           type (fluid_args), intent(inout) :: fargs
-          character(len=40), intent(in) :: dfile,hfile,gfile,sim
+          character(len=100), intent(in) :: dfile,hfile,gfile,sim
           integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf, &
                magcrit,bl06
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
                fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,np,tp, &
                rin,rout,thin,thout,phiin,phiout
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
-!          write(6,*) 'assign fluid args: ',fargs%dfile
+          write(6,*) 'assign fluid args: ',fargs%dfile
           fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
           fargs%jonfix = jonfix; fargs%nw = nw; fargs%nfreq_tab = nfreq_tab
           fargs%nr = nr; fargs%offset = offset; fargs%dindf = dindf
