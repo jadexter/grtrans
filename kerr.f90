@@ -420,7 +420,8 @@
         VPL=EPSI/ENU*(OMEGA-OM)
         VRL=MERGE(VRL,ZERO,D.GT.0d0)
         VTL=MERGE(VTL,ZERO,D.GT.0d0)
-        VPL=MERGE(VPL,ZERO,D.GT.0d0.AND.abs(mu).LT.1d0)
+!        VPL=MERGE(VPL,ZERO,(D.GT.0d0.AND.ABS(MU).LT.1d0))
+        VPL=MERGE(VPL,ZERO,D.GT.0d0)
         end subroutine lnrf_frame
 
         subroutine lnrf_frame_real(vr,vt,omega,r,a,th,vrl,vtl,vpl)

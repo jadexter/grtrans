@@ -714,20 +714,21 @@
               call read_mb09_inputs(default_ifile)
            endif
         endif
-        write(6,*) 'inputs read: ',allocated(ph_arr)
-!        dfile='m87bl09rfp10xi5a998fluidvars.bin'
+! hard coded to be large and not be used.
+        xbr = 25.
+        write(6,*) 'inputs read: ',allocated(ph_arr),a
 !        write(6,*) 'init mb09'
 ! length of header at start of mb09 files (these should be determined by Python)
 !        header_length=390+offset
 !        field_header_length=header_length+6
 ! should change fmt to be more general -- figure out max # files, assign fmt accordingly
         write(append, fmt='(I4.4)') indf
-        header_file=trim(dfile) // trim(append) // trim('.bin')
+!        header_file=trim(dfile) // trim(append) // trim('.bin')
         write(6,*) 'nhead: ',nhead
 !        call read_mb09_data_header(gfile,header_length)
 !        call read_mb09_data_header(header_file,field_header_length)
-        write(6,*) 'header lengths: ',header_length,field_header_length
-        write(6,*) 'rin: ',rin,rout,calcrmks(10d0,xbr)
+!        write(6,*) 'header lengths: ',header_length,field_header_length
+!        write(6,*) 'rin: ',rin,rout,calcrmks(10d0,xbr)
         write(6,*) 'nhead: ',nhead,allocated(ph_arr)
 !        if(abs(asim-a).gt.1e-4) then 
 !           write(6,*) 'ERROR -- Different simulation and grtrans spin values!', asim, a
@@ -821,7 +822,12 @@
            data_file = trim(dfile) // trim(append) // '.bin'
            write(6,*) 'data_file: ',indf-(k-1),append,data_file
            call read_mb09_data(data_file,rho,p,u0,vr,vth,vph,b0,br,bth,bph)
-           write(6,*) 'after read mb09 data', n, size(rho), size(rho_arr), size(t), tcur
+           write(6,*) 'read mb09 data: ',minval(u0),maxval(u0),minval(vph),maxval(vph)
+           write(6,*) 'read mb09 data: ',minval(vr),maxval(vr),minval(vth),maxval(vth)
+           write(6,*) 'read mb09 data: ',asim,minval(r_arr),maxval(r_arr),minval(th_arr),maxval(th_arr)
+           write(6,*) 'read mb09 data: ',minval(b0),maxval(b0),nx1,nx2,nx3
+           write(6,*) 'after read mb09 data', n, size(rho), size(rho_arr)
+           write(6,*) 'after read mb09 data', minval(vph), maxval(vph), minval(vr), maxval(vr)
            if(k.eq.1) t(k)=tcur
            ! assign to data arrays
            rho_arr((k-1)*n+1:k*n)=rho
