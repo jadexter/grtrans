@@ -85,6 +85,36 @@ def calc_O(a,rho,x):
         O = onopol*(1./2.*(np.cosh(lam1*x)+np.cos(lam2*x))*M1 - np.sin(lam2*x)*M2-np.sinh(lam1*x)*M3+1./2.*(np.cosh(lam1*x)-np.cos(lam2*x))*M4)
         return O,M1,M2,M3,M4
 
+def num(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0.,0.]),rho=np.array([0.,0.,0.]),I0=np.array([0.,0.,0.,0.])):
+    integrand = np.zeros((len(x),4))
+    if len(x) < 2:
+        dx = x
+    else:
+        dx = np.append(x[0],x[1:]-x[0:-1])
+    if len(np.shape(a)) < 2:
+# reform a,rho,j arrays to be of right size
+        a = np.tile(a,len(x)).reshape(len(x),4)
+        rho = np.tile(rho,len(x)).reshape(len(x),3)
+        j = np.tile(j,len(x)).reshape(len(x),4)
+        
+    i = np.zeros((len(x),4))
+    intprev = np.zeros(4); iprev = I0; xprev = 0.; jprev = np.zeros(4)
+    i[0,:] = I0
+    for k in range(len(x)-1):
+        K = opacity_matrix(a[k,:],rho[k,:])
+        K1 = opacity_matrix(a[k+1,:],rho[k+1,:])
+        dIds = j[k,:]-K.dot(iprev)
+# "symplectic" attempt:
+        inew=dIds*(x[k+1]-x[k])+i[k,:]
+        dIds1 = j[k,:]-K.dot(inew)
+        dIds[1]=dIds1[1]
+        i[k+1,:] = dIds*(x[k+1]-x[k])+i[k,:]
+        iprev = i[k+1,:]
+        integrand[k,:] = dIds
+
+    return i,integrand
+
+
 # calculate intensity over some set of coefficients j,a,rho at positions x for initial intensity I0
 def intensity(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0.,0.]),rho=np.array([0.,0.,0.]),I0=np.array([0.,0.,0.,0.])):
     o = np.zeros((len(x),4,4))
@@ -122,8 +152,6 @@ def intensity(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0.,0.
     for k in range(4):
         i[:,k] = np.append(0.,scipy.integrate.cumtrapz(integrand[:,k],x)) + intatten[k]
 
-        
-
     return i,o,dx,integrand
 
 # intensity over some set of coefficients j,a,rho at positions x for initial intensity I0 for arbitrary coefficients
@@ -151,6 +179,9 @@ def intensity_var(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0
 #        oo = (o[k+1,:,:]+o[k,:,:])/2.
         jj=j[k,:]
         oo=o[k,:,:]
+# try "symplectic" where intprev is updated for Q early:
+        iupdate = oo.dot(jj*(x[k+1]-x[k])+intprev)
+        intprev[1]=iupdate[1]
         i[k+1,:] = oo.dot(jj)*(x[k+1]-x[k])+oo.dot(intprev)
         intprev = i[k+1,:]
 
