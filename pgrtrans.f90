@@ -113,6 +113,7 @@
             !       eparams%gmin=gmin; 
             eparams%gmax=gmax; eparams%p1=p1
             eparams%p2=p2;
+            allocate(eparams%otherargs(nepotherargs))
             eparams%otherargs = epotherargs
             !alwinnote 2015/04/05
 
@@ -239,7 +240,7 @@
             !       do i=1,nparams
 !          deallocate(sparams(i)%gmin)
 !       enddo
-            deallocate(sparams)
+            deallocate(sparams); deallocate(eparams%otherargs)
 !       call delete_inputs()
 ! delete input variables
             deallocate(mu0); deallocate(mdots)
