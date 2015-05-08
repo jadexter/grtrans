@@ -3,14 +3,15 @@ import pickle
 import numpy as np
 import copy
 
-def run_test_problems(save=0,pgrtrans=0,nosphacc=0):
+def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
     # run grtrans test problems
     tol=1e-2; failed=[]; xlist=[]
     xlist.append(gr.grtrans())
-    if pgrtrans==0:
-        xlist[-1].compile_grtrans()
-    else:
-        xlist[-1].compile_pgrtrans()
+    if compile > 0:
+        if pgrtrans==0:
+            xlist[-1].compile_grtrans()
+        else:
+            xlist[-1].compile_pgrtrans()
     passed=0; max_passed=0
     if nosphacc <= 0:
 # sphacc

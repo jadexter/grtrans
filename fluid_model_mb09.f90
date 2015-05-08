@@ -10,8 +10,8 @@
       namelist /mb09/  dfile, gfile, nt, nfiles, indf, jonfix, offset, sim
       integer :: nx1, nx2, nx3, ndumps, nt, nfiles, indf, defcoord, &
            jonfix, dlen, offset, header_length, field_header_length
-      character(len=120) :: dfile, gfile
-      character(len=40) :: sim
+      character(len=100) :: dfile, gfile
+      character(len=100) :: sim
       integer :: n
       integer :: ndim=3, nhead=30, test=1, binary=1, DEBUG=0
       integer, dimension(:), allocatable :: dumps
@@ -696,9 +696,9 @@
         integer, intent(in) :: transform
         character(len=20), intent(in), optional :: ifile,simt
         character(len=20) :: default_ifile='mb09.in', append
-        character(len=40), intent(in), optional :: gf,df
+        character(len=100), intent(in), optional :: gf,df
         integer, intent(in), optional :: ntt,nft,indft,jf
-        character(len=120) :: header_file
+        character(len=100) :: header_file
         if (present(gf)) then
            dfile = df
            gfile = gf
@@ -771,7 +771,7 @@
         real, intent(inout), dimension(:) :: rho,p,u0,vr,vth,vph,b0,br,bth,bph
         real, dimension(size(rho),10) :: metric
         real, dimension(size(rho)) :: ui2
-        character(len=400), intent(in) :: dfile
+        character(len=100), intent(in) :: dfile
         open(unit=8,file=dfile,form='unformatted',status='old')
         read(8) nx
         if(nx.ne.9*nx1*nx2*nx3) then
@@ -803,8 +803,8 @@
         integer, intent(in) :: nt,transform
         real, dimension(:), allocatable :: rho,p,u0,vr,vth,vph,b0,br,bth,bph,vrl,vtl,vpl
         real :: tcur
-!        character(len=400), intent(in) :: dfile
-        character(len=400) :: data_file
+!        character(len=100), intent(in) :: dfile
+        character(len=100) :: data_file
         character(len=20) :: append
         tstep=2.
         write(6,*) 'load mb09', dfile
