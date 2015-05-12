@@ -30,6 +30,8 @@
          integer :: nfreq_tab
          real(8), dimension(:), allocatable :: otherargs
          real, dimension(:), allocatable :: freq_tab,gmin,mu
+         integer, dimension(:), allocatable :: usecoefs
+         integer, dimension(7) :: coefindx
        end type
 
        interface initialize_emis_params
@@ -239,6 +241,7 @@
          real(kind=8), dimension(:), intent(in) :: rshift,ang,cosne
  !        write(6,*) 'init emis: ',npts,e%nk,e%neq
          allocate(e%j(npts,e%neq)); allocate(e%K(npts,e%nk))
+         e%j=0d0; e%K=0d0
          allocate(e%rshift(npts)); allocate(e%gmin(npts))
          allocate(e%incang(npts)); allocate(e%cosne(npts))
          e%rshift=rshift; e%incang=ang; e%cosne=cosne
@@ -379,7 +382,14 @@
 !         write(6,*) 'afterpolsynch', e%bcgs, e%ncgs, e%tcgs, K(1:e%npts,1)
          if (e%neq==4) then
            e%j(1:e%npts,1:e%neq)=K(1:e%npts,1:e%neq)
-           e%K(1:e%npts,1:e%nk)=K(1:e%npts,e%neq+1:e%nk+e%neq)
+           if (allocated(ep%usecoefs)) &
+                e%K(1:e%npts,ep%usecoefs)=K(1:e%npts,ep%usecoefs+e%neq)
+!           e%K(1:e%npts,1:e%nk)=K(1:e%npts,e%neq+1:e%nk+e%neq)
+!           if(allocated(ep%usecoefs)) then
+!              e%K(1:e%npts,ep%usecoefs)=K(1:e%npts,ep%usecoefs+e%neq)
+!           else
+!              e%K(1:e%npts,1:e%nk)=K(1:e%npts,e%neq+1:e%nk+e%neq)
+!           endif
 !           write(6,*) 'pol assign e ',size(e%j),size(e%K),size(K(:,1:4)),size(K(:,5:11))
          else
            e%j(1:e%npts,1)=K(1:e%npts,1)
@@ -431,8 +441,21 @@
          subroutine initialize_emis_params(ep,n)
            integer, intent(in) :: n
            type (emis_params), intent(inout) :: ep
+           integer :: nvals,k,i
            allocate(ep%gmin(n))
            allocate(ep%mu(n))
+           nvals=sum(ep%coefindx)
+           if(nvals.gt.0) then
+              allocate(ep%usecoefs(nvals))
+              k=1
+              do i=1,size(ep%coefindx)
+                 if(ep%coefindx(i).eq.1) then
+                    ep%usecoefs(k)=i
+                    k=k+1
+                 endif
+              enddo
+           endif
+!           write(6,*) 'emis coefindx: ',ep%coefindx,ep%usecoefs
 !           allocate(ep%args(n))
          end subroutine initialize_emis_params
 
@@ -440,6 +463,7 @@
            type (emis_params), intent(inout) :: ep
            deallocate(ep%gmin)
            deallocate(ep%mu)
+           if(allocated(ep%usecoefs)) deallocate(ep%usecoefs)
 !           deallocate(ep%args)
          end subroutine del_emis_params
 
