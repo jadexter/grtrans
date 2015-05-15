@@ -14,7 +14,7 @@
       integer, parameter  :: file_len = 300, sim_len=40, hstr_len=500
       character(len=file_len) :: dfile, gfile
       character(len=40) :: sim
-      integer :: n
+      integer :: n, readthickgrid
       integer :: ndim=3, nhead=30, test=1, binary=1, DEBUG=0
       integer, dimension(:), allocatable :: dumps
       real :: tstep, h, dx1, dx2, dx3, gam, startx1, startx2, startx3, dt, &
@@ -663,7 +663,7 @@
         write(6,*) 'nhead: ',nhead
           allocate(header(nhead))
           write(6,*) 'grid file: ',grid_file
-          write(6,*) 'data file: ',grid_file
+!          write(6,*) 'data file: ',grid_file
           allocate(grid(nx1*nx2*nx3,6));
           allocate(p(nx1*nx2*nx3)); allocate(rho(nx1*nx2*nx3))
           allocate(u(nx1*nx2*nx3)); allocate(b(nx1*nx2*nx3)); allocate(gdet(nx1*nx2*nx3))
@@ -699,7 +699,7 @@
              write(6,*) 'data size: ',glen,nx1*nx2*nx3,size(data)
              nelem=nx1*nx2
              do i=0,nx3-1
-!                write(6,*) 'i: ',i
+                write(6,*) 'i: ',i,nx1,nx2,nx3
                 read(8) data
                 p(1+i*nelem:(i+1)*nelem)=data(ppos+1,:)
                 rho(1+i*nelem:(i+1)*nelem)=data(rhopos+1,:)
@@ -804,6 +804,19 @@
         deallocate(grid)
         deallocate(p); deallocate(rho); deallocate(gdet); deallocate(u); deallocate(b)
         end subroutine read_thickdisk_grid_file
+
+        subroutine read_mb09_grid_file(nt)
+        integer, intent(in) :: nt
+        integer :: n
+          open(unit=8,file=gfile,form='unformatted',status='old')
+          read(8) nx1,nx2,nx3
+          n=nx1*nx2*nx3
+          write(6,*) 'read grid: ',size(x1_arr),size(x2_arr),size(x3_arr)
+          read(8) x1_arr
+          read(8) x2_arr
+          read(8) x3_arr
+          close(unit=8)
+        end subroutine read_mb09_grid_file
 
         subroutine read_thickdisk_fieldline_file(data_file,tcur,rho,p,u,b,jonfix,binary,test)
         character(len=file_len), intent(in) :: data_file
@@ -1216,7 +1229,7 @@
         write(append, fmt='(I4.4)') indf
         header_file=trim(dfile) // trim(append) // trim('.bin')
         write(6,*) 'nhead: ',nhead
-        call read_thickdisk_data_header(gfile,header_length)
+        call read_thickdisk_data_header(header_file,header_length)
 !        call read_thickdisk_data_header(header_file,field_header_length)
         write(6,*) 'header lengths: ',header_length,field_header_length
         write(6,*) 'rin: ',rin,rout,calcrmks(10d0,xbr)
@@ -1227,7 +1240,23 @@
         endif
         n=nx1*nx2*nx3
         call init_thickdisk_data(n,n*nt)
-        call read_thickdisk_grid_file(gfile,tcur,binary)
+! add option to mb09 style or not depending on sim name
+        if(trim(gfile)=='thickdisk7grid.bin') then
+! need to have xbr, rout set here
+           call read_mb09_grid_file(nt)
+           if(rout.gt.1.e3) then
+              xbr=log(500.)
+           else 
+              xbr=log(1.e5)
+           endif
+           r_arr = calcrmks(x1_arr,xbr)
+           th_arr = calcthmks(x2_arr,calcrmks(x1_arr,xbr))
+           ph_arr = x3_arr*2.*pi
+        else
+           call read_thickdisk_data_header(gfile,header_length)
+           write(6,*) 'updated header_length for gfile: ',header_length
+           call read_thickdisk_grid_file(gfile,tcur,binary)
+        endif
         write(6,*) 'nhead: ',nhead,allocated(ph_arr)
         write(6,*) 'read header', nx1, nx2, allocated(ph_arr), allocated(r_arr)
         write(6,*) 'init data', nt, indf, dfile

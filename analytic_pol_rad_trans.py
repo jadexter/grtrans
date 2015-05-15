@@ -180,8 +180,8 @@ def intensity_var(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0
         jj=j[k,:]
         oo=o[k,:,:]
 # try "symplectic" where intprev is updated for Q early:
-        iupdate = oo.dot(jj*(x[k+1]-x[k])+intprev)
-        intprev[1]=iupdate[1]
+#        iupdate = oo.dot(jj*(x[k+1]-x[k])+intprev)
+#        intprev[1]=iupdate[1]
         i[k+1,:] = oo.dot(jj)*(x[k+1]-x[k])+oo.dot(intprev)
         intprev = i[k+1,:]
 
