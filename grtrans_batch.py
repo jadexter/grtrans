@@ -114,6 +114,7 @@ class grtrans_inputs:
         self.mindf=1500
         self.msim='dipole'
         self.extra=0
+        self.debug=0
 # fluid arguments
         self.fdfile='fieldline'
         self.fgfile='dump0000rr2.bin'
@@ -169,7 +170,7 @@ class grtrans_inputs:
         argsn=['dfile','tscl','rscl']
         argsh=['rspot','r0spot','n0spot']
         names=['geodata','fluiddata','emisdata','general','harm','analytic']
-        args=['standard','mumin','mumax','nmu','phi0','spin','uout','uin','rcut','nrotype','gridvals','nn','i1','i2']
+        args=['standard','mumin','mumax','nmu','phi0','spin','uout','uin','rcut','nrotype','gridvals','nn','i1','i2','extra','debug']
         nargs=[len(args)]
         args1=['fname','dt','nt','nload','nmdot','mdotmin','mdotmax']
         nargs.append(len(args1))
@@ -199,7 +200,7 @@ class grtrans_inputs:
         gridstr += str(self.gridvals[-1])
 #        nnstr = str(self.nn[0])+','+str(self.nn[1])+','+str(self.nn[2])
 #        gridstr = str(self.gridvals[0])+','+str(self.gridvals[1])+','+str(self.gridvals[
-        vals=[self.standard,self.mumin,self.mumax,self.nmu,self.phi0,self.spin,self.uout,self.uin,self.rcut,self.nrotype,gridstr,nnstr,self.i1,self.i2]
+        vals=[self.standard,self.mumin,self.mumax,self.nmu,self.phi0,self.spin,self.uout,self.uin,self.rcut,self.nrotype,gridstr,nnstr,self.i1,self.i2,self.extra,self.debug]
         vals.extend(["'"+self.fname+"'",self.dt,self.nt,self.nload,self.nmdot,self.mdotmin,self.mdotmax])
         vals.extend(["'"+self.ename+"'",self.mbh,self.nfreq,self.fmin,self.fmax,self.muval,self.gmin,self.gmax,self.p1,self.p2,self.jetalpha,"'"+self.stype+"'",self.delta,self.nweights,cindxstr])
         vals.extend([self.use_geokerr,self.nvals,"'"+self.iname+"'",self.cflag])
@@ -334,7 +335,7 @@ class grtrans:
 
     def print_input_list(self):
         print 'printing grtrans argument list'
-        print self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.i1,self.inputs.i2,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.outfile,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot,self.inputs.snscl,self.inputs.snnthscl,self.inputs.snnthp,self.inputs.sbeta,self.inputs.sbl06,self.inputs.snp,self.inputs.snt,self.inputs.srin,self.inputs.srout,self.inputs.sthin,self.inputs.sthout,self.inputs.sphiin,self.inputs.sphiout,self.inputs.epotherargs,self.inputs.epcoefindx
+        print self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.i1,self.inputs.i2,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.debug,self.inputs.outfile,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot,self.inputs.snscl,self.inputs.snnthscl,self.inputs.snnthp,self.inputs.sbeta,self.inputs.sbl06,self.inputs.snp,self.inputs.snt,self.inputs.srin,self.inputs.srout,self.inputs.sthin,self.inputs.sthout,self.inputs.sphiin,self.inputs.sphiout,self.inputs.epotherargs,self.inputs.epcoefindx
         return
 
     def run_pgrtrans(self,**kwargs):
@@ -346,7 +347,7 @@ class grtrans:
         self.inputs=grtrans_inputs(**kwargs)
 # call pgrtrans routine with arguments:
         self.print_input_list()
-        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.i1,self.inputs.i2,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.outfile,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot,self.inputs.snscl,self.inputs.snnthscl,self.inputs.snnthp,self.inputs.sbeta,self.inputs.sbl06,self.inputs.snp,self.inputs.snt,self.inputs.srin,self.inputs.srout,self.inputs.sthin,self.inputs.sthout,self.inputs.sphiin,self.inputs.sphiout,self.inputs.epcoefindx,self.inputs.nweights+1,self.inputs.epotherargs)
+        pgrtrans.grtrans_main(self.inputs.standard,self.inputs.mumin,self.inputs.mumax,self.inputs.nmu,self.inputs.phi0,self.inputs.spin,self.inputs.uout,self.inputs.uin,self.inputs.rcut,self.inputs.nrotype,self.inputs.gridvals,self.inputs.nn,self.inputs.i1,self.inputs.i2,self.inputs.fname,self.inputs.dt,self.inputs.nt,self.inputs.nload,self.inputs.nmdot,self.inputs.mdotmin,self.inputs.mdotmax,self.inputs.ename,self.inputs.mbh,self.inputs.nfreq,self.inputs.fmin,self.inputs.fmax,self.inputs.muval,self.inputs.gmin,self.inputs.gmax,self.inputs.p1,self.inputs.p2,self.inputs.jetalpha,self.inputs.stype,self.inputs.use_geokerr,self.inputs.nvals,self.inputs.iname,self.inputs.cflag,self.inputs.extra,self.inputs.debug,self.inputs.outfile,self.inputs.fdfile,self.inputs.fhfile,self.inputs.fgfile,self.inputs.fsim,self.inputs.fnt,self.inputs.findf,self.inputs.fnfiles,self.inputs.fjonfix,self.inputs.pnw,self.inputs.pnfreq_tab,self.inputs.pnr,self.inputs.foffset,self.inputs.fdindf,self.inputs.fmagcrit,self.inputs.hrspot,self.inputs.hr0spot,self.inputs.hn0spot,self.inputs.ntscl,self.inputs.nrscl,self.inputs.pwmin,self.inputs.pwmax,self.inputs.pfmin,self.inputs.pfmax,self.inputs.prmax,self.inputs.psigt,self.inputs.pfcol,self.inputs.tmdot,self.inputs.snscl,self.inputs.snnthscl,self.inputs.snnthp,self.inputs.sbeta,self.inputs.sbl06,self.inputs.snp,self.inputs.snt,self.inputs.srin,self.inputs.srout,self.inputs.sthin,self.inputs.sthout,self.inputs.sphiin,self.inputs.sphiout,self.inputs.epcoefindx,self.inputs.nweights+1,self.inputs.epotherargs)
 # read output
         self.ivals = pgrtrans.ivals.copy()
         self.ab = pgrtrans.ab.copy()

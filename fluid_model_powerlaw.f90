@@ -110,8 +110,8 @@
       rs = r/2.
       z=r*mu
       a2 = sqrt(r**2.-z**2.)
-      neth = pl_n0 * ((rs)**(-pl_pn))*exp(-.5*(z/a2)**2.)
-      nenth = pl_nnth0 * ((rs)**(-pl_pnth))*exp(-.5*(z/a2)**2.)
+      neth = pl_n0 * ((rs)**(-pl_pn))!*exp(-.5*(z/a2)**2.)
+      nenth = pl_nnth0 * ((rs)**(-pl_pnth))!*exp(-.5*(z/a2)**2.)
       te = pl_t0 * (rs)**(-pl_pt)
       ! roughly equipartition from B+09
 !      B = sqrt(8.*pi* neth * mp * c2 / rs / 12. / pl_beta)
@@ -124,7 +124,8 @@
          neth = 0.
          nenth = 0.
       endwhere
-      B = sqrt(8.*pi* neth * mp * c2 / rs / 12. / pl_beta)
+! changed to use constant rs for constant value of B corresponding to R = 20 M
+      B = sqrt(8.*pi* neth * mp * c2 / 10. / 12. / pl_beta)
 !      write(6,*) 'powerlaw_vals vals: ',r,z,neth,nenth,te
      end subroutine powerlaw_vals
 
