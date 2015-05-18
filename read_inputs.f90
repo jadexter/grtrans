@@ -10,7 +10,7 @@
       namelist /fluiddata/ fname, dt, nt, nload, nmdot, mdotmin, mdotmax
       namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, &
            stype, delta, nweights, epcoefindx
-      namelist /general/   use_geokerr, nvals, iname, cflag, extra
+      namelist /general/   use_geokerr, nvals, iname, cflag, extra, debug
 ! namelists for fluid models
       namelist /harm/  fdfile, fgfile, fhfile, fnt, fnfiles, findf, fjonfix, &
            foffset, fsim, fdindf, fmagcrit
@@ -19,7 +19,7 @@
            frin,frout,fthin,fthout,fphiin,fphiout
       
       integer :: standard,nrotype,nro,nphi,nup,nvals,nfreq,nmu,cflag, nt,nmdot, &
-           nload,extra,i1,i2
+           nload,extra,i1,i2,debug
       logical :: use_geokerr
       real(kind=8) :: mumax,mumin,spin,rcut,a1,a2,b1,b2,mbh,uout,uin, & 
            fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2, &
