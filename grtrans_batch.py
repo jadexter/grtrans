@@ -386,6 +386,7 @@ class grtrans:
 # read images
             for i in range(n-1):
                 ivals[:,:,i]=np.reshape(hdu[i+1].data,(nx*ny,nvals))
+                del hdu[i+1].data
 
         else:
             with open(self.ofile,'rb') as f:
