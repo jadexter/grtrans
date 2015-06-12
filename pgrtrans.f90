@@ -13,7 +13,7 @@
             uout,uin, rcut, nrotype, gridvals, nn,i1,i2,fname, dt, nt, nload, &
             nmdot, mdotmin, mdotmax,ename, mbh, nfreq, fmin, fmax, muval,&
             gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
-            cflag, extra, outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+            cflag, extra, debug,outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
             fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,epcoefindx,nepotherargs,epotherargs)
@@ -33,7 +33,7 @@
 
 !INPUTS=====================
             integer, intent(in) :: standard,nrotype,nvals,nfreq,nmu,cflag,nt, &
-                 nmdot,nload,extra,i1,i2,nepotherargs
+                 nmdot,nload,extra,i1,i2,nepotherargs,debug
             integer :: nro,nphi,nup,tempi
             logical, intent(in) :: use_geokerr
             real(kind=8), intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
@@ -149,7 +149,7 @@
             uout,uin, rcut, nrotype, gridvals, nn,fname, dt, nt, nload, &
             nmdot, mdotmin, mdotmax,ename, mbh, nfreq, fmin, fmax, muval,&
             gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
-            cflag, extra, outfile
+            cflag, extra, debug, outfile
             write(6,*) 'emis args: ',epotherargs,epcoefindx
             
             call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
@@ -187,14 +187,14 @@
                do l=1,nt
                   !       write(6,*) 'pre loop spin: ',spin,gargs%a
 !$omp parallel do schedule(static,1) private(i) shared(gargs,gunit,c,j,nt,l,spin, &
-!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2)
+!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2,extra,debug)
                   do i=i1,i2
                      !                write(6,*) 'i: ',i
 !                  do i=15501,15999
                      !                 write(6,*) 'i: ',i
 !                write(6,*) 'after loop spin: ',mdots(1),mbh
                      call grtrans_driver(gargs,gunit,c,i,(j-1)*nt+l,iname,ename,fname, &
-                     sparams,eparams,nfreq,nparams,freqs,nup,extra)
+                     sparams,eparams,nfreq,nparams,freqs,nup,extra,debug)
                   enddo
 !       write(6,*) 'after loop i'
 !$omp end parallel do

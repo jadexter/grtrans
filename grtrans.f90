@@ -104,7 +104,7 @@
           do l=1,nt
 !       write(6,*) 'pre loop spin: ',spin,gargs%a
 !$omp parallel do schedule(static,1) private(i) shared(gargs,gunit,c,j,nt,l,spin, &
-!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2)
+!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2,extra,debug)
 !             do i=1,c(1)%nx*c(1)%ny
              do i=i1,i2
 !                write(6,*) 'i: ',i
@@ -115,7 +115,7 @@
 !                indx = (i-1-((nro*nphi)/nthreads)*threadnum)*nthreads+threadnum+1
 !                write(6,*) 'omp threads, thread_num: ', i,threadnum,nthreads
                 call grtrans_driver(gargs,gunit,c,i,(j-1)*nt+l,iname,ename,fname, &
-                  sparams,eparams,nfreq,nparams,freqs,nup,extra)
+                  sparams,eparams,nfreq,nparams,freqs,nup,extra,debug)
              enddo
 !       write(6,*) 'after loop i'
 !$omp end parallel do
