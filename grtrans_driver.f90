@@ -22,8 +22,7 @@
 ! grtrans object is made up of fluid, geodesic, emissivity, and rad trans objects
 
 !        integer, parameter :: IS_LINEAR_STOKES=1
-        integer, parameter :: WRITE_GEO=0
-        integer :: EXTRA_QUANTS=0
+        integer :: EXTRA_QUANTS=0, WRITE_GEO=0
 !        integer, dimension(3) :: stats
 !        real(kind=8), parameter :: MAX_TAU = 10d0
         real(kind=8) :: LBH, MBH
@@ -52,7 +51,7 @@
        contains
 
          subroutine grtrans_driver(gargs,gunit,c,i,l, &
-          iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,extra)
+          iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,extra,debug)
 ! Driver routine for GRTrans. JAD 2/27/2011
          implicit none
          type (geokerr_args), intent(in) :: gargs
@@ -63,7 +62,7 @@
          type (emis_params) :: ep
 !         real(kind=8), intent(in) :: mbh1,mdot
          real(kind=8), intent(in), dimension(:) :: freqs
-         integer, intent(in) :: gunit,i,l,nup, nfreq, nparams, extra
+         integer, intent(in) :: gunit,i,l,nup, nfreq, nparams, extra, debug
          character(len=20), intent(in) :: iname,fname,ename
          real(kind=8) :: fac
          real(kind=8), dimension(:), allocatable :: s2xi,c2xi,s2psi, &
@@ -76,8 +75,13 @@
          if(extra==1) EXTRA_QUANTS=1
 ! Need to make this a decision of load geodesics from file or generate new ones, and pass 
 !gunit as last argument if loading.
-!         write(6,*) 'grtrans_driver: ',i
+!         write(6,*) 'grtrans_driver: ',i,debug
          call initialize_geodesic(g,gargs,i,status)
+         if(debug==1) then
+            WRITE_GEO=1
+         else
+            WRITE_GEO=0
+         endif
          if (WRITE_GEO==1) then
             nitems=18
 ! Dump geodesic information for debugging
