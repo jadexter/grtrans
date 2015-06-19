@@ -112,7 +112,7 @@ grtrans_program.o: ./grtrans_program.f90 grtrans.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./grtrans_program.f90
 interpolate.o: ./interpolate.f90
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./interpolate.f90
-kerr.o: ./kerr.f90 class_four_vector.o math.o
+kerr.o: ./kerr.f90 class_four_vector.o math.o phys_constants.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./kerr.f90
 math.o: ./math.f90
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./math.f90
