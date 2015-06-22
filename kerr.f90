@@ -1169,7 +1169,7 @@
         real(8), dimension(:), intent(in) :: r
         type (four_vector), dimension(size(r)) :: fu
         real(8) :: ems,lms,rms,rh
-        real(8), dimension(size(r)) :: pt,pr,pphi,th
+        real(8), dimension(size(r)) :: pt,pr,pphi,th,denom
         real(8), dimension(size(r),10) :: metriccon
 ! this is way based on Hughes (2000, 2001), Schnittman PhD. equivalently there is analytic way from old code that seems to give ~same result.
         call calc_rms_constants(a,ems,lms,rms)
@@ -1177,7 +1177,13 @@
         th = pi/2d0
         metriccon = kerr_metric(r,th,a,1)
         pt = -metriccon(:,1)*ems + metriccon(:,4)*lms
-        pr = -sqrt(-metriccon(:,5)*(1d0+metriccon(:,1)*ems*ems-2d0*metriccon(:,4)*ems*lms+metriccon(:,10)*lms*lms))
+        denom = -metriccon(:,5)*(1d0+metriccon(:,1)*ems*ems-2d0*metriccon(:,4)*ems*lms+metriccon(:,10)*lms*lms)
+        where(denom.gt.0.)
+           pr = -sqrt(denom)
+        elsewhere
+           pr = 0d0
+        endwhere
+!        pr = -sqrt(-metriccon(:,5)*(1d0+metriccon(:,1)*ems*ems-2d0*metriccon(:,4)*ems*lms+metriccon(:,10)*lms*lms))
         pphi = -metriccon(:,4)*ems+metriccon(:,10)*lms
         fu%data(1)=pt
         fu%data(2)=pr

@@ -699,7 +699,7 @@
              write(6,*) 'data size: ',glen,nx1*nx2*nx3,size(data)
              nelem=nx1*nx2
              do i=0,nx3-1
-                write(6,*) 'i: ',i,nx1,nx2,nx3
+!                write(6,*) 'i: ',i,nx1,nx2,nx3
                 read(8) data
                 p(1+i*nelem:(i+1)*nelem)=data(ppos+1,:)
                 rho(1+i*nelem:(i+1)*nelem)=data(rhopos+1,:)
