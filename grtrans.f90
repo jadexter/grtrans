@@ -44,7 +44,7 @@
        eparams%gmax=gmax; eparams%p1=p1
        eparams%p2=p2;
        eparams%otherargs = epotherargs
-       eparams%coefindx = epcoefindx
+       eparams%coefindx = coefindx
 !       eparams%mu=muval
        nparams=size(mdots)
        allocate(sparams(nparams))

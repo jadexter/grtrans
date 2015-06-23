@@ -6,11 +6,11 @@
       implicit none
 
       namelist /geodata/   standard,mumin,mumax,nmu,phi0,spin, uout,uin, rcut, &
-       nrotype, gridvals, nn, i1, i2
+       nrotype, gridvals, nn, i1, i2, extra, debug
       namelist /fluiddata/ fname, dt, nt, nload, nmdot, mdotmin, mdotmax
       namelist /emisdata/  ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax, p1, p2, jetalpha, &
-           stype, delta, nweights, epcoefindx
-      namelist /general/   use_geokerr, nvals, iname, cflag, extra, debug
+           stype, delta, nweights, coefindx
+      namelist /general/   use_geokerr, nvals, iname, cflag
 ! namelists for fluid models
       namelist /harm/  fdfile, fgfile, fhfile, fnt, fnfiles, findf, fjonfix, &
            foffset, fsim, fdindf, fmagcrit
@@ -32,7 +32,7 @@
       character(len=100) :: fdfile,fhfile,fgfile,fsim
       integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
            fnr,foffset,fdindf,fmagcrit,fbl06,nweights
-      integer, dimension(7) :: epcoefindx
+      integer, dimension(7) :: coefindx
       real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
            ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fnp,ftp, &
            frin,frout,fthin,fthout,fphiin,fphiout
