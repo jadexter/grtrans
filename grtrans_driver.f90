@@ -34,7 +34,7 @@
          type (emis) :: e
 !         type (emis_params) :: eparams
 !         type (source_params) :: sparams
-!$omp threadprivate(f,r,g,e)
+!$omp threadprivate(f,r,g,e,EXTRA_QUANTS,WRITE_GEO)
 
 !       interface grtrans_driver_jac_form
 !         module procedure grtrans_driver_jac_form
@@ -199,24 +199,26 @@
                            allocate(tau_temp(g%npts)); allocate(intvals(g%npts))
                            allocate(dummy(g%npts)); allocate(inds(6))
                            inds=(/1,2,3,4,5,7/)
-                           !            write(6,*) 'tau_arr'
+!                           write(6,*) 'tau_arr', size(g%lambda), size(tau_temp)
                            do ii=1,6
-                              call calc_opt_depth(g%lambda(1)-g%lambda(1:g%npts),e,tau_temp,inds(i))
-                              tau_arr(:,i)=tau_temp
+                              call calc_opt_depth(g%lambda(1)-g%lambda(1:g%npts),e,tau_temp,inds(ii))
+!                              write(6,*) 'extra after opt_depth ',ii, &
+!                                   size(tau_arr,1), size(tau_arr,2), size(tau_temp)
+                              tau_arr(:,ii)=tau_temp
                            enddo
                            ! now calculate photosphere location, values there:
                            taudex=minloc(abs(tau-1.),1)
-                           !            write(6,*) 'taudex: ',taudex,tau(g%npts)
+!                           write(6,*) 'taudex: ',taudex,tau(g%npts)
                            r%tau(1:6)=tau_arr(taudex,:)
-                           !            write(6,*) 'rtau',size(r%tau(1:6)),size(tau_arr(taudex,:))
+!                           write(6,*) 'rtau',size(r%tau(1:6)),size(tau_arr(taudex,:))
                            ! now do emissivity-weighted ray averages of other quantities:
                            dummy=e%j(:,1)*exp(-tau(1:g%npts))
-                           !            write(6,*) 'rtau', size(r%tau),size(r%tau(7:7))
-                           !            write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex))
-                           !            write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex)*g%x(1:taudex)%data(2))
+!                           write(6,*) 'rtau', size(r%tau),size(r%tau(7:7))
+!                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex))
+!                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex)*g%x(1:taudex)%data(2))
                            intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(2))
                            r%tau(7)=intvals(taudex)
-                              !            write(6,*) '7'
+!                           write(6,*) '7'
                            intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(3))
                            r%tau(8)=intvals(taudex)
                            intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(4))
