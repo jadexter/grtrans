@@ -16,7 +16,7 @@
             cflag, extra, debug,outfile, fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,epcoefindx,nepotherargs,epotherargs)
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,epcoefindx,epotherargs,nepotherargs)
            
              use omp_lib
        !       use grtrans_inputs
