@@ -151,7 +151,7 @@ grtrans: $(OBJ)
 libgrtrans: $(OBJ)
 	$(AR) $(ARFLAGS) libgrtrans.a $(OBJ)
 
-pgrtrans: grtrans.o
+pgrtrans: grtrans.o libgrtrans
 	f2py -c pgrtrans.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m pgrtrans $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
 
 radtrans_integrate:
