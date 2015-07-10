@@ -98,13 +98,13 @@
         allocate(KK(npts,1+(nequations)*(nequations-1)/2))
         allocate(intensity(nequations,npts))
         allocate(s(npts)); allocate(ss(npts))
-        s = 0d0
-        ss = 0d0
-        intensity = 0d0
-        jj = 0d0
-        tau = 0d0
-        KK = 0d0
-        s0 = 0d0
+        s(:) = 0d0
+        ss(:) = 0d0
+        intensity(:,:) = 0d0
+        jj(:,:) = 0d0
+        tau(:) = 0d0
+        KK(:,:) = 0d0
+        s0(:) = 0d0
         if(iflag==1) then
            allocate(QQ(npts,nequations,nequations)); allocate(PP(npts,nequations))
            allocate(imm(npts,nequations,nequations))
@@ -185,14 +185,14 @@
            call locate(tau,MAX_TAU,lamdex)
            lamdex=lamdex+1
          !           write(6,*) 'locate', lamdex
-           if(lamdex==2) then
-              call get_weight(tau,MAX_TAU,lamdex,weight)
+!           if(lamdex==2) then
+!              call get_weight(tau,MAX_TAU,lamdex,weight)
 ! need to re-work this. just trying to interpolate between s0(1) and s0(2).
 !             write(6,*) 'weight: ',lamdex,weight,s(lamdex),s(lamdex+1)
-              s=(/(s(1)-s(2))*(1d0-weight),0d0/)
-              lamdex=lamdex+1
-!             write(6,*) 's: ',s(1:lamdex),lamdex
-           endif
+!              s=(/(s(1)-s(2))*(1d0-weight),0d0/)
+!              lamdex=lamdex+1
+!             write(6,*) 'radtrans integrate s: ',s(1:lamdex),lamdex
+!           endif
         endif
 ! Only use parts of ray where emissivity is non-zero:
         if (jj(1,1).eq.0d0) then

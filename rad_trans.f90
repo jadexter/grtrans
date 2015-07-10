@@ -39,16 +39,16 @@
          r%onpts=npts
 ! Allocate intensity array including intermediate points:
          allocate(r%I(r%neq,r%onpts))
-         r%I=0d0; r%npts=r%onpts
+         r%I(:,:)=0d0; r%npts=r%onpts
          if(extra.eq.1) then
             if(npts.ne.1) then
                nextra=13
             else
                nextra=5
             endif
-            allocate(r%tau(nextra))
+            allocate(r%tau(nextra)); r%tau(:)=0d0
          endif
-!         write(6,*) 'r size: ',size(r%I),neq,npts
+!         write(6,*) 'r%tau, r%I init: ',minval(r%tau),maxval(r%tau),minval(r%I),maxval(r%I)
          r%ename=0
          return
          end subroutine initialize_rad_trans
