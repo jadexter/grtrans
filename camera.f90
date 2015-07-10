@@ -30,7 +30,8 @@
         real, intent(in), dimension(2) :: pixel
         real, intent(in), dimension(c%nvals+c%nextra) :: vals
         integer, intent(in) :: pnum
-!        write(6,*) 'in save camera: ', size(vals),size(c%pixvals(:,pnum))
+!        write(6,*) 'in save camera: ', pixel
+!        write(6,*) 'in save camera: ',vals
         c%pixvals(:,pnum)=vals
         c%pixloc(:,pnum)=pixel
 !        write(6,*) 'save camera end of save'
@@ -58,6 +59,7 @@
 !        write(6,*) 'init cam: ',nvals,nextra
         allocate(c%pixloc(2,c%nx*c%ny))
         allocate(c%pixvals(c%nvals+c%nextra,c%nx*c%ny))
+        c%pixvals(:,:)=0.
         return
         end subroutine initialize_raytrace_camera
 

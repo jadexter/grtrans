@@ -88,7 +88,12 @@
 !          write(6,*) 'tout: ',tout,size(y),y,(yout(1,i)-yout(1,i-1))
 !     &       /(t(i)-t(i-1)),jt,oneq
 !          write(6,*) 'made it'
-!          if(istate.lt.0) istate=2   ! Reset istate in case of error
+          if(istate.lt.0) then
+! error: set this pixel to zero and break
+             yout(:,:)=0d0
+             exit
+          endif
+!             istate=2   ! Reset istate in case of error
         enddo
 ! Write some statistics:
 !        write(6,*) 'Last method switch: ',rwork(15)
