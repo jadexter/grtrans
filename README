@@ -8,6 +8,8 @@ cfitsio must be installed. The Makefile should be edited with the desired f90 co
 and options, as well as the location of the cfitsio library if it is not in the standard library
  path. The code can then be compiled with make.
 
+For using the Python module, pyfits should also be installed.
+
 RUNNING GRTRANS WITH PYTHON SCRIPT
 
 The easiest way to run grtrans is with the included python script, grtrans_batch.py. From the 
