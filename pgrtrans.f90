@@ -210,11 +210,12 @@
             if(nup.eq.1.and.nvals.eq.4) call del_chandra_tab24()
             write(6,*) 'Write camera', nvals, nextra
             allocate(ivals(nvals+nextra,nro*nphi,NCAMS))
-            ivals=0d0
+            ivals(:,:,:)=0d0
+!            write(6,*) 'ivals initialized: ',minval(ivals),maxval(ivals)
 !            allocate(ab(2,nro*nphi,NCAMS))
             allocate(ab(2,nro*nphi))
             ab=0d0
-            ab(:,:) = c(1)%pixloc
+            ab(:,:) = dble(c(1)%pixloc)
             do m=1,ncams
                if(outfile.ne."") call kwrite_raytrace_camera(c(m),&                           
                     12,outfile,cflag,m,ncams,size(knames), &                                      
@@ -234,8 +235,8 @@
 !         ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&
 !         p1, p2, jetalpha, stype, &
                !         use_geokerr, nvals, iname, extra)     
-!               write(6,*) 'cm pixvals: ',c(m)%pixvals(:,1)
-               ivals(:,:,m)=c(m)%pixvals
+!               write(6,*) 'cm pixvals: ',minval(c(m)%pixvals),maxval(c(m)%pixvals)
+               ivals(:,:,m)=dble(c(m)%pixvals)
 !               ab(:,:,m)=c(m)%pixloc
                call del_raytrace_camera(c(m))
             enddo

@@ -169,7 +169,22 @@
 ! don't integrate if there's no emission:
 !                  write(6,*) 'ej: ',sum(e%j(:,1))
 !               write(6,*) 'ortho: ',s2xi
-                  if (sum(e%j(:,1)).ne.0d0) then
+!                  write(6,*) 'tiny: ',epsilon(sum(e%j(:,1))),g%npts*epsilon(sum(e%j(:,1)))
+!                  if (sum(e%j(:,1)).gt.(g%npts*tiny(sum(e%j(:,1))))) then
+!                  fac=sum(e%j(:,1))/g%npts
+                  if (g%npts.gt.1) then
+                     fac=sum(e%j(:,1)*(g%lambda(1)-g%lambda(1:g%npts)))
+                  else
+                     fac=sum(e%j(:,1)/g%npts)
+                  endif
+!                  write(6,*) 'i fac: ',i,fac,1d0/(1d0/fac)
+!                  if(g%npts.gt.1) then
+!                     fac=tsum(g%lambda(1)-g%lambda(1:g%npts),e%j(:,1))
+!                  else
+!                     fac=1d0
+!                  endif
+!                  if (1d0/(1d0/(fac/1d10)).gt.0d0) then
+                  if (fac/1d16.gt.0d0) then
                      if(e%neq.eq.4) call rotate_emis(e,s2xi,c2xi)
 ! Call integration routine:
 !                     write(6,*) 'integrate'
@@ -179,7 +194,7 @@
                      endif
                      if(g%npts.ne.1) then
                         call invariant_emis(e,rshift)
-                        fac=sum(e%j(:,1))/g%npts
+!                        fac=sum(e%j(:,1))/g%npts
 ! scale emission close to 1 so that LSODA integrates accurately and put anu in cgs units
                         e%j=e%j/fac; e%K=e%K*LBH
 !                        write(6,*) 'i: ',i
@@ -207,30 +222,35 @@
                               tau_arr(:,ii)=tau_temp
                            enddo
                            ! now calculate photosphere location, values there:
-                           taudex=minloc(abs(tau-1.),1)
-!                           write(6,*) 'taudex: ',taudex,tau(g%npts)
+                           taudex=minloc(abs(tau-1d0),1)
+                           if(minval(tau).lt.1d0) taudex=g%npts
+                           if(taudex.eq.1) taudex=2
+!                           write(6,*) 'taudex: ',taudex,tau(1),tau(g%npts),tau(taudex)
+!                           write(6,*) 'ej: ',e%j(:,1), fac, r%I, tau
                            r%tau(1:6)=tau_arr(taudex,:)
 !                           write(6,*) 'rtau',size(r%tau(1:6)),size(tau_arr(taudex,:))
-                           ! now do emissivity-weighted ray averages of other quantities:
+                           ! now do emissivity-weighted ray averages of other quantities
                            dummy=e%j(:,1)*exp(-tau(1:g%npts))
 !                           write(6,*) 'rtau', size(r%tau),size(r%tau(7:7))
 !                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex))
 !                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex)*g%x(1:taudex)%data(2))
-                           intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(2))
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(2))
+!                           write(6,*) 'intvals 1: ',intvals,tsum(g%lambda,dummy),tsum(g%lambda,dummy*g%x%data(2))
+!                           write(6,*) 'g lambda: ',g%lambda(1:g%npts),g%npts
                            r%tau(7)=intvals(taudex)
 !                           write(6,*) '7'
-                           intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(3))
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(3))
                            r%tau(8)=intvals(taudex)
-                           intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(4))
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(4))
                            r%tau(9)=intvals(taudex)
-                           intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*e%ncgs)
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*e%ncgs)
                            r%tau(10)=intvals(taudex)
-                           intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*e%tcgs)
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*e%tcgs)
                            r%tau(11)=intvals(taudex)
-                           intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*e%bcgs)
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*e%bcgs)
                            r%tau(12)=intvals(taudex)
 ! this one is \beta...
-                           intvals=1./tsum(g%lambda,dummy)*tsum(g%lambda,dummy*f%p*2./f%bmag**2.)
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*f%p*2./f%bmag**2.)
                            r%tau(13)=intvals(taudex)
                            deallocate(tau_arr); deallocate(tau_temp); deallocate(intvals); deallocate(dummy)
                            deallocate(inds)
@@ -262,7 +282,8 @@
                         endif
                      endif
                   else
-                     r%I=0d0; r%npts=1
+                     r%I(:,:)=0d0; r%npts=1
+                     if(EXTRA_QUANTS==1) r%tau(:)=0d0
 !                     write(6,*) 'zero: ',status, size(r%I,1), size(r%I,2), r%I(:,r%npts)
                   endif
 !           write(6,*) 'after intensity', i, r%npts, r%I(:,r%npts), sum(e%j(:,1))!, e%j(:,1), e%K(:,1)
@@ -278,6 +299,9 @@
 !                          size((/real(r%I(:,r%npts)),real(r%tau)/))
 !                     write(6,*) 'cam: ',size(c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%pixvals)
 !                     write(6,*) 'save cam extra: ',r%tau,s2xi(1),c2xi(1),status,g%npts,r%npts,EXTRA_QUANTS
+!                     write(6,*) 'save cam extra: ',r%tau,real(r%tau)
+!                     write(6,*) 'save cam extra: ',(/real(r%I(:,r%npts)),real(r%tau)/)
+!                     write(6,*) 'save cam extra: ',sum(e%j(:,1))
                      call save_raytrace_camera_pixel(c((l-1)*nfreq*nparams+(m-1)*nfreq+k), &
                        (/real(gargs%alpha(i)),real(gargs%beta(i))/),(/real(r%I(:,r%npts)),real(r%tau)/),i)
 !                     write(6,*) 'extra'
@@ -367,7 +391,7 @@
             do m=1,NPARAMS
                do k=1,NFREQ
                   call save_raytrace_camera_pixel(c((l-1)*nfreq*nparams+(m-1)*nfreq+k),(/real(gargs%alpha(i)), &
-                       real(gargs%beta(i))/),(/(0.,j=1,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals)/),i)
+                       real(gargs%beta(i))/),(/(0.,j=1,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals+c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nextra)/),i)
                enddo
             enddo
          endif
