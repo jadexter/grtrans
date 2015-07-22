@@ -20,7 +20,7 @@
            double precision, dimension(size(ncgs),11) :: ktemp
            double precision, dimension(size(ncgs),11),intent(out) :: ktotal
 
-           integer :: i
+           integer :: isel
 
 !           ones = 1d0
 !           write(6,*) 'maxjutt: ',size(maxjutt_args),size(weights_arr)
@@ -55,11 +55,11 @@
            enddo
 
 
-           i = INT(selection)
-           if(i.gt.0) then
-              if(i.le.(size(weights_arr))) then
+           isel = INT(selection)
+           if(isel.gt.0) then
+              if(isel.le.(size(weights_arr))) then
                  ktemp = 0d0
-                 call polsynchth(nu,weights_arr(i)*ncgs,bcgs,tcgs_min*delta_arr(i),incang,ktemp)
+                 call polsynchth(nu,weights_arr(isel)*ncgs,bcgs,tcgs_min*delta_arr(isel),incang,ktemp)
                  ktotal(:,1:4) = ktemp(:,1:4)
               endif
            endif
