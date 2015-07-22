@@ -5,6 +5,7 @@
         polsynchth,del_polsynchpl,synchpl,bnu,synchemis,synchemisnoabs
        use chandra_tab24, only: interp_chandra_tab24
        use calc_maxjutt, only: calc_maxjutt_subroutine
+       use calc_maxcomp, only: calc_maxcomp_subroutine
        implicit none
 
 ! Global constants for selecting emissivity
@@ -12,7 +13,7 @@
                   ESYNCHPL=3,EPOLSYNCHPL=4,EBREMS=5,ELINE=6, &
                   EIRON=7,EBB=8,EBBPOL=9,EINTERP=10,EFBB=11,ERHO=12, &
                   ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20, &
-                  EHYBRIDTH=21, EHYBRIDPL=22, EMAXJUTT=23
+                  EHYBRIDTH=21, EHYBRIDPL=22, EMAXJUTT=23, EMAXCOMP=24
 
        type emis
          real(kind=8), dimension(:,:), allocatable :: j,K
@@ -187,6 +188,9 @@
          elseif(ename=='MAXJUTT') then
             e%type=EMAXJUTT
             e%neq=4
+         elseif(ename=='MAXCOMP') then
+            e%type=EMAXCOMP
+            e%neq=4
          elseif(ename.eq.'HYBRIDTH') then
             e%type=EHYBRIDTH 
             e%neq=4
@@ -265,6 +269,9 @@
            CASE (EMAXJUTT) !alwinnote 2015/03/05
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
              allocate(e%bcgs(npts))!; allocate(e%args(npts))
+           CASE (EMAXCOMP) !alwinnote 2015/03/05
+             allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
+             allocate(e%bcgs(npts))!; allocate(e%args(npts))
 !             e%args=emisargs
            CASE (EPOLSYNCHTH)
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
@@ -311,9 +318,9 @@
          integer :: i
          select  case(e%type)
            case(emaxjutt)
-!2015/03/19 Should work, not yet tested.
-!              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,e%args,K)
               call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,ep%otherargs,K)
+           case(emaxcomp)
+              call calc_maxcomp_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,ep%otherargs,K)
            case(ehybridthpl)
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
@@ -412,6 +419,8 @@
            CASE (EHYBRIDPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth 
            CASE (EMAXJUTT) !alwinnote 2015/03/05
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
+           CASE (EMAXCOMP) !alwinnote 2015/03/05
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EPOLSYNCHTH)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
@@ -547,6 +556,9 @@
            CASE (EMAXJUTT) !alwinnote 2015/03/05
              deallocate(e%tcgs); deallocate(e%ncgs)
              deallocate(e%bcgs); deallocate(e%incang)
+           CASE (EMAXCOMP) !alwinnote 2015/07/22
+             deallocate(e%tcgs); deallocate(e%ncgs)
+             deallocate(e%bcgs); deallocate(e%incang)
 !             deallocate(e%args)
            CASE (EPOLSYNCHTH)
              deallocate(e%tcgs); deallocate(e%ncgs)
@@ -658,6 +670,8 @@
              call emis_model_synchth(e,ep%mu)
              call emis_model_synchpl(e,ep%gmin,ep%gmax,ep%p1)
            CASE (EMAXJUTT) !alwinnote 2015/03/05
+             call emis_model_synchth(e,ep%mu)
+           CASE (EMAXCOMP) !alwinnote 2015/07/22
              call emis_model_synchth(e,ep%mu)
            CASE (EPOLSYNCHTH)
              call emis_model_synchth(e,ep%mu)
