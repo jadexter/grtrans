@@ -1276,7 +1276,8 @@
              case (TAIL)
                 sp%jetalpha=sp%jetalphaval
                 sp%mu=sp%muval
-                call calc_gmin_subroutine(sp%p2,k*tcgs/m/c/c,sp%jetalpha,gmin,x)
+!Fluid -> calc_gmin -> mu*tcgs -> emis means that calc_gmin is given a tcgs pre-mu correction and needs to be corrected here.                 
+                call calc_gmin_subroutine(sp%p2,sp%mu*k*tcgs/m/c/c,sp%jetalpha,gmin,x)
 !                sp%gmin=merge(merge(gmin,one,gmin.ge.1d0),gmax/2d0,gmin.le.gmax)
 !                trust calc_gmin to merge gmin < 1 now
                 sp%gmin=merge(gmin,gmax/2d0,gmin.le.gmax)
