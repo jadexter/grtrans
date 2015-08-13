@@ -157,7 +157,10 @@ class grtrans_inputs:
         if self.i2 > self.nn[0]*self.nn[1]:
             print 'fixing input i2 out of bounds: ',self.i2,self.nn[0]*self.nn[1]
             self.i2 = self.nn[0]*self.nn[1]
-        self.nweights = len(self.epotherargs)-1
+        if self.ename == 'MAXCOMP':
+            self.nweights = len(self.epotherargs)-2
+        else:
+            self.nweights = len(self.epotherargs)-1
         self.nep = len(self.epotherargs)
         self.delta = self.epotherargs[0]
 
