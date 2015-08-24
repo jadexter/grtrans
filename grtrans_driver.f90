@@ -303,7 +303,8 @@
 !                     write(6,*) 'save cam extra: ',(/real(r%I(:,r%npts)),real(r%tau)/)
 !                     write(6,*) 'save cam extra: ',sum(e%j(:,1))
                      call save_raytrace_camera_pixel(c((l-1)*nfreq*nparams+(m-1)*nfreq+k), &
-                       (/real(gargs%alpha(i)),real(gargs%beta(i))/),(/real(r%I(:,r%npts)),real(r%tau)/),i)
+                       (/real(gargs%alpha(i)),real(gargs%beta(i))/),(/real(r%I(:,r%npts)),&
+                       real(r%tau)/),i)
 !                     write(6,*) 'extra'
                   endif
 !                  write(6,*) 'after save'
@@ -391,7 +392,8 @@
             do m=1,NPARAMS
                do k=1,NFREQ
                   call save_raytrace_camera_pixel(c((l-1)*nfreq*nparams+(m-1)*nfreq+k),(/real(gargs%alpha(i)), &
-                       real(gargs%beta(i))/),(/(0.,j=1,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals+c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nextra)/),i)
+                       real(gargs%beta(i))/),(/(0.,j=1,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals+c((l-1)* &
+                       nfreq*nparams+(m-1)*nfreq+k)%nextra)/),i)
                enddo
             enddo
          endif

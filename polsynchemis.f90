@@ -742,8 +742,10 @@
       eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
      (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
       sin(theta)**2
-      eps12=shgfunc(xarg)*wp2*omega0/(2d0*pi*nu)**3* &
-      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
+!      eps12=shgfunc(xarg)*wp2*omega0/(2d0*pi*nu)**3* &
+!      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
+      eps12=wp2*omega0/(2d0*pi*nu)**3* &
+      (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
 !      write(*,*) 'eps: ',eps11m22, eps12
       targ=sqrt(4d0*eps12**2+eps11m22**2)
       tp=-(eps11m22-targ)/2d0/eps12
@@ -801,7 +803,17 @@
           jffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)* &
               dexp(-x**(1.2d0)/2.73d0) &
               -.011d0*dexp(-x/47.2d0)+extraterm
+! Some concern about sign here. Should check again but looks okay.
         end function jffunc
+
+        function shgmfunc(x)
+        ! modified version of function G(X) from Shcherbakov (2008)
+        ! with better fit for all temperatures, low \nu / \nu_c
+        ! JAD 8/14/2015
+        real(kind=8), intent(in), dimension(:) :: x
+        real(kind=8), dimension(size(x)) :: shgmfunc
+        shgmfunc=0.43793091*log(1d0+0.00185777*x**1.50316886)
+        end function shgmfunc
 
         function shgfunc(x)
         ! Fitting function G(X) from Shcherbakov (2008)
@@ -904,11 +916,16 @@
       function bnu(T,nu)
       ! Planck spectrum for array of T, scalar nu in cgs units.
       ! JAD 2/2/2009
+      ! modified to use RJ limit for more accurate low-frequencies
       use phys_constants, only: h,c2,k
       real(kind=8), intent(in), dimension(:) :: T,nu
       real(kind=8), dimension(size(T)) :: bnu
 !      write(6,*) 'bnu: ',T,nu
-      bnu = 2d0*h*nu/c2*nu*nu/(exp(h*nu/k/T)-1d0)
+      where(h*nu/k/T.lt.1d-6)
+         bnu=2d0*nu*nu*k*T/c2
+      elsewhere
+         bnu = 2d0*h*nu/c2*nu*nu/(exp(h*nu/k/T)-1d0)
+      endwhere
       end function bnu
 
       end module polsynchemis
