@@ -527,7 +527,9 @@
         gam2=r*(r*r+a*a)*sth*k3-a*r*sth*k0
         gam3=a*a*cth*sth*sth*k1-r*(r*r+a*a)*sth*k2
         del1=r*k0-r*a*sth*sth*k3
-        del2=a*cth*sth*(r*r+a*a)*k3-a*a*sth*cth*k0
+!        del2=a*cth*sth*(r*r+a*a)*k3-a*a*sth*cth*k0
+! sign changed 8/24/2015 see notes! leads to small changes ~% usually
+        del2=-a*cth*sth*(r*r+a*a)*k3+a*a*sth*cth*k0
         del3=r*a*sth*sth*k1+a*cth*sth*(r*r+a*a)*k2
 !        g1t=gam1-gam3*g11*k1/(g33*k3+g03*k0)
 !        g2t=gam2-gam3*g22*k2/(g33*k3+g03*k0)
