@@ -551,13 +551,14 @@
 !           f3=-Kap2/r/r/r/sth/k2
 !        endwhere
 ! new version based on mathematica notebook 2/23/2015 trying to avoid denominator problems
+! changed back to version in mathematica notebook now that i am using correct initial Kap1, Kap2 and not swapped
         denom=(gam2*del1-gam1*del2)*(g33*k3+g03*k0)+(gam3*del2-gam2*del3)*g11*k1-(gam3*del1-gam1*del3)*g22*k2
-!        f1=(gam2*Kap1-del2*Kap2)*(g33*k3+g03*k0)-g22*k2*(gam3*Kap1-del3*Kap2)
-!        f2=(del1*Kap2-gam1*Kap1)*(g33*k3+g03*k0)+g11*k1*(gam3*Kap1-del3*Kap2)
-!        f3=g22*k2*(gam1*Kap1-del1*Kap2)-g11*k1*(gam2*Kap1-del2*Kap2)
-        f1=(gam2*Kap2-del2*Kap1)*(g33*k3+g03*k0)-g22*k2*(gam3*Kap2-del3*Kap1)
-        f2=(del1*Kap1-gam1*Kap2)*(g33*k3+g03*k0)+g11*k1*(gam3*Kap2-del3*Kap1)
-        f3=g22*k2*(gam1*Kap2-del1*Kap1)-g11*k1*(gam2*Kap2-del2*Kap1)
+        f1=(gam2*Kap1-del2*Kap2)*(g33*k3+g03*k0)-g22*k2*(gam3*Kap1-del3*Kap2)
+        f2=(del1*Kap2-gam1*Kap1)*(g33*k3+g03*k0)+g11*k1*(gam3*Kap1-del3*Kap2)
+        f3=g22*k2*(gam1*Kap1-del1*Kap2)-g11*k1*(gam2*Kap1-del2*Kap2)
+!        f1=(gam2*Kap2-del2*Kap1)*(g33*k3+g03*k0)-g22*k2*(gam3*Kap2-del3*Kap1)
+!        f2=(del1*Kap1-gam1*Kap2)*(g33*k3+g03*k0)+g11*k1*(gam3*Kap2-del3*Kap1)
+!        f3=g22*k2*(gam1*Kap2-del1*Kap1)-g11*k1*(gam2*Kap2-del2*Kap1)
         where(abs(denom).gt.0d0)
            f1=f1/denom
            f2=f2/denom
@@ -577,7 +578,43 @@
         end subroutine transport_perpk
 
         subroutine comoving_ortho(r,th,a,alpha,beta,mus,u,b,k, &
-         s2xi,c2xi,ang,g,cosne)
+             s2xi,c2xi,ang,g,cosne)
+        type (four_Vector), dimension(:), intent(in) :: u,b,k
+        real(kind=8), dimension(:), intent(in) :: r,th
+        real(kind=8), intent(in) :: a,alpha,beta,mus
+        real(kind=8), intent(out), dimension(size(r)) :: s2xi,c2xi, &
+             ang,g,cosne
+        type (four_vector), dimension(size(r)) :: bhat,khat,aa
+        real(kind=8), dimension(size(r),3) :: aahat
+        call comoving_ortho_core(r,th,a,alpha,beta,mus,u,b,k,s2xi, &
+             c2xi,ang,g,cosne,aa,aahat,bhat,khat)
+        return
+        end subroutine comoving_ortho
+
+        subroutine comoving_ortho_debug(r,th,a,alpha,beta,mus,u,b,k, &
+             s2xi,c2xi,ang,g,cosne,aahat,aat,aar,aath,aaph,kht,khr,khth,khph, &
+             bht,bhr,bhth,bhph)
+        type (four_Vector), dimension(:), intent(in) :: u,b,k
+        real(kind=8), dimension(:), intent(in) :: r,th
+        real(kind=8), intent(in) :: a,alpha,beta,mus
+        real(kind=8), intent(out), dimension(size(r)) :: s2xi,c2xi, &
+             ang,g,cosne
+        type (four_vector), dimension(size(r)) :: bhat,khat,aa
+        real(kind=8), dimension(size(r),3), intent(out) :: aahat
+        real(kind=8), dimension(size(r)), intent(out) :: bht,bhr,bhth,bhph, &
+             aat,aar,aath,aaph,kht,khr,khth,khph
+        call comoving_ortho_core(r,th,a,alpha,beta,mus,u,b,k,s2xi, &
+             c2xi,ang,g,cosne,aa,aahat,bhat,khat)
+        bht=bhat%data(1); bhr=bhat%data(2); bhth=bhat%data(3)
+        bhph=bhat%data(4); kht=khat%data(1); khr=khat%data(2)
+        khth=khat%data(3); khph=khat%data(4)
+        aat=aa%data(1); aar=aa%data(2); aath=aa%data(3)
+        aaph=aa%data(4)
+        return
+      end subroutine comoving_ortho_debug
+
+        subroutine comoving_ortho_core(r,th,a,alpha,beta,mus,u,b,k, &
+         s2xi,c2xi,ang,g,cosne,aa,aahat,bhat,khat)
 ! Transform four-velocity u, magnetic field b and wave-vector k to the
 ! co-moving orthonormal frame following Beckwith et al (2008) and
 ! Shcherbakov & Huang (2011)
@@ -588,8 +625,9 @@
         real(kind=8), intent(in) :: a,alpha,beta,mus
         real(kind=8), intent(out), dimension(size(r)) :: s2xi,c2xi, &
              ang,g,cosne
-        type (four_Vector), dimension(size(r)) :: uhat, &
-         bhat,khat
+        type (four_Vector), dimension(size(r)) :: uhat!, &
+!         bhat,khat
+        type (four_vector), dimension(size(r)), intent(out) :: bhat,khat,aa
         real(kind=8), dimension(size(r),10) :: metric
         real(kind=8), dimension(10,size(r)) :: tmetric
         real(kind=8), dimension(size(r)) :: gtt,gtp,grr,gmm,gpp,ut, &
@@ -599,11 +637,12 @@
              ahatr,ahatp,bdotb,bdotk,kdotk,om,om2,knorm,anorm,bpdotbp, &
              bpdotbb,aadotbp,sxi,cxi,eps,one,mone,angnorm,angmin,angmax, &
              cxitest,sxitest,xi,be1,be2
-        real(kind=8), dimension(size(r),3) :: aahat &
-           ,bbhat
-        real(kind=8), dimension(size(r),3) :: bphat
+        real(kind=8), dimension(size(r),3) :: bbhat,bphat
+!        real(kind=8), dimension(size(r),3) :: aahat &
+!           ,bbhat
+        real(kind=8), dimension(size(r),3), intent(out) :: aahat
         type (four_Vector), dimension(size(r)) :: &
-             ekt,ekr,ekm,ekp,stb,srb,spb,smb,aa,ahat
+             ekt,ekr,ekm,ekp,stb,srb,spb,smb,ahat
         integer :: i, nr, testindx
         real(kind=8) :: kap1,kap2
         one=1d0; mone=-one; angmin=-0.99d0; angmax=0.99d0
@@ -619,8 +658,12 @@
 ! Find parallel transported basis e^\th, e^ph everywhere on
 ! ray from complex Walker-Penrose constant
 ! (see 2/22/2011 notes, Chandrasekhar 1983 and CS77, CPS80)
-        Kap1=beta
-        Kap2=-alpha-a*sqrt(1.-mus*mus)
+!        Kap1=beta
+!        Kap2=-alpha-a*sqrt(1.-mus*mus)
+! JAD 10/5/2015
+! Kap1, Kap2 changed to be consistent with my math. accompanying change in transport_perpk leaves everything unchanged and makes it more clear.
+        Kap1=alpha+a*sqrt(1.-mus*mus)
+        Kap2=-beta
         if((Kap1.ne.0d0).or.(Kap2.ne.0d0)) then
           call transport_perpk(k,r,th,a,metric,Kap1,Kap2,al1,al2,al3)
         else
@@ -756,9 +799,9 @@
            write(6,*) 'NaN in comoving ortho ahat: ',aa%data(2),aa%data(3),aa%data(4)
            write(6,*) 'NaN in comoving ortho Kpw: ',Kap1,Kap2
         endif
-      end subroutine comoving_ortho
+      end subroutine comoving_ortho_core
 
-      subroutine comoving_ortho_debug(r,th,a,alpha,beta,mus,u,b,k, &
+      subroutine comoving_ortho_debug_old(r,th,a,alpha,beta,mus,u,b,k, &
          s2xi,c2xi,ang,g,aa,aahat,bhat,khat)
 ! Transform four-velocity u, magnetic field b and wave-vector k to the
 ! co-moving orthonormal frame following Beckwith et al (2008) and
@@ -978,7 +1021,7 @@
 !        write(6,*) 'sc: ',cxi*cxi+sxi*sxi
 !        write(6,*) 'ang: ',ang
         g=-1./khat%data(1)
-      end subroutine comoving_ortho_debug
+      end subroutine comoving_ortho_debug_old
 
       subroutine calc_polar_psi(r,muf,q2,a,alpha,beta,rshift,mus,p, &
            c2psi,s2psi,cosne)
@@ -1002,10 +1045,10 @@
 !      c2psi=(gammac*kappa1-beta*kappa2)/(gammac**2d0+beta**2d0)
 !      s2psi=(-gammac*kappa2-beta*kappa1)/(gammac**2d0+beta**2d0)
 ! Eric's (relative to \alpha axis)
-      num=(beta*kappa2-gammac*kappa1)/(gammac**2d0+beta**2d0)
-      denom=(-beta*kappa1-gammac*kappa2)/(gammac**2d0+beta**2d0)
+      denom=(beta*kappa2-gammac*kappa1)!/(gammac**2d0+beta**2d0)
+      num=(-beta*kappa1-gammac*kappa2)!/(gammac**2d0+beta**2d0)
 ! Eric's equation for polarpsi (seems to disagree with CPS80...)
-      polarpsi=atan2(num,denom)
+      polarpsi=atan2(denom,num)
       s2psi=sin(2d0*polarpsi); c2psi=cos(2d0*polarpsi)
 ! polarization angle for that vector transported to infinity
 !      num=-gammac*kappa2-beta*kappa1
