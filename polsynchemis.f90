@@ -739,14 +739,25 @@
       wp2=4d0*pi*n*ec**2/m
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1d3*omega0/2d0/pi/nu))
+! my slightly modified versions
       eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
      (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
       sin(theta)**2
-!      eps12=shgfunc(xarg)*wp2*omega0/(2d0*pi*nu)**3* &
-!      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
       eps12=wp2*omega0/(2d0*pi*nu)**3* &
       (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
+! s08 versions
+!      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+!     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
+!      sin(theta)**2
+!      eps12=shgfunc(xarg)*wp2*omega0/(2d0*pi*nu)**3* &
+!      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
 !      write(*,*) 'eps: ',eps11m22, eps12
+! high-frequency limits
+!      eps11m22=wp2*omega0**2/(2d0*pi*nu)**4* &
+!     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
+!      sin(theta)**2
+!      eps12=wp2*omega0/(2d0*pi*nu)**3* &
+!      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
       targ=sqrt(4d0*eps12**2+eps11m22**2)
       tp=-(eps11m22-targ)/2d0/eps12
       tm=-(eps11m22+targ)/2d0/eps12

@@ -12,7 +12,8 @@
        use ray_trace, only: save_raytrace_camera_pixel, ray_set
 !       use interpolate, only: get_weight, locate
        use phys_constants, only: GC => G, EC => E, CC => C, C2, MSUN
-       use kerr, only: comoving_ortho, calc_polar_psi, calc_kb_ang, calcg, lnrf_frame
+       use kerr, only: comoving_ortho, calc_polar_psi, calc_kb_ang, calcg, lnrf_frame, &
+            comoving_ortho_debug
        use chandra_tab24, only: interp_chandra_tab24
        use radtrans_integrate, only: integrate, del_radtrans_integrate_data, &
             init_radtrans_integrate_data, intensity
@@ -66,7 +67,9 @@
          character(len=20), intent(in) :: iname,fname,ename
          real(kind=8) :: fac
          real(kind=8), dimension(:), allocatable :: s2xi,c2xi,s2psi, &
-          rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy,vrl,vtl,vpl,cosne2
+          rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy,vrl,vtl,vpl,cosne2, &
+         aat,aar,aath,aaph,kht,khr,khth,khph,bht,bhr,bhth,bhph
+         real(kind=8), dimension(:,:), allocatable :: aahat
          real(kind=8), dimension(:,:), allocatable :: tau_arr
          integer :: k,npow,status,j,nf,nitems,m,kk,taudex,ii,nvals
          integer, dimension(:), allocatable :: inds
@@ -361,7 +364,37 @@
                           g%gk%l,g%gk%a, &
                           g%tpmarr,g%tprarr,g%gk%su,g%gk%sm,vrl,vtl,vpl)
                      deallocate(vrl); deallocate(vtl); deallocate(vpl)
+                     ! WRITE OTHER DEBUG QUANTITIES FROM COMOVING ORTHO
+                     allocate(aahat(g%npts,3)); allocate(aat(g%npts))
+                     allocate(bht(g%npts)); allocate(kht(g%npts))
+                     allocate(bhr(g%npts)); allocate(khr(g%npts)); allocate(aar(g%npts))
+                     allocate(bhth(g%npts)); allocate(khth(g%npts)); allocate(aath(g%npts))
+                     allocate(bhph(g%npts)); allocate(khph(g%npts)); allocate(aaph(g%npts))
+                     call comoving_ortho_debug(g%x%data(2),g%x%data(3),g%gk%a, &
+                          g%gk%alpha(1),g%gk%beta(1),g%gk%mu0,f%u,f%b,g%k,s2xi,c2xi, &
+                          ang,rshift,cosne,aahat,aat,aar,aath,aaph,kht,khr,khth,khph, &
+                          bht,bhr,bhth,bhph)
+                     write(9,*) s2xi
+                     write(9,*) c2xi
+                     write(9,*) aahat
+                     write(9,*) aat
+                     write(9,*) aar
+                     write(9,*) aath
+                     write(9,*) aaph
+                     write(9,*) kht
+                     write(9,*) khr
+                     write(9,*) khth
+                     write(9,*) khph
+                     write(9,*) bht
+                     write(9,*) bhr
+                     write(9,*) bhth
+                     write(9,*) bhph
                      close(unit=9)
+                     deallocate(aahat); deallocate(aat)
+                     deallocate(bht); deallocate(kht)
+                     deallocate(bhr); deallocate(khr); deallocate(aar)
+                     deallocate(bhth); deallocate(khth); deallocate(aath)
+                     deallocate(bhph); deallocate(khph); deallocate(aaph)
                   endif
 !                  call del_rad_trans(r)
            !           write(6,*) 'after rad'
