@@ -29,22 +29,27 @@ class geokerr_inputs:
 class geokerr:
     def initialize_geokerr_camera(self,**kwargs):
         self.inputs=geokerr_inputs(**kwargs)
+# test for presence of data in class_geokerr
+        if len(np.shape(class_geokerr.aarr)) > 0:
+            print 'ERROR in initialize_geokerr_camera: data already exist!'
+            return
+        else:
 # initialize camera, save outputs, and delete class_geokerr data
-        class_geokerr.init_pix_data(self.inputs.n[0]*self.inputs.n[1])
-        class_geokerr.pixel(self.inputs.standard,self.inputs.avals[0],self.inputs.avals[1],self.inputs.avals[2],self.inputs.avals[3],self.inputs.rcut,self.inputs.nrotype,self.inputs.n[0],self.inputs.n[1],self.inputs.n[2],self.inputs.uout,self.inputs.mu0,self.inputs.a)
-        self.uf = class_geokerr.ufarr.copy()
-        self.muf = class_geokerr.mufarr.copy()
-        self.tpm = class_geokerr.tpmarr.copy()
-        self.tpr = class_geokerr.tprarr.copy()
-        self.alpha = class_geokerr.aarr.copy()
-        self.beta = class_geokerr.barr.copy()
-        self.l = class_geokerr.larr.copy()
-        self.q2 = class_geokerr.q2arr.copy()
-        self.sm = class_geokerr.smarr.copy()
-        self.su = class_geokerr.suarr.copy()
-        self.u0 = class_geokerr.u0.copy()
-        self.offset = class_geokerr.offset.copy()
-        class_geokerr.del_pix_data()
+            class_geokerr.init_pix_data(self.inputs.n[0]*self.inputs.n[1])
+            class_geokerr.pixel(self.inputs.standard,self.inputs.avals[0],self.inputs.avals[1],self.inputs.avals[2],self.inputs.avals[3],self.inputs.rcut,self.inputs.nrotype,self.inputs.n[0],self.inputs.n[1],self.inputs.n[2],self.inputs.uout,self.inputs.mu0,self.inputs.a)
+            self.uf = class_geokerr.ufarr.copy()
+            self.muf = class_geokerr.mufarr.copy()
+            self.tpm = class_geokerr.tpmarr.copy()
+            self.tpr = class_geokerr.tprarr.copy()
+            self.alpha = class_geokerr.aarr.copy()
+            self.beta = class_geokerr.barr.copy()
+            self.l = class_geokerr.larr.copy()
+            self.q2 = class_geokerr.q2arr.copy()
+            self.sm = class_geokerr.smarr.copy()
+            self.su = class_geokerr.suarr.copy()
+            self.u0 = class_geokerr.u0.copy()
+            self.offset = class_geokerr.offset.copy()
+            class_geokerr.del_pix_data()
 
     def run_single_geodesic(self,i):
         if (i < 0) or (i >= self.inputs.n[0]*self.inputs.n[1]):

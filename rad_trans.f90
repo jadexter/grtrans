@@ -44,7 +44,7 @@
             if(npts.ne.1) then
                nextra=13
             else
-               nextra=5
+               nextra=7
             endif
             allocate(r%tau(nextra)); r%tau(:)=0d0
          endif
