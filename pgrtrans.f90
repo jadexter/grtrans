@@ -108,7 +108,7 @@
                if (nup.gt.1) then
                   nextra=13
                else
-                  nextra=5
+                  nextra=7
                endif
             endif
             ! these can later be added to a loop over emis parameter structures

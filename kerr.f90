@@ -531,25 +531,6 @@
 ! sign changed 8/24/2015 see notes! leads to small changes ~% usually
         del2=-a*cth*sth*(r*r+a*a)*k3+a*a*sth*cth*k0
         del3=r*a*sth*sth*k1+a*cth*sth*(r*r+a*a)*k2
-!        g1t=gam1-gam3*g11*k1/(g33*k3+g03*k0)
-!        g2t=gam2-gam3*g22*k2/(g33*k3+g03*k0)
-!        d1t=del1-del3*g11*k1/(g33*k3+g03*k0)
-!        d2t=del2+del3*g22*k2/(g33*k3+g03*k0)
-!        write(6,*) 'transport perpk denom: ',g33*k3+g03*k0
-!        write(6,*) 'transport perpk g03: ',g03
-!        write(6,*) 'transport perpk a: ',a,a.eq.0d0
-! denominators above vanish identically for mu0 = +/-1, a = 0 since k3 and g03 = 0, so use different form of solution.
-! see 2/23/2015 notes
-!        denom=g33*k3+g03*k0
-!        where(abs(k3).gt.0d0.or.abs(a).gt.0d0)
-!           f1=(Kap2+d2t/g2t*Kap1)/(d1t+g1t/g2t*d2t)
-!           f2=(Kap1-g1t*f1)/g2t
-!           f3=(-g11*f1*k1-g22*f2*k2)/(g33*k3+g03*k0)
-!        elsewhere
-!           f1=Kap1/r/k0
-!           f2=-g11/g22*k1*Kap1/r/k0/k2
-!           f3=-Kap2/r/r/r/sth/k2
-!        endwhere
 ! new version based on mathematica notebook 2/23/2015 trying to avoid denominator problems
 ! changed back to version in mathematica notebook now that i am using correct initial Kap1, Kap2 and not swapped
         denom=(gam2*del1-gam1*del2)*(g33*k3+g03*k0)+(gam3*del2-gam2*del3)*g11*k1-(gam3*del1-gam1*del3)*g22*k2
@@ -564,17 +545,6 @@
            f2=f2/denom
            f3=f3/denom
         endwhere
-!        write(6,*) 'perpk Kap: ',Kap1,Kap2
-!        write(6,*) 'perpk denom: ',denom
-!        write(6,*) 'perpk f1: ',f1
-!        write(6,*) 'perpk f2: ',f2
-!        write(6,*) 'perpk f3: ',f3
-!        write(6,*) 'perpk f1 old: ',f1o
-!        write(6,*) 'perpk f2 old: ',f2o
-!        write(6,*) 'perpk f3 old: ',f3o
-!        write(6,*) 'perpk kap test: ',Kap1,Kap2
-!        write(6,*) 'perpk kap1: ',del1*f1+del2*f2+del3*f3
-!        write(6,*) 'perpk kap2: ',gam1*f1+gam2*f2+gam3*f3
         end subroutine transport_perpk
 
         subroutine comoving_ortho(r,th,a,alpha,beta,mus,u,b,k, &

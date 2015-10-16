@@ -66,7 +66,7 @@
          integer, intent(in) :: gunit,i,l,nup, nfreq, nparams, extra, debug
          character(len=20), intent(in) :: iname,fname,ename
          real(kind=8) :: fac
-         real(kind=8), dimension(:), allocatable :: s2xi,c2xi,s2psi, &
+         real(kind=8), dimension(:), allocatable :: s2xi,c2xi,s2psi,c2psi, &
           rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy,vrl,vtl,vpl,cosne2, &
          aat,aar,aath,aaph,kht,khr,khth,khph,bht,bhr,bhth,bhph
          real(kind=8), dimension(:,:), allocatable :: aahat
@@ -262,26 +262,22 @@
                      else
 !             write(6,*) 'rshift :', size(rshift)
                         call invariant_emis(e,rshift,npow)
-!             write(6,*) 'transpol'
-!             if (e%neq==4.and.EXTRA_QUANTS==1) then
-!                allocate(s2psi(g%npts))
-!                call transpol(rshift,s2psi)
-!                write(6,*) 'after emis', e%j(:,1),e%j(:,2),e%j(:,3)
-!                call subtest()
-!             endif
 !             write(6,*) 'compute intensity'
                         call grtrans_compute_intensity()
                         if(EXTRA_QUANTS==1) then
 !                           write(6,*) 'grtrans driver extra quants npts 1'
                            allocate(s2psi(g%npts)); s2psi=0d0
+                           allocate(c2psi(g%npts)); c2psi=0d0
                            allocate(cosne2(g%npts)); cosne2=0d0
-                           call transpol(rshift,s2psi,cosne2)
+                           call transpol(rshift,s2psi,c2psi,cosne2)
                            r%tau(1)=s2xi(1)
                            r%tau(2)=s2psi(1)
                            r%tau(3)=cosne2(1)
                            r%tau(4)=ang(1)
                            r%tau(5)=cosne(1)
-                           deallocate(s2psi); deallocate(cosne2)
+                           r%tau(6)=c2xi(1)
+                           r%tau(7)=c2psi(1)
+                           deallocate(s2psi); deallocate(cosne2); deallocate(c2psi)
                         endif
                      endif
                   else
@@ -448,24 +444,14 @@
          call assign_emis_params(e,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,f%nfreq)
          end subroutine convert_model
 
-         subroutine subtest()
-! Routine to test memory allocation
-           real(kind=8), dimension(:), allocatable ::  subtest1,subtest2, &
-                subtest3, subtest4, subtest5, subtest6
-           allocate(subtest1(1)); allocate(subtest2(2)); allocate(subtest3(4))
-           allocate(subtest4(8)); allocate(subtest5(16)); allocate(subtest6(32))
-           deallocate(subtest1); deallocate(subtest2); deallocate(subtest3)
-           deallocate(subtest4); deallocate(subtest5); deallocate(subtest6)
-         end subroutine subtest
-
-         subroutine transpol(rshift,s2psi,cosne)
+         subroutine transpol(rshift,s2psi,c2psi,cosne)
 ! Subroutine to do CPS80 polarization for single points
 ! For now just uses Chandrasekhar table for degree, but could change that
 ! JAD 4/20/2012
          real(kind=8), dimension(:), intent(in) :: rshift
          real, dimension(g%npts) :: interpI,interpdel
-         real(kind=8), dimension(g%npts) :: polarpsi,c2psi
-         real(kind=8), dimension(g%npts), intent(out) :: s2psi,cosne
+         real(kind=8), dimension(g%npts) :: polarpsi
+         real(kind=8), dimension(g%npts), intent(out) :: s2psi,cosne,c2psi
 !         write(6,*) 'rmu: ',g%x%data(2), g%x%data(3)
            call calc_polar_psi(g%x%data(2),cos(g%x%data(3)), &
                   g%gk%q2,g%gk%a, &
