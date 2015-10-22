@@ -33,7 +33,7 @@ def run_test_problems(save=0):
         pickle.dump(x.spec,open('test_grtrans_sphacc_spectrum.p','wb'))
 # ffjet
     x=gr.grtrans()
-    x.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn="100,100,400",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40")
+    x.write_grtrans_inputs('inputs.in',fname='FFJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn="100,100,400",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40")
     x.run_grtrans()
     x.read_grtrans_output()
     if save==0:
@@ -65,7 +65,7 @@ def run_test_problems(save=0):
         pickle.dump(x.ivals,open('test_grtrans_thindisk.p','wb'))
 # total I w/, w/o pol
     x=gr.grtrans()
-    x.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn="100,100,400",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40")
+    x.write_grtrans_inputs('inputs.in',fname='FFJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn="100,100,400",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40")
     x.run_grtrans()
     x.read_grtrans_output()
     if save==0:

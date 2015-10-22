@@ -554,7 +554,7 @@
       nucmin=3d0/2d0*nubperp*gmin**2; nucmax=3d0/2d0*nubperp*gmax**2
       omega0=nubperp*2d0*pi; omega=nu*2d0*pi
       xmin=nu/nucmin ; xmax=nu/nucmax
-! CHANGE TO BL09 WAY TO TEST TOYJET
+! CHANGE TO BL09 WAY TO TEST FFJET
 !      xmin=1e10; xmax=1d-10
       A=(p-1d0)*nnth/(gmin**(1d0-p)-gmax**(1d0-p))
 !      write(6,*) 'x: ',xmin,xmax,p,gmin,gmax

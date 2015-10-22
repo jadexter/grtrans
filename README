@@ -33,7 +33,7 @@ Numerical inhomogeneous disk model from Dexter & Agol (2011) (toy model so compl
 x.write_grtrans_inputs('inputs.in',fname="NUMDISK",nfreq=25,nmu=1,fmin=2.41e17,fmax=6.31e18,ename="BB")
 
 Semi-analytic model for M87 jet by Broderick & Loeb (2009)
-x.write_grtrans_inputs('inputs.in',fname="TOYJET",nfreq=25,nmu=1,fmin=2.41e10,fmax=6.31e14,ename="POLSYNCHPL",nvals=4,spin=0.998,standard=1,nn=[100,100,100],uout=0.01,mbh=6.4e9)
+x.write_grtrans_inputs('inputs.in',fname="FFJET",nfreq=25,nmu=1,fmin=2.41e10,fmax=6.31e14,ename="POLSYNCHPL",nvals=4,spin=0.998,standard=1,nn=[100,100,100],uout=0.01,mbh=6.4e9)
 
 Bondi spherical accretion problem but in GR
 x.write_grtrans_inputs('inputs.in',fname="SPHACC",nfreq=25,nmu=1,fmin=2.41e10,fmax=6.31e14,ename="POLSYNCHTH",nvals=4,spin=0.,standard=1,nn=[100,100,100])
@@ -92,7 +92,7 @@ fname -- name of fluid model. Possibilities are:
 	standard=1, uout > 0.0025 (where stored numerical flow solution begins). Emission 
 	is usually synchrotron (SYNCHEMIS, POLSYNCHEMIS, SYNCHPL, POLSYNCHPL).
 
-	"TOYJET" -- Semi-analytic jet model of Broderick & Loeb (2009). Quantities are 
+	"FFJET" -- Semi-analytic jet model of Broderick & Loeb (2009). Quantities are 
 	specified numerically. Geodesic parameters are standard=1, uout > umin where umin 
 	is determined by outer radius saved for numerical solution. (WHAT IS IT IN MY DEFAULT?) 
 
