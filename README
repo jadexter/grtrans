@@ -4,7 +4,9 @@ radiative transfer via ray tracing. The code is described in Dexter (2011), and 
 
 This package contains the Fortran source code files (upper level routines in f90 with 
 geodesic calculations, integration, and some other pieces in f77). In addition to these files, 
-cfitsio must be installed. The Makefile.top.sample file should be edited and renamed to Makefile.top. It should include the desired f90 compiler and options, as well as the location of grtrans and the cfitsio library if it is not in the standard library path. The code can then be compiled with make.
+cfitsio must be installed. The Makefile.top.sample file should be edited and renamed to Makefile.top. 
+It should include the desired f90 compiler and options, as well as the location of grtrans and the
+cfitsio library if it is not in the standard library path. The code can then be compiled with make.
 
 For using the Python module, pyfits should also be installed.
 
