@@ -1,6 +1,6 @@
 This is the README file for the code grtrans, which performs polarized general relativistic 
 radiative transfer via ray tracing. The code is described in Dexter (2011), and uses geokerr 
-(Dexter & Agol 2009)
+(Dexter & Agol 2009).
 
 This package contains the Fortran source code files (upper level routines in f90 with 
 geodesic calculations, integration, and some other pieces in f77). In addition to these files, 
