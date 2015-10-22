@@ -142,7 +142,22 @@ ename -- Name of emission model. The possibilities so far are:
 
 OUTPUT FORMAT
 
-Code output is either stored in FITS or plain binary format. The output format is as follows:
+Code output is either stored in FITS or plain binary format. 
+
+When using the python as above, you can do
+
+x.read_grtrans_output()
+
+after which the intensity values will be an array x.ivals, and the spectrum will be in x.spec.
+
+In python, you could then do for example
+
+x.disp_grtrans_image(0)
+
+to view the first image, and change the argument 0 to choose different images 
+(e.g. with different observed frequencies or other parameters).
+
+The binary output format is as follows:
 
 3 integers: nx ny nvals
 1 integer: nkey
