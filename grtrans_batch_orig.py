@@ -117,10 +117,10 @@ class grtrans_inputs:
             nm.write_namelist('thindisk.in',namest,argst,valst,nargst)
             nm.write_namelist('phatdisk.in',namesp,argsp,valsp,nargsp)
         elif self.fname=='"TOYJET"':
-            namesj=['toyjet']
+            namesj=['ffjet']
             valsj=[self.jdfile]
             nargsj=[len(argsj)]
-            nm.write_namelist('toyjet.in',namesj,argsj,valsj,nargsj)
+            nm.write_namelist('ffjet.in',namesj,argsj,valsj,nargsj)
         elif self.fname=='"NUMDISK"':
             namesn=['numdisk']
             valsn=[self.ndfile,self.ntscl,self.nrscl]

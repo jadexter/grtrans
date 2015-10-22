@@ -1,11 +1,11 @@
-   module fluid_model_toyjet
+   module fluid_model_ffjet
 
       use class_four_vector
       use interpolate, only: interp
       use kerr, only: kerr_metric, lnrf_frame
       implicit none
 
-      namelist /toyjet/  dfile
+      namelist /ffjet/  dfile
 
       character(len=40) :: dfile
       real, dimension(:), allocatable :: rc_arr, thc_arr, phc_arr
@@ -21,25 +21,25 @@
       real, dimension(:), allocatable :: bph_arr
       real, dimension(:), allocatable :: aux1_arr, aux2_arr
 
-      interface init_toyjet_data
-        module procedure init_toyjet_data
+      interface init_ffjet_data
+        module procedure init_ffjet_data
       end interface
 
-      interface del_toyjet_data
-        module procedure del_toyjet_data
+      interface del_ffjet_data
+        module procedure del_ffjet_data
       end interface
 
-      interface initialize_toyjet_model
-        module procedure initialize_toyjet_model
+      interface initialize_ffjet_model
+        module procedure initialize_ffjet_model
       end interface
  
-      interface toyjet_vals
-        module procedure toyjet_vals
+      interface ffjet_vals
+        module procedure ffjet_vals
       end interface
 
       contains
 
-        subroutine toyjet_vals(x0,a,rho,p,b,u,bmag)
+        subroutine ffjet_vals(x0,a,rho,p,b,u,bmag)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         real(kind=8), dimension(size(x0)) :: done
@@ -57,7 +57,7 @@
         type (four_Vector), intent(out), dimension(size(x0)) :: u,b
         ! Computes properties of jet solution from Broderick & Loeb (2009)
         ! JAD 4/23/2010, fortran 3/30/2011
-!        write(6,*) 'toyjet: ',size(x0)
+!        write(6,*) 'ffjet: ',size(x0)
         nx1=int(sqrt(real(size(rc_arr)))); nx2=nx1; umax=nx2-1; one=1
         dzero=0d0; done=1d0; fone=1.
         ! Jet solution is symmetric about xy plane
@@ -164,42 +164,42 @@
 !        write(6,*) 'u'
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
-!        write(6,*) 'leaving toyjet vals',bmag
+!        write(6,*) 'leaving ffjet vals',bmag
 !        write(6,*) 'udotu: ',u*u
  ! Cut off emission from below eq. plane:
 !        rho=merge(rho,rho*0.,zm.ge.0)
-        end subroutine toyjet_vals
+        end subroutine ffjet_vals
 
-        subroutine read_toyjet_inputs(ifile)
+        subroutine read_ffjet_inputs(ifile)
         character(len=20), intent(in) :: ifile
         open(unit=8,file=ifile,form='formatted',status='old')
-        read(8,nml=toyjet)
+        read(8,nml=ffjet)
 !        write(6,*) 'read: ',dfile
         close(unit=8)
-        end subroutine read_toyjet_inputs
+        end subroutine read_ffjet_inputs
 
-        subroutine initialize_toyjet_model(a,ifile,df)
+        subroutine initialize_ffjet_model(a,ifile,df)
         real(kind=8), intent(in) :: a
         real :: aa
         integer :: nx, status
         real, dimension(:), allocatable :: b
         character(len=20), intent(in), optional :: ifile
         character(len=40), intent(in), optional :: df
-        character(len=20) :: default_ifile='toyjet.in'
+        character(len=20) :: default_ifile='ffjet.in'
         if (present(df)) then
            dfile = df
         else
            if (present(ifile)) then
-              call read_toyjet_inputs(ifile)
+              call read_ffjet_inputs(ifile)
            else
-              call read_toyjet_inputs(default_ifile)
+              call read_ffjet_inputs(default_ifile)
            endif
         endif
 !        dfile='m87bl09rfp10xi5a998fluidvars.bin'
-       write(6,*) 'init toyjet', dfile
+       write(6,*) 'init ffjet', dfile
         open(unit=8,file=dfile,form='unformatted',status='old')
         read(8) aa,nx
-        call init_toyjet_data(nx,nx,1,nx); allocate(b(nx))
+        call init_ffjet_data(nx,nx,1,nx); allocate(b(nx))
         read(8) rc_arr, thc_arr, rho_arr
         read(8) b, b0_arr, br_arr, bth_arr, bph_arr
         read(8) u0_arr, vr_arr, vth_arr, vph_arr
@@ -207,9 +207,9 @@
         close(8)
  !       write(6,*) 'aa: ',aa,nx,size(rho_arr)
         deallocate(b)
-        end subroutine initialize_toyjet_model
+        end subroutine initialize_ffjet_model
  
-        subroutine init_toyjet_data(nx,n,aux,auxn,td)
+        subroutine init_ffjet_data(nx,n,aux,auxn,td)
         integer, intent(in) :: n,nx
         integer, intent(in), optional :: aux,td,auxn
         allocate(rho_arr(n)); allocate(p_arr(n)); allocate(u0_arr(n))
@@ -217,16 +217,16 @@
         allocate(b0_arr(n)); allocate(br_arr(n)); allocate(bth_arr(n))
         allocate(bph_arr(n))
         allocate(rc_arr(nx)); allocate(thc_arr(nx))
-        write(6,*) 'init toyjet data: ',nx,n,aux,auxn
+        write(6,*) 'init ffjet data: ',nx,n,aux,auxn
         if(present(td)) then
           allocate(phc_arr(nx))
         endif
         if(present(aux)) then
           allocate(aux1_arr(n)); allocate(aux2_arr(n))
         endif
-        end subroutine init_toyjet_data
+        end subroutine init_ffjet_data
 
-        subroutine del_toyjet_data()
+        subroutine del_ffjet_data()
         deallocate(rho_arr); deallocate(p_arr); deallocate(u0_arr)
         deallocate(vr_arr); deallocate(vth_arr); deallocate(vph_arr)
         deallocate(b0_arr); deallocate(br_arr); deallocate(bth_arr)
@@ -235,6 +235,6 @@
         if(allocated(aux1_arr)) then
           deallocate(aux1_arr); deallocate(aux2_arr)
         endif
-        end subroutine del_toyjet_data
+        end subroutine del_ffjet_data
 
-      end module fluid_model_toyjet
+      end module fluid_model_ffjet

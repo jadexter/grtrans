@@ -48,7 +48,7 @@ def run_unit_tests(grtrans_dir='/afs/mpe.mpg.de/home/jdexter/grtrans'):
     
 
 # fluid unit tests
-    fluid_tests = ['hotspot','harm','toyjet','thickdisk']
+    fluid_tests = ['hotspot','harm','ffjet','thickdisk']
     ubtol = [1e-4, 1e-2, 1e-1, 0.4]; utol = [1e-4, 1e-2, 1e-1, 0.4]
     for i in range(len(fluid_tests)):
         print 'i: ',i,range(len(fluid_tests)),fluid_tests[i]

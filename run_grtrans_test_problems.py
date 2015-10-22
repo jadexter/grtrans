@@ -44,7 +44,7 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
             pickle.dump(xlist[-1].ivals[:,0,14],open('test_grtrans_sphacc_intensity.p','wb'))
             pickle.dump(xlist[-1].spec,open('test_grtrans_sphacc_spectrum.p','wb'))
 
-# toyjet
+# ffjet
     xlist.append(gr.grtrans())
     if pgrtrans==0:
         xlist[-1].write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
@@ -54,18 +54,18 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
-        i = pickle.load(open('test_grtrans_toyjet.p','rb'))
+        i = pickle.load(open('test_grtrans_ffjet.p','rb'))
         if pgrtrans==0:
             terr = np.sum(np.abs(xlist[-1].ivals-i))/np.sum(np.abs(i))
         else:
             terr = np.sum(np.abs(xlist[-1].ivals.transpose([1,0,2])-i))/np.sum(np.abs(i))
         print 'terr: ',terr
         if terr < tol: passed+=1
-        else: failed.append('toyjet')
+        else: failed.append('ffjet')
         max_passed+=1
     else:
-        pickle.dump(xlist[-1].ivals,open('test_grtrans_toyjet.p','wb'))
-# toyjet with delo integrator
+        pickle.dump(xlist[-1].ivals,open('test_grtrans_ffjet.p','wb'))
+# ffjet with delo integrator
     x2=gr.grtrans()
     if pgrtrans==0:
         x2.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='delo')
@@ -80,7 +80,7 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
     if terr < 0.05: passed += 1
     else: failed.append('delo')
     max_passed+=1
-# toyjet with formal rad trans solution from Degl'Innocenti (1985):
+# ffjet with formal rad trans solution from Degl'Innocenti (1985):
     x3=gr.grtrans()
     if pgrtrans==0:
         x3.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='formal')
@@ -127,7 +127,7 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
-        i = pickle.load(open('test_grtrans_toyjet.p','rb'))
+        i = pickle.load(open('test_grtrans_ffjet.p','rb'))
         if pgrtrans == 0:
             terr = np.sum(np.abs(xlist[-1].ivals[:,0,0]-i[:,0,0]))/np.sum(abs(i[:,0,0]))
         else:

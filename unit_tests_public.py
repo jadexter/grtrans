@@ -49,7 +49,7 @@ def run_unit_tests():
     
 
 # fluid unit tests
-    fluid_tests = ['hotspot','harm','toyjet']
+    fluid_tests = ['hotspot','harm','ffjet']
     ubtol = [1e-4, 1e-2, 1e-1]; utol = [1e-4, 1e-2, 1e-1]
     for i in range(len(fluid_tests)):
         print 'i: ',i,range(len(fluid_tests)),fluid_tests[i]
@@ -63,7 +63,7 @@ def run_unit_tests():
             failed.append(fluid_tests[i])
             nfailed+=1
 #os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_numdisk.f90')
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_toyjet.f90')
+#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_ffjet.f90')
 
 # emissivity tests
 #os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_emis.f90')

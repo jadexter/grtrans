@@ -1,9 +1,9 @@
 
 
-  program testtoyjet
+  program testffjet
 
   use class_four_vector
-  use fluid_model_toyjet, only: initialize_toyjet_model, toyjet_vals, del_toyjet_data
+  use fluid_model_ffjet, only: initialize_ffjet_model, ffjet_vals, del_ffjet_data
   use kerr, only: calc_rms
 
   type (four_vector), dimension(:), allocatable :: x0,b,u
@@ -40,7 +40,7 @@
 !  write(6,*) 'rtemp: ',rmin,rmax,rtemp
 !  write(6,*) 'after: ',size(r),size(z),size(r2d),size(z2d)
 
-  call initialize_toyjet_model(dble(a))
+  call initialize_ffjet_model(dble(a))
   
   write(6,*) 'after init'
 
@@ -48,7 +48,7 @@
   x0%data(1)=0.; x0%data(2)=sqrt(r*r+z*z)
   x0%data(3)=acos(z/sqrt(r*r+z*z)); x0%data(4)=0.
 
-  call toyjet_vals(x0,a,rho,p,b,u,bmag)
+  call ffjet_vals(x0,a,rho,p,b,u,bmag)
 ! Make proper arrays of rho, v, b to check with BL09
 
 !  write(6,*) 'after vals rho', rho
@@ -56,19 +56,19 @@
 
 ! Output so I can plot in IDL
 
-  open(unit=12,file='test_toyjet.out')
+  open(unit=12,file='test_ffjet.out')
   write(12,*) nr*nz, a
   write(12,*) r, z
   write(12,*) rho, p
   write(12,*) b*b
   close(unit=12)
 
-  write(6,*) 'unit test toyjet: ',maxval(abs(u*u+1.)),maxval(u*b),minval(rho)
-  open(unit=12,file='unit_test_toyjet.out')
+  write(6,*) 'unit test ffjet: ',maxval(abs(u*u+1.)),maxval(u*b),minval(rho)
+  open(unit=12,file='unit_test_ffjet.out')
   write(12,*) minval(rho), maxval(abs(u*u+1.)), maxval(abs(u*b))
   close(unit=12)
 
-  call del_toyjet_data()
+  call del_ffjet_data()
 
   deallocate(rtemp); deallocate(ztemp); deallocate(z); deallocate(r); deallocate(rho)
   deallocate(p); deallocate(b); deallocate(x0); deallocate(u); deallocate(bmag)

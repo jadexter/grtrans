@@ -583,7 +583,7 @@
       e(:,5)=ai; e(:,6)=aq; e(:,7)=0.*ai; e(:,8)=av
       e(:,9)=kstarq; e(:,10)=rhoq*0.; e(:,11)=kstarv
 
-      ! Zero out all but linear contributions for toyjet:
+      ! Zero out all but linear contributions for ffjet:
 !      e(:,4)=0.; e(:,9)=0.; e(:,11)=0.; e(:,8)=0.;
 
 !      write(6,*) 'th: ',th,sin(th),tan(th) 
