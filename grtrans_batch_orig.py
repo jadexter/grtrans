@@ -116,7 +116,7 @@ class grtrans_inputs:
             nargsp=[len(argsp)]
             nm.write_namelist('thindisk.in',namest,argst,valst,nargst)
             nm.write_namelist('phatdisk.in',namesp,argsp,valsp,nargsp)
-        elif self.fname=='"TOYJET"':
+        elif self.fname=='"FFJET"':
             namesj=['ffjet']
             valsj=[self.jdfile]
             nargsj=[len(argsj)]

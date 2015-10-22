@@ -28,7 +28,7 @@
 
       integer, parameter :: CONST=0,TAIL=1
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6,CONSTANT=7
-      integer, parameter :: COSMOS=10,MB=11,HARM=12,TOYJET=13,NUMDISK=14,THICKDISK=15,MB09=16
+      integer, parameter :: COSMOS=10,MB=11,HARM=12,FFJET=13,NUMDISK=14,THICKDISK=15,MB09=16
       integer, parameter :: SARIAF=17,POWERLAW=18
 
       type fluid
@@ -170,7 +170,7 @@
           call initialize_harm_model(a,ifile,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf)
         elseif(fname=='SPHACC') then
            call init_sphacc()
-        elseif(fname=='TOYJET') then
+        elseif(fname=='FFJET') then
     !      write(6,*) 'load'
           call initialize_ffjet_model(a,ifile,fargs%dfile)
         elseif(fname=='THINDISK') then
@@ -248,8 +248,8 @@
                  f%model=THICKDISK
               elseif(fname=='MB09') then
                  f%model=MB09
-              elseif(fname=='TOYJET') then
-                 f%model=TOYJET
+              elseif(fname=='FFJET') then
+                 f%model=FFJET
               elseif(fname=='SPHACC') then
                  f%model=SPHACC
               elseif(fname=='RIAF') then
@@ -288,7 +288,7 @@
 !            call initialize_mb_model(f)
 !          CASE (HARM) 
 !            call initialize_harm_model(f)
-!          CASE (TOYJET)
+!          CASE (FFJET)
 !      !      write(6,*) 'made it',f%model
 !            call initialize_ffjet_model(f,a)
 !        END SELECT
@@ -311,7 +311,7 @@
            call del_thickdisk_data()
         elseif(fname=='MB09') then
            call del_mb09_data()
-        elseif(fname=='TOYJET') then
+        elseif(fname=='FFJET') then
     !      write(6,*) 'load'
            call del_ffjet_data()
         elseif(fname=='PHATDISK') then
@@ -352,7 +352,7 @@
         SELECT CASE(f%model)
           CASE (SPHACC)
 !            call get_sphacc_fluidvars(x0,f)
-          CASE (TOYJET)
+          CASE (FFJET)
 !      !      write(6,*) 'made it'
 !            call get_ffjet_fluidvars(x0,real(a),f)
           CASE (THINDISK)
@@ -373,7 +373,7 @@
         SELECT CASE(f%model)
           CASE (SPHACC)
             call get_sphacc_fluidvars(x0,f)
-          CASE (TOYJET)
+          CASE (FFJET)
       !      write(6,*) 'made it'
             call get_ffjet_fluidvars(x0,real(a),f)
           CASE (THINDISK)
@@ -412,7 +412,7 @@
         SELECT CASE(f%model)
           CASE (SPHACC)
             call convert_fluidvars_sphacc(f,ncgs,ncgsnth,bcgs,tcgs,sp)
-          CASE (TOYJET)
+          CASE (FFJET)
             call convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (THINDISK)
             call convert_fluidvars_thindisk(f,tcgs,ncgs)

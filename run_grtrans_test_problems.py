@@ -47,11 +47,11 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
 # ffjet
     xlist.append(gr.grtrans())
     if pgrtrans==0:
-        xlist[-1].write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
+        xlist[-1].write_grtrans_inputs('inputs.in',fname='FFJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
         xlist[-1].run_grtrans()
         xlist[-1].read_grtrans_output()
     else:
-        xlist[-1].run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
+        xlist[-1].run_pgrtrans(fname='FFJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
         i = pickle.load(open('test_grtrans_ffjet.p','rb'))
@@ -68,11 +68,11 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
 # ffjet with delo integrator
     x2=gr.grtrans()
     if pgrtrans==0:
-        x2.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='delo')
+        x2.write_grtrans_inputs('inputs.in',fname='FFJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='delo')
         x2.run_grtrans()
         x2.read_grtrans_output()
     else:
-        x2.run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='delo')
+        x2.run_pgrtrans(fname='FFJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='delo')
         x2.calc_spec_pgrtrans((np.shape(x2.ivals))[2])
     terr=10.
     terr = np.max(np.abs(x2.spec - xlist[-1].spec)/xlist[-1].spec)
@@ -83,11 +83,11 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
 # ffjet with formal rad trans solution from Degl'Innocenti (1985):
     x3=gr.grtrans()
     if pgrtrans==0:
-        x3.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='formal')
+        x3.write_grtrans_inputs('inputs.in',fname='FFJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='formal')
         x3.run_grtrans()
         x3.read_grtrans_output()
     else:
-        x3.run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='formal')
+        x3.run_pgrtrans(fname='FFJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,1600],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],iname='formal')
         x3.calc_spec_pgrtrans((np.shape(x3.ivals))[2])
     terr=10.
     terr = np.max(np.abs(x3.spec - xlist[-1].spec)/xlist[-1].spec)
@@ -119,12 +119,12 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         pickle.dump(xlist[-1].ivals,open('test_grtrans_thindisk.p','wb'))
 # total I w/, w/o pol
     xlist.append(gr.grtrans())
-    xlist[-1].write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
+    xlist[-1].write_grtrans_inputs('inputs.in',fname='FFJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
     if pgrtrans==0:
         xlist[-1].run_grtrans()
         xlist[-1].read_grtrans_output()
     else:
-        xlist[-1].run_pgrtrans(fname='TOYJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
+        xlist[-1].run_pgrtrans(fname='FFJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40])
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
         i = pickle.load(open('test_grtrans_ffjet.p','rb'))
