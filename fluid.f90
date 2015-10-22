@@ -8,8 +8,8 @@
       use fluid_model_sariaf, only: sariaf_vals, init_sariaf, del_sariaf
       use fluid_model_powerlaw, only: powerlaw_vals, init_powerlaw, del_powerlaw
       use fluid_model_constant, only: constant_vals, init_constant
-      use fluid_model_toyjet, only: initialize_toyjet_model, del_toyjet_data, &
-                                    toyjet_vals
+      use fluid_model_ffjet, only: initialize_ffjet_model, del_ffjet_data, &
+                                    ffjet_vals
       use fluid_model_phatdisk, only: phatdisk_vals, init_phatdisk, del_phatdisk, freq_tab
       use fluid_model_thindisk, only: thindisk_vals, init_thindisk
       use fluid_model_numdisk, only: initialize_numdisk_model, del_numdisk_data, &
@@ -172,7 +172,7 @@
            call init_sphacc()
         elseif(fname=='TOYJET') then
     !      write(6,*) 'load'
-          call initialize_toyjet_model(a,ifile,fargs%dfile)
+          call initialize_ffjet_model(a,ifile,fargs%dfile)
         elseif(fname=='THINDISK') then
           call init_thindisk(real(a),ifile,real(fargs%mdot),real(fargs%mbh))
         elseif(fname=='PHATDISK') then
@@ -290,7 +290,7 @@
 !            call initialize_harm_model(f)
 !          CASE (TOYJET)
 !      !      write(6,*) 'made it',f%model
-!            call initialize_toyjet_model(f,a)
+!            call initialize_ffjet_model(f,a)
 !        END SELECT
 !        end subroutine initialize_num_fluid_model
 
@@ -313,7 +313,7 @@
            call del_mb09_data()
         elseif(fname=='TOYJET') then
     !      write(6,*) 'load'
-           call del_toyjet_data()
+           call del_ffjet_data()
         elseif(fname=='PHATDISK') then
            call del_phatdisk()
         elseif(fname=='NUMDISK') then
@@ -354,13 +354,13 @@
 !            call get_sphacc_fluidvars(x0,f)
           CASE (TOYJET)
 !      !      write(6,*) 'made it'
-!            call get_toyjet_fluidvars(x0,real(a),f)
+!            call get_ffjet_fluidvars(x0,real(a),f)
           CASE (THINDISK)
 !            call initialize_thindisk_model(f)
           CASE (HOTSPOT) 
 !            call initialize_hotspot_model(f)
           CASE (RIAF)
-!            call initialize_toyjet_model(f)
+!            call initialize_ffjet_model(f)
           CASE (DUMMY)
         END SELECT
         end subroutine get_fluid_vars_single
@@ -375,7 +375,7 @@
             call get_sphacc_fluidvars(x0,f)
           CASE (TOYJET)
       !      write(6,*) 'made it'
-            call get_toyjet_fluidvars(x0,real(a),f)
+            call get_ffjet_fluidvars(x0,real(a),f)
           CASE (THINDISK)
             call get_thindisk_fluidvars(x0,k0,real(a),f)
           CASE (PHATDISK)
@@ -413,7 +413,7 @@
           CASE (SPHACC)
             call convert_fluidvars_sphacc(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (TOYJET)
-            call convert_fluidvars_toyjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+            call convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (THINDISK)
             call convert_fluidvars_thindisk(f,tcgs,ncgs)
           CASE(PHATDISK)
@@ -534,15 +534,15 @@
 !        write(6,*) 'udotu: ',f%u*f%u,omega,f%u%data(1),r,rms
         end subroutine get_phat_fluidvars
 
-        subroutine get_toyjet_fluidvars(x0,a,f)
+        subroutine get_ffjet_fluidvars(x0,a,f)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         type (fluid), intent(inout) :: f
         ! Computes properties of jet solution from Broderick & Loeb (2009)
         ! JAD 4/23/2010, fortran 3/30/2011
-        call toyjet_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
-!        write(6,*) 'toyjet u: ',f%u*f%u, f%b*f%b
-        end subroutine get_toyjet_fluidvars
+        call ffjet_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
+!        write(6,*) 'ffjet u: ',f%u*f%u, f%b*f%b
+        end subroutine get_ffjet_fluidvars
 
         subroutine get_harm_fluidvars(x0,a,f)
         type (four_Vector), intent(in), dimension(:) :: x0
@@ -690,7 +690,7 @@
 !        write(6,*) 'convert bh: ',tcgs,lcgs
         end subroutine convert_fluidvars_harm
 
-        subroutine convert_fluidvars_toyjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+        subroutine convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
         real(kind=8), dimension(size(f%rho)), &
           intent(out) :: ncgs,ncgsnth,bcgs,tcgs
@@ -698,7 +698,7 @@
         !real :: bfac=70., nfac=2.
 !        write(6,*) 'sp: ',sp%nfac, sp%bfac
         ncgsnth=f%rho*sp%nfac; bcgs=f%bmag*sp%bfac; ncgs=0.; tcgs=0.
-        end subroutine convert_fluidvars_toyjet
+        end subroutine convert_fluidvars_ffjet
 
         subroutine convert_fluidvars_hotspot(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f

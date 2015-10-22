@@ -31,22 +31,22 @@ def run_test_problems(save=0):
     else:
         pickle.dump(x.ivals[:,0,14],open('test_grtrans_sphacc_intensity.p','wb'))
         pickle.dump(x.spec,open('test_grtrans_sphacc_spectrum.p','wb'))
-# toyjet
+# ffjet
     x=gr.grtrans()
     x.write_grtrans_inputs('inputs.in',fname='TOYJET',jdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn="100,100,400",uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals="-40,20,-20,40")
     x.run_grtrans()
     x.read_grtrans_output()
     if save==0:
-        i = pickle.load(open('test_grtrans_toyjet.p','rb'))
+        i = pickle.load(open('test_grtrans_ffjet.p','rb'))
  #       x.ivals = np.where(x.ivals==x.ivals,x.ivals,np.zeros(np.shape(x.ivals)))
  #       i = np.where(i==i,i,np.zeros(np.shape(i)))
         terr = np.sum(np.abs(x.ivals-i))/np.sum(np.abs(i))
         print 'terr: ',terr
         if terr < tol: passed+=1
-        else: failed.append('toyjet')
+        else: failed.append('ffjet')
         max_passed+=1
     else:
-        pickle.dump(x.ivals,open('test_grtrans_toyjet.p','wb'))
+        pickle.dump(x.ivals,open('test_grtrans_ffjet.p','wb'))
 # thindisk
     x=gr.grtrans()
     x.write_grtrans_inputs('inputs.in',fname='THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='BBPOL',nvals=4,spin=0.9,standard=2,nn="100,100,1",uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals="-21,21,-21,21")
@@ -69,7 +69,7 @@ def run_test_problems(save=0):
     x.run_grtrans()
     x.read_grtrans_output()
     if save==0:
-        i = pickle.load(open('test_grtrans_toyjet.p','rb'))
+        i = pickle.load(open('test_grtrans_ffjet.p','rb'))
 #        x.ivals = np.where(x.ivals==x.ivals,x.ivals,np.zeros(np.shape(x.ivals)))
 #        i = np.where(i==i,i,np.zeros(np.shape(i)))
         terr = np.sum(np.abs(x.ivals[:,0,0]-i[:,0,0]))/np.sum(abs(i[:,0,0]))
