@@ -127,7 +127,7 @@
         *a%data(3)+ &
         a%metric(4)*a%data(4),a%metric(2)*a%data(1)+a%metric(5)* &
         a%data(2)+a%metric(6)* &
-        a%data(3)+a%metric(7)*a%data(4),a%metric(2)*a%data(1)+ &
+        a%data(3)+a%metric(7)*a%data(4),a%metric(3)*a%data(1)+ &
         a%metric(6)*a%data(2)+ &
         a%metric(8)*a%data(3)+a%metric(9)*a%data(4),a%metric(4)* &
         a%data(1)+a%metric(7)* &

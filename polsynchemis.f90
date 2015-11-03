@@ -786,7 +786,7 @@
 !      write(6,*) 'ai: ',ai, e(:,5), e(:,1), ji
  !     write(6,*) 'reshape: ',maxval(emis(:,1)), maxval(emis(:,5))
       if(any(isnan(jq))) then
-         write(6,*) 'NaN in polsynchemis.f'
+         write(6,*) 'NaN in polsynchemis.f90'
          write(6,*) 'xm: ',xm
          write(6,*) 'iqx: ',iqx(xm)
          write(6,*) 'bnutnu: ',bnutnu
