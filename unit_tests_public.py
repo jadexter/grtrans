@@ -5,14 +5,13 @@ import os
 import numpy as np
 import grtrans_batch as gr
 
-def run_unit_tests():
+def run_unit_tests(grtrans_dir='/afs/mpe.mpg.de/home/jdexter/grtrans'):
 
     failed = []
     nfailed = 0
-    grtrans_dir='/Users/Jason/code/grtrans'
 
 # compile grtrans as library
-    os.system('make lib')
+    os.system('make all')
 
 # first is inputs unit test
 #    geotol=1e-3; geokerrtol=1e-6
@@ -35,9 +34,9 @@ def run_unit_tests():
     angtol=1e-2; dottol=1e-6
     x=gr.grtrans()
 # write appropriate inputs for comparison to geokerr
-    x.write_grtrans_inputs('inputs.in',fname='"THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='"BBPOL',nvals=4,spin=0.9,standard=2,nn="100,100,1",uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals="-21,21,-21,21")
+    x.write_grtrans_inputs('inputs.in',fname='THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='BBPOL',nvals=4,spin=0.9,standard=2,nn=[100,100,1],uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals=[-21,21,-21,21])
     os.system('rm unit_test_kerr.out')
-    os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_kerr.f90')
+    os.system('gfortran test_kerr.f90 -L'+grtrans_dir+' -lgrtrans')
     os.system('./a.out')
     maxang,maxangdiff,kdotk,kdota,perpk = np.loadtxt('unit_test_kerr.out')
     if maxang > angtol or maxangdiff > dottol or kdotk > dottol or kdota > dottol or perpk > dottol:
@@ -49,12 +48,13 @@ def run_unit_tests():
     
 
 # fluid unit tests
-    fluid_tests = ['hotspot','harm','ffjet']
-    ubtol = [1e-4, 1e-2, 1e-1]; utol = [1e-4, 1e-2, 1e-1]
+    fluid_tests = ['hotspot','harm','ffjet','thickdisk']
+    ubtol = [1e-4, 1e-2, 1e-1, 0.4]; utol = [1e-4, 1e-2, 1e-1, 0.4]
     for i in range(len(fluid_tests)):
         print 'i: ',i,range(len(fluid_tests)),fluid_tests[i]
         os.system('rm unit_test_'+fluid_tests[i]+'.out')
-        os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_'+fluid_tests[i]+'.f90')
+        os.system('cp '+fluid_tests[i]+'.in.dist '+fluid_tests[i]+'.in')
+        os.system('gfortran test_'+fluid_tests[i]+'.f90 -L'+grtrans_dir+' -lgrtrans')
         os.system('./a.out')
         minn, maxnorm, maxub = np.loadtxt('unit_test_'+fluid_tests[i]+'.out')
         print 'vals: ',minn, maxnorm, maxub
@@ -62,14 +62,6 @@ def run_unit_tests():
             print 'Error in '+fluid_tests[i]+' unit test!'
             failed.append(fluid_tests[i])
             nfailed+=1
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_numdisk.f90')
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_ffjet.f90')
-
-# emissivity tests
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_emis.f90')
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_interpemis.f90')
-#os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_interpemis_phatdisk.f90')
-
 # integration tests
 
     if nfailed==0: print 'Passed all unit tests!'
