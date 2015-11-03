@@ -5,30 +5,13 @@ import os
 import numpy as np
 import grtrans_batch as gr
 
-def run_unit_tests(grtrans_dir='/afs/mpe.mpg.de/home/jdexter/grtrans'):
+def run_unit_tests(grtrans_dir=''):
 
     failed = []
     nfailed = 0
 
 # compile grtrans as library
     os.system('make all')
-
-# first is inputs unit test
-#    geotol=1e-3; geokerrtol=1e-6
-# run geokerr for test case
-#    os.system('geokerr < geokerr_unit_test1.in > geokerr_unit_test1.out')
-#    os.system('geokerr < geokerr_unit_test2.in > geokerr_unit_test2.out')
-#    x=gr.grtrans()
-# write appropriate inputs for comparison to geokerr
-#    x.write_grtrans_inputs()
-#    os.system('rm unit_test_geo.out')
-#    os.system('gfortran -L'+grtrans_dir+' -lgrtrans test_geo.f90')
-#    os.system('./a.out')
-#    maxgeodiff,maxgeokerrdiff1,maxgeokerrdiff2 = np.loadtxt('unit_test_geo.out')
-#    if maxgeodiff > geotol or maxgeokerrdiff1 > geokerrtol or maxgeokerrdiff2 > geokerrtol:
-#        print 'Error in geodesics unit test!'
-#        failed.append('geodesics')
-#        nfailed+=1
 
 # kerr tests: parallel transport of pol, consistency check between two pol methods
     angtol=1e-2; dottol=1e-6
@@ -48,7 +31,7 @@ def run_unit_tests(grtrans_dir='/afs/mpe.mpg.de/home/jdexter/grtrans'):
     
 
 # fluid unit tests
-    fluid_tests = ['hotspot','harm','ffjet','thickdisk']
+    fluid_tests = ['hotspot','harm','ffjet']
     ubtol = [1e-4, 1e-2, 1e-1, 0.4]; utol = [1e-4, 1e-2, 1e-1, 0.4]
     for i in range(len(fluid_tests)):
         print 'i: ',i,range(len(fluid_tests)),fluid_tests[i]
