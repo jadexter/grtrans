@@ -5,14 +5,18 @@ import os
 import numpy as np
 import grtrans_batch as gr
 
-def run_unit_tests(grtrans_dir=''):
+def run_unit_tests(grtrans_dir='',compile=0):
 
     failed = []
     nfailed = 0
 
-# compile grtrans as library
-    os.system('make all')
+    if compile==1:
+# compile grtrans library
+        os.system('make all')
 
+
+    if grtrans_dir=='':
+        grtrans_dir = os.getcwd()
 # kerr tests: parallel transport of pol, consistency check between two pol methods
     angtol=1e-2; dottol=1e-6
     x=gr.grtrans()
