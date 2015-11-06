@@ -4,5 +4,5 @@ USEGNU=1
 DEBUG=0
 XEONPHI=0
 PROFILE=0
-CFITSIODIR=/path/to/cfitsio
-GRTRANSDIR=/path/to/grtrans
+CFITSIODIR=/afs/mpe.mpg.de/u/jdexter/cfitsio
+GRTRANSDIR=/afs/mpe.mpg.de/u/jdexter/grtrans/public/grtrans
