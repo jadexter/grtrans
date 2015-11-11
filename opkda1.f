@@ -10,7 +10,6 @@ C***DESCRIPTION
 C *Usage:
 C        DOUBLE PRECISION  A, DUMACH
 C        A = DUMACH()
-C
 C *Function Return Values:
 C     A : the unit roundoff of the machine.
 C

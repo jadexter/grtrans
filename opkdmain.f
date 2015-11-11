@@ -1,4 +1,3 @@
-C      include 'omp_lib.h'
 
 *DECK DLSODE
       SUBROUTINE DLSODE (F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK,

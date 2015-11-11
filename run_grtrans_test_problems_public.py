@@ -178,9 +178,9 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
 #        else:
 #            terr = np.sum(np.abs(xlist[-1].ivals[0,:,0]-i[0,:,0]))/np.sum(abs(i[0,:,0]))
         if pgrtrans==0:
-            terr = np.sum(np.abs(xlist[-1].ivals.transpose([1,0,2])-i))/np.sum(np.abs(i))
-        else:
             terr = np.sum(np.abs(xlist[-1].ivals-i))/np.sum(np.abs(i))
+        else:
+            terr = np.sum(np.abs(xlist[-1].ivals.transpose([1,0,2])-i))/np.sum(np.abs(i))
         print 'terr: ',terr
         if terr < tol: passed+=1
         else: failed.append('toroidal')

@@ -209,7 +209,8 @@
                         r%I(1:r%neq,1:r%npts) = intensity(1:r%neq,1:r%npts)
 !                        call del_radtrans_integrate_data()
 !                        write(6,*) 'integrate: ',g%npts,r%neq,r%npts,r%I(1,r%npts)
-                        r%I=r%I*fac
+! added factor of LBH for cgs intensity units ergs / cm^2 / s / Hz / ster
+                        r%I=r%I*fac*LBH
 !                        write(6,*) 'grtrans driver extra quants: ',EXTRA_QUANTS,r%npts
                         if (EXTRA_QUANTS==1) then
 !                           if(r%npts.gt.1) then
@@ -335,10 +336,10 @@
                      write(9,*) e%K(:,4)
                      write(9,*) e%K(:,5)
                      write(9,*) e%K(:,7)
-                     write(9,*) r%I(1,:)/fac
-                     write(9,*) r%I(2,:)/fac
-                     write(9,*) r%I(3,:)/fac
-                     write(9,*) r%I(4,:)/fac
+                     write(9,*) r%I(1,:)/fac/LBH
+                     write(9,*) r%I(2,:)/fac/LBH
+                     write(9,*) r%I(3,:)/fac/LBH
+                     write(9,*) r%I(4,:)/fac/LBH
                      write(9,*) tau
                      write(9,*) e%j(:,3)
                      write(9,*) e%K(:,3)

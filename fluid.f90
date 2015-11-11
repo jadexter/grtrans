@@ -7,7 +7,6 @@
       use fluid_model_sphacc, only: sphacc_vals, init_sphacc, del_sphacc
       use fluid_model_sariaf, only: sariaf_vals, init_sariaf, del_sariaf
       use fluid_model_powerlaw, only: powerlaw_vals, init_powerlaw, del_powerlaw
-      use fluid_model_constant, only: constant_vals, init_constant
       use fluid_model_ffjet, only: initialize_ffjet_model, del_ffjet_data, &
                                     ffjet_vals
       use fluid_model_phatdisk, only: phatdisk_vals, init_phatdisk, del_phatdisk, freq_tab
@@ -27,7 +26,7 @@
       implicit none
 
       integer, parameter :: CONST=0,TAIL=1
-      integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6,CONSTANT=7
+      integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6
       integer, parameter :: COSMOS=10,MB=11,HARM=12,FFJET=13,NUMDISK=14,THICKDISK=15,MB09=16
       integer, parameter :: SARIAF=17,POWERLAW=18
 
@@ -189,8 +188,6 @@
         elseif(fname=='SCHNITTMAN') then
            call init_schnittman_hotspot(ifile,real(fargs%rspot),real(fargs%r0spot) &
                 ,real(fargs%n0spot))
-        elseif(fname=='CONSTANT') then
-           call init_constant()
         endif
         end subroutine load_fluid_model
 
@@ -258,8 +255,6 @@
                  f%model=HOTSPOT
               elseif(fname=='SCHNITTMAN') then
                  f%model=SCHNITTMAN
-              elseif(fname=='CONSTANT') then
-                 f%model=CONSTANT
               elseif(fname=='SARIAF') then
                  allocate(f%rho2(nup))
                  f%model=SARIAF !alwinremark
@@ -392,8 +387,6 @@
              call get_thickdisk_fluidvars(x0,real(a),f)
           CASE (MB09)
              call get_mb09_fluidvars(x0,real(a),f)
-          CASE (CONSTANT)
-             call get_constant_fluidvars(x0,real(a),f)
           CASE (SARIAF)
              call get_sariaf_fluidvars(x0,real(a),f) !alwinremark this exists below
           CASE (POWERLAW)
@@ -430,8 +423,6 @@
              call convert_fluidvars_thickdisk(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (MB09)
              call convert_fluidvars_mb09(f,ncgs,ncgsnth,bcgs,tcgs,sp)
-          CASE (CONSTANT)
-             call convert_fluidvars_constant(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (SARIAF)
              call convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp) !alwinremark exists below
           CASE (POWERLAW)
@@ -802,20 +793,6 @@
         f%rho = dble(n)
         f%bmag = sqrt(f%b*f%b)
         end subroutine get_hotspot_fluidvars
-        
-        subroutine get_constant_fluidvars(x0,a,f)
-        type (fluid), intent(inout) :: f
-        real, intent(in) :: a
-        type (four_vector), dimension(:), intent(in) :: x0
-        real, dimension(size(x0)) :: u,n,B,T
-        u = 1./x0%data(2)
-        call constant_vals(u,n,B,T)
-        f%rho = dble(n)
-        f%bmag = B
-        f%p = T
-! magnetic field direction
-        f%u = 0.
-        end subroutine get_constant_fluidvars
 
         subroutine get_schnittman_hotspot_fluidvars(x0,a,f)
         type (fluid), intent(inout) :: f
@@ -868,15 +845,6 @@
         f%bmag = sqrt(f%b*f%b)
 !        write(6,*) 'schnittman bmag u*u: ',f%u*f%u,f%bmag
         end subroutine get_schnittman_hotspot_fluidvars
-
-        subroutine convert_fluidvars_constant(f,ncgs,ncgsnth,bcgs,tcgs,sp)
-        type (fluid), intent(in) :: f
-        real(kind=8), dimension(size(f%rho)), &
-          intent(out) :: ncgs,ncgsnth,bcgs,tcgs
-        type (source_params), intent(in) :: sp
-        ncgs=f%rho; bcgs=f%bmag; ncgsnth=f%rho
-        tcgs=f%p
-        end subroutine convert_fluidvars_constant
 
         subroutine get_sariaf_fluidvars(x0,a,f)
 !Semi-analytic RIAF model currently in progress. Inputs
