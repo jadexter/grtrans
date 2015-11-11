@@ -2,14 +2,12 @@ import os
 import namelist as nm
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import pylab
+#import matplotlib.image as mpimg
 import pyfits
-import glob
 # f2py grtrans module
 from pgrtrans import pgrtrans
 from time import time
-pylab.ion()
+plt.ion()
 
 def flatten(l):
     if isinstance(l,list):
