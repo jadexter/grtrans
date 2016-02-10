@@ -66,7 +66,8 @@ mumin, mumax, nmu -- Minimum/maximum/number of mu = cos(i) of observer camera(s)
 
 spin -- dimensionless black hole spin -1 < spin < 1.
 
-uout, uin -- When standard=1, npts points are saved evenly spaced between uout and uin. uout should correspond to the outermost location to use for calculating radiation, and uin=1 traces up to the event horizon.
+uout, uin -- When standard=1, npts points are saved evenly spaced between uout and uin. uout should correspond to the outermost
+ location to use for calculating radiation, and uin=1 traces up to the event horizon.
 
 rcut, nrotype -- camera shape parameters, should = 1.0, 2.
 
@@ -75,6 +76,42 @@ gridvals -- Camera extent in impact parameters alpha and beta.
 nn -- number of x pixels, y pixels, and points along each pixel (npts). The camera pixel spacing
 is set by (gridvals(2)-gridvals(1))/nn(1), (gridvals(4)-gridvals(3))/nn(2). The geodesic 
 resolution is similarly (uout-uin)/nn(3) when standard=1.
+
+i1, i2 -- starting and ending geodesic index. By default these values are 1 and nn(1)*nn(2) so 
+that intensities will be calculated for the entire camera. Instead setting these values to span
+a smaller range is useful for debugging (e.g. i1=i2=some index that is of interest to study in detail).
+
+extra -- output a large number of quantities as function of geodesic position to the file geodebug.out. 
+This is used for debugging, especially in combination with i1=i2 to run only a single geodesic and 
+study the output in detail. The current variables that are output to that file can be found in 
+read_geodebug_file.py and used in python as e.g. import read_geodebug_file as d after the file is created.
+
+debug -- calculates "images" of many other ray-averaged or ray-integrated quantities, which are stored 
+in the output as though they are additional Stokes parameters. These are:
+
+\tau_I
+\tau_Q
+\tau_U
+\tau_V
+\tau_\rhoQ
+\tau_\rhoV
+
+which are the total optical depth along the ray for the transfer coefficients \alpha_I,Q,U,V and \rho_Q,V.
+In addition the following quantities are unpolarized Stokes I intensity weighted, e.g. 
+
+xbar = \int d\lambda x(\lambda) j e^-\tau / \int d\lambda j e^-\tau
+
+for the quantities x, which are:
+
+r
+\theta
+\phi
+n
+T_e
+B
+\beta
+
+and the last quantity is \beta = p_gas / p_mag.
 
 fluiddata -- Fluid model related parameters
 
@@ -145,6 +182,10 @@ ename -- Name of emission model. The possibilities so far are:
       "EMISTABLE" -- Interpolation of emissivity to fluid variables e.g. n, B, T for synchrotron
       radiation for arbitrary distribution function. Could calculate table in advance and store,
       then use EMISTABLE to calculate at observed frequency and fluid vars.
+
+Each fluid model and emissivity has associated parameters, e.g. for specifying the accretion rate
+onto the black hole for a numerical simulation or the cutoff Lorentz factors for synchrotron emission
+from a power law distributed population of electrons.
 
 OUTPUT FORMAT
 
