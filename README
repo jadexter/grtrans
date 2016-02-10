@@ -1,6 +1,6 @@
 This is the README file for the code grtrans, which performs polarized general relativistic 
-radiative transfer via ray tracing. The code is described in Dexter (2015), and uses geokerr 
-(Dexter & Agol 2009).
+radiative transfer via ray tracing. The code is described in Dexter (2016), and uses geokerr 
+(Dexter & Agol 2009). If you use grtrans in your own work, please cite those two papers.
 
 This package contains the Fortran source code files (upper level routines in f90 with 
 geodesic calculations, integration, and some other pieces in f77). In addition to these files, 
@@ -9,6 +9,15 @@ It should include the desired f90 compiler and options, as well as the location 
 cfitsio library if it is not in the standard library path. The code can then be compiled with make.
 
 For using the Python module, pyfits should also be installed.
+
+QUICK START
+
+Examples of running the code can be found in run_grtrans_test_problems_public.py. The examples called 
+THINDISK, BL09JET, and HARM were used to make Figures 5, 6, and 8 respectively (although for the HARM 
+problem with polarization the argument nvals=4 is needed to use all 4 Stokes parameters).
+
+The test problems script uses both of the methods for running grtrans through Python, as its own module 
+(pgrtrans) or by using input files. See below for more detailed instructions and information on variable names.
 
 RUNNING GRTRANS WITH PYTHON SCRIPT
 
@@ -43,9 +52,7 @@ which contain the alpha and beta values of the image (camera pixel locations in 
 
 INPUT PARAMETERS
 
-There are several code input files, each of which uses Fortran namelists.
-
- The file files.in tells the code the name of the input and output files, set in the python script by iname and oname and using the method set_grtrans_input_file(iname,oname).
+The file files.in tells the code the name of the input and output files, set in the python script by iname and oname and using the method set_grtrans_input_file(iname,oname).
 
 The main input file has the following namelists / variables:
 
@@ -154,7 +161,9 @@ In python, you could then do for example
 x.disp_grtrans_image(0)
 
 to view the first image, and change the argument 0 to choose different images 
-(e.g. with different observed frequencies or other parameters).
+(e.g. with different observed frequencies or other parameters). There is also an optional keyword 
+'stokes' to view images of different Stokes parameters in Python (e.g., 
+x.disp_grtrans_image(0,stokes=2) for Stokes U).
 
 The binary output format is as follows:
 
@@ -166,6 +175,14 @@ nvals*nx*ny floats: ivals
 
 This pattern repeats for each observed frequency and mu=cos(i) value. An example for reading 
 the plain binary is in grtrans_batch.py read_grtrans_output(). 
+
+RUNNING GRTRANS DIRECTLY THROUGH PYTHON WITH F2PY
+
+Instead of using input files, the code can be compiled as a Python module called pgrtrans ('make pgrtrans'). 
+Once compiled, all of the above runs can instead be carried out directly within Python by using pgrtrans objects. 
+
+The keywords passed to write_grtrans_inputs() above can instead be passed directly to run_pgrtrans(). Examples of
+this usage can be found e.g. in run_grtrans_test_problems_public.py.
 
 CODE STRUCTURE
 
