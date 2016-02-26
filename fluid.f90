@@ -277,28 +277,6 @@
 !        if(f%model.gt.NUM_MODEL) call initialize_num_fluid_model(f,a)
         end subroutine initialize_fluid_model
  
-!        subroutine initialize_num_fluid_model(f,a)
-!        real(kind=8), intent(in) :: a
-!        type (fluid), intent(inout) :: f
-!  !      write(6,*) 'fnm: ',f%model
-!        SELECT CASE (f%model)
-!          CASE (COSMOS)
-!            call initialize_cosmos_model(f)
-!          CASE (MB)
-!            call initialize_mb_model(f)
-!          CASE (HARM) 
-!            call initialize_harm_model(f)
-!          CASE (FFJET)
-!      !      write(6,*) 'made it',f%model
-!            call initialize_ffjet_model(f,a)
-!        END SELECT
-!        end subroutine initialize_num_fluid_model
-
-!        subroutine del_num_fluid_model(f)
-!        type (fluid), intent(inout) :: f
-!        call del_fluid_data
-!        end subroutine del_num_fluid_model
-
         subroutine unload_fluid_model(fname)
         character(len=20), intent(in) :: fname
         if(fname=='COSMOS') then
