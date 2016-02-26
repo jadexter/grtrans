@@ -204,7 +204,7 @@ x.disp_grtrans_image(0)
 to view the first image, and change the argument 0 to choose different images 
 (e.g. with different observed frequencies or other parameters). There is also an optional keyword 
 'stokes' to view images of different Stokes parameters in Python (e.g., 
-x.disp_grtrans_image(0,stokes=2) for Stokes U).
+x.disp_grtrans_image(0,2) for Stokes U from the first image calculated).
 
 The binary output format is as follows:
 

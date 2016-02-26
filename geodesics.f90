@@ -120,7 +120,7 @@
          gargs%kext=0; gargs%next=0; gargs%mufill=0
          call initialize_geodesic(g,gargs,i,status)
 !         write(6,*) 'call get_geo_tabs'
-         call get_geo_tabs(g,t0,0)
+         call get_geo_tabs(g,t0)
          gargs%t0(i)=t0(1)
 !         write(6,*) 'gargs assign: ',i,gargs%t0(i)
          call del_geodesic(g)
@@ -344,13 +344,6 @@
 !            write(6,*) 'geo phi: ',g%x%data(4),sign(1d0,g%gk%mu0),atan(g%gk%beta(1),g%gk%alpha(1))
 !            write(6,*) 'geo mu: ', MUFI(i1:i2)
          endif
-! Klugey fix for the initial sign / turning point number rarely
-! getting messed up from geokerr:
-!         if (sign(1d0,mufi(2)-mufi(1)).eq.sign(1d0,mufi(3)-mufi(2))) then 
-!            tpmi(1)=tpmi(2)
-!            su=sign(ufi(2)-ufi(1)); sm=sign(mufi(2)-mufi(1))*(-1)**tpmi(1)
-!         endif
-!         write(6,*) 'after fvec', g%npts
 ! do differences forwards in time rather than backwards JAD 1/14/2013
          if (g%npts.ne.1) then 
            g%lambda=LAMBDAI(g%npts)-LAMBDAI(i1:i2)
