@@ -176,3 +176,6 @@ maxcomp: polsynchemis.o
 
 geokerr: geokerr_wrapper.o
 	f2py -c class_geokerr.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m geokerr $(LIBS) $(OMPLIB) geokerr_wrapper.o
+
+sphacc:
+	f2py -c fluid_model_sphacc.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m sphacc $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
