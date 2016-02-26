@@ -57,3 +57,4 @@ tau = np.append(0.,scipy.integrate.cumtrapz(Karr[:,0],x))
 radtrans_integrate.integrate(x[::-1],jarr[:,:],Karr[:,:],tau,4)
 istepdelo = radtrans_integrate.intensity.copy()
 radtrans_integrate.del_radtrans_integrate_data()
+

@@ -11,3 +11,4 @@ def write_namelist(fname,names,args,vals,nargs):
         f.write('/\n')
 
     f.close()
+ 

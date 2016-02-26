@@ -15,3 +15,4 @@ x = np.cumsum(np.zeros(300)+1e-2)
 tau = np.append(0.,scipy.integrate.cumtrapz(Karr[:,0],x))
 radtrans_integrate.init_radtrans_integrate_data(1,4,300,300,10.,0.1,1e-8,1e-6,1e-2)
 radtrans_integrate.integrate(x[::-1],jarr[:,:],Karr[:,:],tau,4)
+

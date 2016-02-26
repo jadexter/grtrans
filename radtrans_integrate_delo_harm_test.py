@@ -1,8 +1,5 @@
 import numpy as np
 
-#run simple_radtrans_integrate_tests
-#run read_geodebug_file
-
 rhoarr = np.zeros((len(rhov),3))
 jarr = np.zeros((len(ji),4))
 aarr = np.zeros((len(ki),4))

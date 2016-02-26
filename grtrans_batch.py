@@ -2,14 +2,15 @@ import os
 import namelist as nm
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import pylab
+#import matplotlib.image as mpimg
 import pyfits
-import glob
 # f2py grtrans module
 from pgrtrans import pgrtrans
 from time import time
-pylab.ion()
+plt.ion()
+
+pcG = 6.6726e-8
+pcc2 = 8.9874e20
 
 def flatten(l):
     if isinstance(l,list):
@@ -26,7 +27,7 @@ class grtrans_inputs:
         self.phi0=-0.5
         self.nmu=10
         self.spin=0.998
-        self.uout=0.0001
+        self.uout=0.04
         self.uin=1.
         self.rcut=1.
         self.nrotype=2
@@ -448,6 +449,7 @@ class grtrans:
                     spec[i,j]=np.sum(self.ivals[:,j,i]*self.ab[:,0],0)*da*2.*3.14
     
         self.spec=spec
+#        self.convert_to_lum()
 
     def calc_spec_pgrtrans(self,n):
 #       version for pgrtrans where array ordering is different
@@ -463,6 +465,18 @@ class grtrans:
                 for j in range(int(self.inputs.nvals)):
                     spec[i,j]=np.sum(self.ivals[j,:,i]*self.ab[0,:],0)*da*2.*np.arccos(-1.)
         self.spec = spec
+#        self.convert_to_lum()
+
+# convert spectrum and intensities to L_iso in cgs units
+    def convert_to_lum(self):
+        lbh = pcG*self.mbh/pcc2
+        fac = lbh**3*4.*np.pi
+        ifac = lbh
+        self.ivals *= ifac
+        self.spec *= fac
+
+# convert spectrum and intensities to cgs units of F_\nu
+
 
     def disp_grtrans_image(self,idex):
         if self.ivals.ndim < 3:

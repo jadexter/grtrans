@@ -1,5 +1,4 @@
   
-
   program testhotspot
 
   use class_four_vector
