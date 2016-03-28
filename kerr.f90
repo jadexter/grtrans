@@ -646,7 +646,7 @@
         nr2=-grr*(utc*ut+upc*up)*(1.+umc*um)
         nm2=gmm*(1.+umc*um)
         np2=-(utc*ut+upc*up)*delta*sin(th)*sin(th)
-        ekt=u
+        ekt=(-1d0)*u
         ekr%data(1)=(urc*ut)/sqrt(nr2); ekr%data(2)=-(utc*ut+upc*up) &
             /sqrt(nr2)
         ekr%data(3)=0d0; ekr%data(4)=(urc*up)/sqrt(nr2)
@@ -747,7 +747,8 @@
 !        write(6,*) 'ang: ',angnorm, bdotk/sqrt(om2)/sqrt(bdotb)
         ang=acos(merge(merge(angnorm,angmax,angnorm.le.angmax),angmin, &
          angnorm.ge.angmin))
-        g=-1d0/khat%data(1)
+        ! CHANGED SIGN following \nu = -u^\mu k_\mu = -u^t k_t = k^t in comoving ortho so g = 1 / k^t
+        g=1d0/khat%data(1)
 !        write(6,*) 'comoving ortho ang g: ',ang(testindx),g(testindx)
 !        write(6,*) 'comoving ortho r th: ',r(testindx),th(testindx)
 !        write(6,*) 'comoving ortho vectors a: ',aahat(testindx,1), &
