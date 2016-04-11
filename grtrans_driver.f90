@@ -91,7 +91,7 @@
             open(unit=9,file='geodebug.out',form='formatted')
               ! header with number of points, number of items, mdot, mbh, frequency
             write(9,*) g%npts, nitems, g%gk%alpha(1), g%gk%beta(1),g%gk%su,g%gk%sm, &
-                          sparams%mdot,sparams%mbh, fac
+                          sparams%mdot,sparams%mbh, fac, g%gk%a, g%gk%mu0
 ! geodesic properties
             write(9,*) g%lambda
             write(9,*) g%x%data(1)

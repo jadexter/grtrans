@@ -18,6 +18,8 @@
            advance_schnittman_hotspot_timestep, schnittman_hotspot_vals
       use fluid_model_harm, only: initialize_harm_model, del_harm_data, harm_vals, &
            advance_harm_timestep
+      use fluid_model_harm3d, only: initialize_harm3d_model, del_harm3d_data, harm3d_vals, &
+          advance_harm3d_timestep
       use fluid_model_thickdisk, only: initialize_thickdisk_model, del_thickdisk_data, thickdisk_vals, &
            advance_thickdisk_timestep
       use fluid_model_mb09, only: initialize_mb09_model, del_mb09_data, mb09_vals, &
@@ -28,7 +30,7 @@
       integer, parameter :: CONST=0,TAIL=1
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6
       integer, parameter :: COSMOS=10,MB=11,HARM=12,FFJET=13,NUMDISK=14,THICKDISK=15,MB09=16
-      integer, parameter :: SARIAF=17,POWERLAW=18
+      integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19
 
       type fluid
         integer :: model, nfreq
@@ -167,6 +169,8 @@
                 fargs%nfiles,fargs%indf,fargs%jonfix,fargs%sim)
         elseif(fname=='HARM') then
           call initialize_harm_model(a,ifile,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf)
+        elseif(fname=='HARM3D') then
+            call initialize_harm3d_model(a,ifile,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf)
         elseif(fname=='SPHACC') then
            call init_sphacc()
         elseif(fname=='FFJET') then
@@ -200,6 +204,8 @@
 !           call advance_mb_timestep(dt)
         elseif(fname=='HARM') then
            call advance_harm_timestep(dt)
+        elseif(fname=='HARM3D') then
+           call advance_harm3d_timestep(dt)
         elseif(fname=='THICKDISK') then 
            call advance_thickdisk_timestep(dt)
         elseif(fname=='MB09') then 
@@ -241,6 +247,8 @@
                  f%model=MB
               elseif(fname=='HARM') then
                  f%model=HARM
+              elseif(fname=='HARM3D') then
+                 f%model=HARM3D
               elseif(fname=='THICKDISK') then
                  f%model=THICKDISK
               elseif(fname=='MB09') then
@@ -280,6 +288,8 @@
 !          call intiialize_mb_model(a)
         elseif(fname=='HARM') then
            call del_harm_data()
+        elseif(fname=='HARM3D') then
+           call del_harm3d_data()
         elseif(fname=='THICKDISK') then
            call del_thickdisk_data()
         elseif(fname=='MB09') then
@@ -361,6 +371,8 @@
             call get_schnittman_hotspot_fluidvars(x0,real(a),f)
           CASE (HARM)
              call get_harm_fluidvars(x0,real(a),f)
+          CASE (HARM3D)
+             call get_harm3d_fluidvars(x0,real(a),f)
           CASE (THICKDISK)
              call get_thickdisk_fluidvars(x0,real(a),f)
           CASE (MB09)
@@ -397,6 +409,8 @@
             call convert_fluidvars_schnittman_hotspot(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (HARM)
              call convert_fluidvars_harm(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+          CASE (HARM3D)
+             call convert_fluidvars_harm3d(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (THICKDISK)
              call convert_fluidvars_thickdisk(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (MB09)
@@ -522,6 +536,16 @@
         call harm_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
         end subroutine get_harm_fluidvars
+
+        subroutine get_harm3d_fluidvars(x0,a,f)
+        type (four_Vector), intent(in), dimension(:) :: x0
+        real, intent(in) :: a
+        type (fluid), intent(inout) :: f
+        ! Computes properties of jet solution from Broderick & Loeb (2009)
+        ! JAD 4/23/2010, fortran 3/30/2011
+        call harm3d_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
+!        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
+        end subroutine get_harm3d_fluidvars
 
         subroutine get_thickdisk_fluidvars(x0,a,f)
         type (four_Vector), intent(in), dimension(:) :: x0
@@ -658,6 +682,84 @@
 !        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh
 !        write(6,*) 'convert bh: ',tcgs,lcgs
         end subroutine convert_fluidvars_harm
+
+        subroutine convert_fluidvars_harm3d(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
+        type (fluid), intent(in) :: f
+        type (source_params), intent(in) :: sp
+        real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
+        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
+        real(kind=8) :: lcgs,tcgs,mdot
+        real(kind=8) :: MPoME
+        real(kind=8), dimension(size(f%rho)) :: beta
+        real(kind=8), dimension(size(f%rho)) :: beta_trans
+        real(kind=8), dimension(size(f%rho)) :: b2
+        real(kind=8) :: Rhigh
+        real(kind=8) :: gam
+        real(kind=8) :: Rlow
+        real(kind=8) :: m_u
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8), dimension(size(f%rho)) :: two_temp_gam
+        real(kind=8), dimension(size(f%rho)) :: Thetae_unit
+        ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
+        ! JAD 11/26/2012 adapted from IDL code
+        ! Black hole mass sets time and length scales:
+!                write(6,*) 'convert mbh: ',sp%mbh
+        lcgs=GC*sp%mbh*msun/c**2; tcgs=lcgs/c
+        !        write(6,*) 'lcgs: ',lcgs,tcgs
+        ! Typical mb09 code mdot value.
+        mdot=.003
+        ! Now convert density using black hole to scale length/time,
+        ! accretion rate to scale torus mass:
+        !        write(6,*) 'convert mdot: ',mdot,sp%mdot
+!        rhocgs=sp%mdot/mdot/lcgs**3*tcgs*f%rho; ncgs=rhocgs/mp
+        rhocgs=sp%mdot/lcgs**3*f%rho; ncgs=rhocgs/mp
+        !        write(6,*) 'n: ',sp%mdot/mdot/lcgs**3.*tcgs/mp
+        ! Use this to convert pressure:
+        pcgs=f%p*rhocgs/f%rho*c**2.
+        ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
+        !sperate e-/p model implemented 16/11 Jordy Davelaar
+        MPoME=1836.0
+        gam= 1.333333333333333259
+        
+        beta=f%p/(f%bmag*f%bmag)/0.5
+        beta_trans=1.d0
+        !b2=(beta/beta_trans)*(beta/beta_trans)
+        b2=beta*beta
+        Rhigh=100.
+        Rlow=1.
+!        write(6,*) 'trat where'
+        where(f%bmag.gt.0d0)
+           trat=Rhigh*b2/(1d0+b2)+Rlow/(1d0+b2)
+        elsewhere
+           trat=Rhigh
+        endwhere
+        
+        Thetae_unit = (gam - 1d0)* mp / trat
+        
+        tempcgs=(f%p/f%rho)*Thetae_unit*c*c/k
+
+        ! And finally, bfield conversion is just square root of this:
+
+        !B_unit = CL * sqrt(4.*M_PI*RHO_unit);
+        bcgs=f%bmag*sqrt(4.*pi*rhocgs/f%rho)*c
+        ! Convert HL units to cgs:
+!        bcgs=bcgs*sqrt(4.*pi)
+        ! non-thermal e- put in by hand
+        ncgsnth=ncgs
+!        if(any(isnan(tempcgs))) then
+!            write(6,*) 'temp: ',tempcgs
+!            write(6,*) 'trat: ',trat
+!            write(6,*) 'beta: ', beta
+!        endif
+        !        write(6,*) 'leaving convert', maxval(bcgs), maxval(ncgs), maxval(tempcgs)
+        !        write(6,*) 'convert b: ',bcgs
+        !        write(6,*) 'convert n: ',ncgs/1e7
+        !        write(6,*) 'convert temp: ',tempcgs/1e10
+        !        write(6,*) 'convert temp 2: ',f%p/f%rho*mp/k*c**2./1e10
+        !        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh
+        !        write(6,*) 'convert bh: ',tcgs,lcgs
+!        write(6,*) 'end convert fluidvars harm3d'
+        end subroutine convert_fluidvars_harm3d
 
         subroutine convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f

@@ -9,15 +9,16 @@
     ! global data to avoid needing to pass arguments through external integration routines (e.g., lsoda)
     integer :: lindx=25,nequations,nptstot,npts,nptsout,iflag
     real(kind=8), dimension(:,:), allocatable :: KK,jj,intensity,PP
-    real(kind=8), dimension(:), allocatable :: s,ss,s0,tau
+    real(kind=8), dimension(:), allocatable :: s,ss,s0,tau,stokesq,stokesu,stokesv
     real(kind=8), dimension(:,:,:), allocatable :: QQ,imm,OO
 
     integer :: IS_LINEAR_STOKES = 1
+    integer(kind=4) :: maxsteps = 100000
     integer, dimension(4) :: stats
-    real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2
+    real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2, sphtolfac=1d3
 
-!$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats)
-!$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO)
+!$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats,stokesq,stokesu,stokesv)
+!$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO,IS_LINEAR_STOKES,sphtolfac)
 
     interface integrate
        module procedure integrate
@@ -61,10 +62,11 @@
 
     contains
 
-      subroutine init_radtrans_integrate_data(riflag,rneq,gnpts,rnpts,maxtau,hm,oa,ort,th)
+      subroutine init_radtrans_integrate_data(riflag,rneq,gnpts,rnpts,maxtau,hm,oa,ort,th,maxst)
         integer, intent(in) :: riflag,rneq,gnpts,rnpts
 !        real(kind=8), intent(in), optional :: maxtau,hm,oa,ort
         real(kind=8), intent(in), optional :: maxtau,hm,oa,ort,th
+        integer(kind=4), intent(in), optional :: maxst
         nequations = rneq; npts = gnpts; iflag = riflag; nptsout = rnpts
         if(present(maxtau)) then
 !        MAX_TAU = maxtau; hmax = hm; oatol = oa; ortol = ort
@@ -92,6 +94,11 @@
         else
            thin = 1d-2
         endif
+        if(present(maxst)) then
+           maxsteps = maxst
+        else
+           maxsteps = 100000
+        endif
         allocate(tau(npts))
         allocate(s0(npts))
         allocate(jj(npts,nequations))
@@ -112,6 +119,10 @@
         elseif(iflag==2) then
            allocate(OO(nequations,nequations,npts))
            OO = 0d0
+        elseif(iflag==3) then
+           allocate(stokesq(npts))
+           allocate(stokesu(npts))
+           allocate(stokesv(npts))
         endif
       end subroutine init_radtrans_integrate_data
 
@@ -142,7 +153,13 @@
            write(6,*) 'radtrans_integrate K5: ',KK(:,5)
            write(6,*) 'radtrans_integrate K7: ',KK(:,7)
         endif
+! spherical stokes case
         if (iflag==0) then
+           IS_LINEAR_STOKES=1
+           
+           call radtrans_integrate_lsoda()
+        elseif (iflag==3) then
+           IS_LINEAR_STOKES=0
            call radtrans_integrate_lsoda()
         elseif (iflag==1) then
            if(nequations==4) then
@@ -173,7 +190,7 @@
         real(kind=8), dimension(4) :: I0
         real(kind=8), dimension(npts) :: dummy
         real(kind=8), dimension(:,:), allocatable :: tau_arr
-        real(kind=8), dimension(:), allocatable :: tau_temp,intvals
+        real(kind=8), dimension(:), allocatable :: tau_temp,intvals,q,u,v
         integer, dimension(:), allocatable :: inds
         real(kind=8) :: weight
         integer :: lamdex,i,ii,i1,i2,taudex
@@ -229,15 +246,45 @@
 !        write(6,*) 'integrate s: ',minval(s), maxval(s), i1, i2, lamdex
 ! should make this the start of grtrans_integrate_lsoda and put everything else in general integrate subroutine since it's generic to all methods
         if(nequations==4) then
-           call lsoda_basic(radtrans_lsoda_calc_rhs,I0(1:nequations), &
-                s(i1:i2),oatol, &
-                ortol,radtrans_lsoda_calc_jac,intensity(:,i1:i2), &
-                1,100000,stats,hmax=hmax)
+           if(IS_LINEAR_STOKES==1) then
+              call lsoda_basic(radtrans_lsoda_calc_rhs,I0(1:nequations), &
+                   s(i1:i2),oatol, &
+                   ortol,radtrans_lsoda_calc_jac,intensity(:,i1:i2), &
+                   1,maxsteps,stats,hmax=hmax)
+           else
+! spherical stokes under development
+!              I0=I0+I0sphmin
+!              I0(1)=1d-64; I0(2)=1d-64
+              I0(1)=1d-8; I0(2)=1d-8
+              I0(3)=0.1; I0(4)=-0.1
+!              I0=0d0
+! testing higher error tolerance for sph stokes to converge on difficult problems
+              call lsoda_basic(radtrans_lsoda_calc_rhs_sph,I0(1:nequations), &
+                   s(i1:i2),oatol*sphtolfac, &
+                   ortol*sphtolfac,radtrans_lsoda_calc_jac_sph,intensity(:,i1:i2), &
+                   1,maxsteps,stats,hmax=hmax)
+! convert to linear stokes parameters
+!              allocate(q(npts));allocate(u(npts))
+!              allocate(v(npts))
+!              write(6,*) 'sph stokes intensity: ',maxval(intensity(1,i1:i2)), &
+!                   maxval(intensity(2,i1:i2))
+              stokesq(i1:i2)=intensity(2,i1:i2)*sin(intensity(4,i1:i2)) &
+                   *cos(intensity(3,i1:i2))
+              stokesu(i1:i2)=intensity(2,i1:i2)*sin(intensity(4,i1:i2)) &
+                   *sin(intensity(3,i1:i2))
+              stokesv(i1:i2)=intensity(2,i1:i2)*cos(intensity(4,i1:i2))
+              intensity(2,i1:i2)=stokesq(i1:i2); intensity(3,i1:i2)=stokesu(i1:i2)
+              intensity(4,i1:i2)=stokesv(i1:i2)
+!              write(6,*) 'sph stokes intensity: ',maxval(q),maxval(v)
+!              write(6,*) 'sph stokes intensity: ',maxval(intensity(2,i1:i2))
+!              write(6,*) 'sph stokes intensity: ',maxval(intensity(1,i1:i2))
+!              deallocate(q); deallocate(u); deallocate(v)
+           endif
         else
            call lsoda_basic(radtrans_lsoda_calc_rhs_npol, &
               I0(1:nequations),s(i1:i2),oatol, &
               ortol,radtrans_lsoda_calc_jac_npol,intensity(:,i1:i2), &
-              1,100000,stats,hmax=hmax)
+              1,maxsteps,stats,hmax=hmax)
         endif
         if(isnan(intensity(1,i2))) then
            write(6,*) 'NaN in integrate: ',i1,i2,s(i1:i2)
@@ -247,6 +294,10 @@
         endif
         return
       end subroutine radtrans_integrate_lsoda
+
+!      subroutine convert_sph_lin_stokes()
+! convert spherical stokes output to normal (I,Q,U,V)
+!        intensity(2,i1:i2
 
       subroutine radtrans_lsoda_calc_rhs(neq,lam,I,dIdlam)
 ! Compute RHS dIdlam for LSODA
@@ -405,6 +456,106 @@
         j=(1d0-weight)*jj(indx,:)+weight*jj(uindx,:)
         K=(1d0-weight)*KK(indx,:)+weight*KK(uindx,:)
       end subroutine radtrans_aux
+
+! spherical stokes stuff in development
+      subroutine radtrans_lsoda_calc_rhs_sph(neq,lam,I,dIdlam)
+! Compute RHS dIdlam for LSODA
+        integer, intent(in) :: neq
+        real(kind=8), intent(in) :: lam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8), intent(out), dimension(neq) :: dIdlam
+!         real(kind=8), intent(out), dimension(neq,neq) :: jac
+        real(kind=8), dimension(neq) :: j
+        real(kind=8), dimension(1+neq*(neq-1)/2) :: K
+        call radtrans_aux(neq,lam,j,K)
+        call radtrans_rhs_form_sph(neq,j,K,dIdlam,I)
+!         write(6,*) 'dIdlam: ',lam,dIdlam
+!         write(6,*) 'jk: ',jj(1),jj(2),j(4)
+!         write(6,*) 'K: ',K(1),K(4),
+!     &    K(5),K(7)
+        return 
+      end subroutine radtrans_lsoda_calc_rhs_sph
+
+      subroutine radtrans_rhs_form_sph(neq,j,K,dIdlam,I)
+        integer, intent(in) :: neq
+        real(kind=8), intent(in), dimension(neq) :: j
+        real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8), intent(out), dimension(neq) :: dIdlam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8) :: sphi,spsi,cphi,cpsi
+      !         write(6,*) 'rhs: ',IS_LINEAR_STOKES,size(I),size(K),size(J)
+!        if (IS_LINEAR_STOKES==1) then
+!           dIdlam(1)=j(1)-(K(1)*I(1)+K(2)*I(2)+K(3)*I(3)+K(4)*I(4))
+!           dIdlam(2)=j(2)-(K(2)*I(1)+K(1)*I(2)+K(7)*I(3)-K(6)*I(4))
+!           dIdlam(3)=j(3)-(K(3)*I(1)-K(7)*I(2)+K(1)*I(3)+K(5)*I(4))
+!           dIdlam(4)=j(4)-(K(4)*I(1)+K(6)*I(2)-K(5)*I(3)+K(1)*I(4))
+        sphi=sin(I(3)); cphi=cos(I(3)); spsi=sin(I(4)); cpsi=cos(I(4))
+        dIdlam(1)=j(1)-K(1)*I(1)-(cphi*spsi*K(2)+sphi*spsi*K(3)+cpsi*K(4))*I(2)
+        dIdlam(2)=-K(1)*I(2)-cphi*spsi*K(2)*I(1)-sphi*spsi*K(3)*I(1)+ &
+             spsi*(cphi*j(2)+sphi*j(3))+cpsi*(-I(1)*K(4)+j(4))
+!        dIdlam(3)=1d0/I(2)*(-cphi/spsi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))- &
+!             sphi/spsi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6))+I(2)*K(7))
+        dIdlam(3)=1d0/I(2)/spsi*(cphi*(j(3)-I(1)*K(3))+sphi*(-j(2)+I(1)*K(2))) &
+             -cpsi/spsi*(cphi*K(5)+sphi*K(6))+K(7)
+!        dIdlam(4)=1d0/I(2)*(-I(1)*cphi*cpsi*K(2)+spsi*(-j(4)+I(1)*K(4))- &
+!             sphi*(I(1)*cpsi*K(3)-cpsi*j(3)+I(2)*K(5))+cphi*cpsi*j(2))+cphi*K(6)
+        dIdlam(4)=1d0/I(2)*(spsi*(-j(4)+I(1)*K(4))+cpsi*(cphi*(j(2)-K(2)*I(1)) &
+             +sphi*(-I(1)*K(3)+j(3))))+cphi*K(6)-sphi*K(5)
+!        endif
+      end subroutine radtrans_rhs_form_sph
+
+      subroutine radtrans_jac_form_sph(neq,j,K,I,nrowpd,pd)
+        integer, intent(in) :: neq, nrowpd
+        real(kind=8), intent(in), dimension(neq) :: j,I
+        real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
+        real(kind=8) :: cphi,sphi,cpsi,spsi
+        !      write(6,*) 'jac: ',nrowpd,neq,size(K)
+!        if (IS_LINEAR_STOKES==1) then
+        cphi=cos(I(3)); sphi=sin(I(3)); cpsi=cos(I(4)); spsi=sin(I(4))
+        pd(1,1)=-K(1)
+        pd(1,2)=-cphi*spsi*K(2)-sphi*spsi*K(3)-cpsi*K(4)
+        pd(1,3)=-I(2)*(-sphi*spsi*K(2)+cphi*spsi*K(3))
+        pd(1,4)=-I(2)*(cphi*cpsi*K(2)+cpsi*sphi*K(3)-spsi*K(4))
+        pd(2,1)=pd(1,2)
+        pd(2,2)=-K(1)
+        pd(2,3)=I(1)*spsi*(sphi*K(2)-cphi*K(3))+spsi*(cphi*j(3)-sphi*j(2))
+        pd(2,4)=-I(1)*cpsi*(cphi*K(2)+sphi*K(3))+cpsi*(cphi*j(2)+sphi*j(3))-spsi*(j(4)-I(1)*K(4))
+        pd(3,1)=1d0/I(2)*(sphi/spsi*K(2)-cphi/spsi*K(3))
+        pd(3,2)=(-cphi*cpsi/spsi*K(5)-cpsi/spsi*sphi*K(6)+K(7))/I(2)-(-cphi/spsi*(I(1)*K(3)-& 
+             j(3)+I(2)*cpsi*K(5))-1d0/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6))+I(2)*K(7))/I(2)**2.
+        pd(3,3)=(1d0/spsi*sphi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))-cphi/spsi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
+        pd(3,4)=(I(2)*cphi*K(5)+cphi*cpsi/spsi/spsi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))+I(2)*sphi*K(6)+ &
+             cpsi/spsi/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
+        pd(4,1)=(-cphi*cpsi*K(2)-cpsi*sphi*K(3)+spsi*K(4))/I(2)
+        pd(4,2)=(-sphi*K(5)+cphi*K(6))/I(2)-(-I(1)*cphi*cpsi*K(2)+spsi*(I(1)*K(4)-j(4))-sphi*(I(1)*cpsi*K(3) &
+             -cpsi*j(3)+I(2)*K(5))+cphi*(cpsi*j(2)+I(2)*K(6)))/I(2)**2d0
+        pd(4,3)=(I(1)*cpsi*sphi*K(2)-cphi*(I(1)*cpsi*K(3)-cpsi*j(3)+I(2)*K(5))-sphi*(cpsi*j(2)+I(2)*K(6)))/I(2)
+        pd(4,4)=(I(1)*cphi*spsi*K(2)-cphi*spsi*j(2)-sphi*(-I(1)*spsi*K(3)+spsi*j(3))+cpsi*(I(1)*K(4)-j(4)))/I(2)
+!           pd=-1d0*pd
+!        endif
+!         write(6,*) 'pd: ',pd
+        return
+      end subroutine radtrans_jac_form_sph
+
+      subroutine radtrans_lsoda_calc_jac_sph(neq,lam,I,ml &
+           ,mu,pd,nrowpd)
+! Compute Jacobian for LSODA
+        integer, intent(in) :: neq, nrowpd
+        real(kind=8), intent(in) :: lam
+        real(kind=8), intent(in), dimension(neq) :: I
+        real(kind=8), intent(in) :: ml
+        real(kind=8), intent(in) :: mu
+        real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
+        real(kind=8), dimension(neq) :: j
+        real(kind=8), dimension(1+neq*(neq-1)/2) :: K
+!         write(6,*) 'jac: ',nrowpd
+        call radtrans_aux(neq,lam,j,K)
+! changed from above to add I as argument since not linear eqns any more
+        call radtrans_jac_form_sph(neq,j,K,I,nrowpd,pd)
+        !         write(6,*) 'pd: ', pd
+        return
+      end subroutine radtrans_lsoda_calc_jac_sph
 
       subroutine calc_O(a,rho,dx,identity,O,M1,M2,M3,M4)
         real(kind=8), dimension(4), intent(in) :: a
@@ -638,7 +789,6 @@
         intensity(1,:)=-tsum(s,j*exp(-tau))
       end subroutine radtrans_integrate_quadrature
 
-
       subroutine del_radtrans_integrate_data()
         deallocate(jj); deallocate(KK)
         deallocate(s); deallocate(ss); deallocate(s0); deallocate(tau)
@@ -647,6 +797,8 @@
            deallocate(PP); deallocate(QQ); deallocate(imm)
         elseif(iflag==2) then
            deallocate(OO)
+        elseif(iflag==3) then
+           deallocate(stokesq);deallocate(stokesu);deallocate(stokesv)
         endif
       end subroutine del_radtrans_integrate_data
    

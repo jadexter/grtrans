@@ -138,6 +138,7 @@
         type (four_vector), dimension(size(fut)) :: fu
         delta=r**2d0-2d0*r+a**2
         fu=fut
+! from Font+1999
         fu%data(1)=fut%data(1)-2d0*r/delta*fut%data(2)
         fu%data(4)=fut%data(4)-a/delta*fut%data(2)
         end function uks2ubl
@@ -159,7 +160,6 @@
         ! Function to convert t/phi from Boyer-Lindquist coordinates to Kerr-Schild coordinates as shown in PF98 and FIP99
         xtilde=x+a/(2d0*sqrt(1.-a**2))*log((r-1.-sqrt(1.-a**2))/(r-1.+sqrt(1.-a**2)))
         end function bl2ks_phi
-
 
         function bl2ks_time_single(r,x,a,time) result(xtilde)
         real(kind=8), intent(in) :: r,x

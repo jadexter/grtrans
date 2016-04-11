@@ -32,6 +32,8 @@
             r%iflag=1
          else if (iname=='formal') then
             r%iflag=2
+         else if (iname=='lsodasph') then
+            r%iflag=3
          endif
 !         write(6,*) 'rneq: ',neq
          r%neq=neq
