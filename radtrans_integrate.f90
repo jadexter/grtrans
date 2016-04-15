@@ -521,22 +521,70 @@
         pd(2,2)=-K(1)
         pd(2,3)=I(1)*spsi*(sphi*K(2)-cphi*K(3))+spsi*(cphi*j(3)-sphi*j(2))
         pd(2,4)=-I(1)*cpsi*(cphi*K(2)+sphi*K(3))+cpsi*(cphi*j(2)+sphi*j(3))-spsi*(j(4)-I(1)*K(4))
-        pd(3,1)=1d0/I(2)*(sphi/spsi*K(2)-cphi/spsi*K(3))
-        pd(3,2)=(-cphi*cpsi/spsi*K(5)-cpsi/spsi*sphi*K(6)+K(7))/I(2)-(-cphi/spsi*(I(1)*K(3)-& 
-             j(3)+I(2)*cpsi*K(5))-1d0/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6))+I(2)*K(7))/I(2)**2.
-        pd(3,3)=(1d0/spsi*sphi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))-cphi/spsi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
-        pd(3,4)=(I(2)*cphi*K(5)+cphi*cpsi/spsi/spsi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))+I(2)*sphi*K(6)+ &
-             cpsi/spsi/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
-        pd(4,1)=(-cphi*cpsi*K(2)-cpsi*sphi*K(3)+spsi*K(4))/I(2)
-        pd(4,2)=(-sphi*K(5)+cphi*K(6))/I(2)-(-I(1)*cphi*cpsi*K(2)+spsi*(I(1)*K(4)-j(4))-sphi*(I(1)*cpsi*K(3) &
-             -cpsi*j(3)+I(2)*K(5))+cphi*(cpsi*j(2)+I(2)*K(6)))/I(2)**2d0
-        pd(4,3)=(I(1)*cpsi*sphi*K(2)-cphi*(I(1)*cpsi*K(3)-cpsi*j(3)+I(2)*K(5))-sphi*(cpsi*j(2)+I(2)*K(6)))/I(2)
-        pd(4,4)=(I(1)*cphi*spsi*K(2)-cphi*spsi*j(2)-sphi*(-I(1)*spsi*K(3)+spsi*j(3))+cpsi*(I(1)*K(4)-j(4)))/I(2)
+!        pd(3,1)=1d0/I(2)*(sphi/spsi*K(2)-cphi/spsi*K(3))
+        pd(3,1)=1d0/spsi/I(2)*(sphi*K(2)-cphi*K(3))
+!        pd(3,2)=(-cphi*cpsi/spsi*K(5)-cpsi/spsi*sphi*K(6)+K(7))/I(2)-(-cphi/spsi*(I(1)*K(3)-& 
+!             j(3)+I(2)*cpsi*K(5))-1d0/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6))+I(2)*K(7))/I(2)**2.
+        pd(3,2)=1d0/spsi/I(2)**2d0*(cphi*(I(1)*K(3)-j(3))+sphi*(j(2)-I(1)*K(2)))
+!        pd(3,3)=(1d0/spsi*sphi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))-cphi/spsi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
+        pd(3,3)=1d0/I(2)/spsi*(sphi*(I(1)*K(3)-j(3))+cphi*(I(1)*K(2)-j(2)))+1d0/spsi*(sphi*K(5)-cphi*K(6))
+!        pd(3,4)=(I(2)*cphi*K(5)+cphi*cpsi/spsi/spsi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))+I(2)*sphi*K(6)+ &
+!             cpsi/spsi/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
+        pd(3,4)=cpsi/spsi/spsi/I(2)*(cphi*(I(1)*K(3)-j(3))-sphi*(I(1)*K(2)-j(2)))+1d0/spsi/spsi*(cphi*K(5)+sphi*K(6))
+        pd(4,1)=(-cphi*cpsi*K(2)-cpsi*sphi*K(3)+spsi*K(4))/I(2)        
+!        pd(4,2)=(-sphi*K(5)+cphi*K(6))/I(2)-(-I(1)*cphi*cpsi*K(2)+spsi*(I(1)*K(4)-j(4))-sphi*(I(1)*cpsi*K(3) &
+!             -cpsi*j(3)+I(2)*K(5))+cphi*(cpsi*j(2)+I(2)*K(6)))/I(2)**2d0
+        pd(4,2)=1d0/I(2)**2d0*(cphi*cpsi*(I(1)*K(2)-j(2))-spsi*(I(1)*K(4)-j(4))+sphi*cpsi*(I(1)*K(3)-j(3)))
+!        pd(4,3)=(I(1)*cpsi*sphi*K(2)-cphi*(I(1)*cpsi*K(3)-cpsi*j(3)+I(2)*K(5))-sphi*(cpsi*j(2)+I(2)*K(6)))/I(2)
+        pd(4,3)=1d0/I(2)*(cpsi*sphi*(I(1)*K(2)-j(2))-cpsi*cphi*(I(1)*K(3)-j(3)))-cphi*K(5)-sphi*K(6)
+!        pd(4,4)=(I(1)*cphi*spsi*K(2)-cphi*spsi*j(2)-sphi*(-I(1)*spsi*K(3)+spsi*j(3))+cpsi*(I(1)*K(4)-j(4)))/I(2)
+        pd(4,4)=1d0/I(2)*(cphi*spsi*(I(1)*K(2)-j(2))+sphi*spsi*(I(1)*K(3)-j(3))+cpsi*(I(1)*K(4)-j(4)))
 !           pd=-1d0*pd
 !        endif
 !         write(6,*) 'pd: ',pd
         return
       end subroutine radtrans_jac_form_sph
+
+      subroutine radtrans_jac_form_sph_old(neq,j,K,I,nrowpd,pd)
+        integer, intent(in) :: neq, nrowpd
+        real(kind=8), intent(in), dimension(neq) :: j,I
+        real(kind=8), intent(in), dimension(1+neq*(neq-1)/2) :: K
+        real(kind=8), intent(out), dimension(nrowpd,neq) :: pd
+        real(kind=8) :: cphi,sphi,cpsi,spsi
+        !      write(6,*) 'jac: ',nrowpd,neq,size(K)
+!        if (IS_LINEAR_STOKES==1) then
+        cphi=cos(I(3)); sphi=sin(I(3)); cpsi=cos(I(4)); spsi=sin(I(4))
+        pd(1,1)=-K(1)
+        pd(1,2)=-cphi*spsi*K(2)-sphi*spsi*K(3)-cpsi*K(4)
+        pd(1,3)=-I(2)*(-sphi*spsi*K(2)+cphi*spsi*K(3))
+        pd(1,4)=-I(2)*(cphi*cpsi*K(2)+cpsi*sphi*K(3)-spsi*K(4))
+        pd(2,1)=pd(1,2)
+        pd(2,2)=-K(1)
+        pd(2,3)=I(1)*spsi*(sphi*K(2)-cphi*K(3))+spsi*(cphi*j(3)-sphi*j(2))
+        pd(2,4)=-I(1)*cpsi*(cphi*K(2)+sphi*K(3))+cpsi*(cphi*j(2)+sphi*j(3))-spsi*(j(4)-I(1)*K(4))
+        pd(3,1)=1d0/I(2)*(sphi/spsi*K(2)-cphi/spsi*K(3))
+!        pd(3,1)=1d0/spsi/I(2)*(sphi*K(2)-cphi*K(3))
+        pd(3,2)=(-cphi*cpsi/spsi*K(5)-cpsi/spsi*sphi*K(6)+K(7))/I(2)-(-cphi/spsi*(I(1)*K(3)-& 
+             j(3)+I(2)*cpsi*K(5))-1d0/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6))+I(2)*K(7))/I(2)**2.
+!        pd(3,2)=1d0/spsi/I(2)**2d0*(cphi*(I(1)*K(3)-j(3))+sphi*(j(2)-I(1)*K(2)))
+        pd(3,3)=(1d0/spsi*sphi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))-cphi/spsi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
+!        pd(3,3)=1d0/I(2)/spsi*(sphi*(I(1)*K(3)-j(3))+cphi*(I(1)*K(2)-j(2)))+1d0/spsi*(sphi*K(5)-cphi*K(6))
+        pd(3,4)=(I(2)*cphi*K(5)+cphi*cpsi/spsi/spsi*(I(1)*K(3)-j(3)+I(2)*cpsi*K(5))+I(2)*sphi*K(6)+ &
+             cpsi/spsi/spsi*sphi*(-I(1)*K(2)+j(2)+I(2)*cpsi*K(6)))/I(2)
+!        pd(3,4)=cpsi/spsi/spsi/I(2)*(cphi*(I(1)*K(3)-j(3))-sphi*(I(1)*K(2)-j(2)))+1d0/spsi/spsi*(cphi*K(5)+sphi*K(6))
+        pd(4,1)=(-cphi*cpsi*K(2)-cpsi*sphi*K(3)+spsi*K(4))/I(2)
+        pd(4,2)=(-sphi*K(5)+cphi*K(6))/I(2)-(-I(1)*cphi*cpsi*K(2)+spsi*(I(1)*K(4)-j(4))-sphi*(I(1)*cpsi*K(3) &
+             -cpsi*j(3)+I(2)*K(5))+cphi*(cpsi*j(2)+I(2)*K(6)))/I(2)**2d0
+!        pd(4,2)=1d0/I(2)**2d0*(cphi*cpsi*(I(1)*K(2)-j(2))-spsi*(I(1)*K(4)-j(4))+sphi*cpsi*(I(1)*K(3)-j(3)))
+        pd(4,3)=(I(1)*cpsi*sphi*K(2)-cphi*(I(1)*cpsi*K(3)-cpsi*j(3)+I(2)*K(5))-sphi*(cpsi*j(2)+I(2)*K(6)))/I(2)
+!        pd(4,3)=1d0/I(2)*(cpsi*sphi*(I(1)*K(2)-j(2))-cpsi*cphi*(I(1)*K(3)-j(3)))-cphi*K(5)-sphi*K(6)
+        pd(4,4)=(I(1)*cphi*spsi*K(2)-cphi*spsi*j(2)-sphi*(-I(1)*spsi*K(3)+spsi*j(3))+cpsi*(I(1)*K(4)-j(4)))/I(2)
+!        pd(4,4)=1d0/I(2)*(cphi*spsi*(I(1)*K(2)-j(2))+sphi*spsi*(I(1)*K(3)-j(3))+cpsi*(I(1)*K(4)-j(4)))
+!           pd=-1d0*pd
+!        endif
+!         write(6,*) 'pd: ',pd
+        return
+      end subroutine radtrans_jac_form_sph_old
 
       subroutine radtrans_lsoda_calc_jac_sph(neq,lam,I,ml &
            ,mu,pd,nrowpd)

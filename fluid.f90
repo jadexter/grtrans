@@ -596,7 +596,7 @@
         bcgs=bcgs*sqrt(4.*pi)
         ! non-thermal particles from n ~ b^2 / \rho
         where(f%bmag**2./f%rho.gt.1.)
-           ncgsnth=sp%jetalpha*bcgs**2./8./pi/sp%gmin*(sp%p1-2.)/(sp%p1-1.)/8.2e-7
+           ncgsnth=sp%jetalphaval*bcgs**2./8./pi/sp%gminval*(sp%p1-2.)/(sp%p1-1.)/8.2e-7
         elsewhere
            ncgsnth=0.
         endwhere
@@ -693,11 +693,8 @@
         real(kind=8), dimension(size(f%rho)) :: beta
         real(kind=8), dimension(size(f%rho)) :: beta_trans
         real(kind=8), dimension(size(f%rho)) :: b2
-        real(kind=8) :: Rhigh
-        real(kind=8) :: gam
-        real(kind=8) :: Rlow
-        real(kind=8) :: m_u
-        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: Rhigh,Rlow,gam,m_u,Nhigh,Nlow
+        real(kind=8), dimension(size(f%rho)) :: trat,nrat
         real(kind=8), dimension(size(f%rho)) :: two_temp_gam
         real(kind=8), dimension(size(f%rho)) :: Thetae_unit
         ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
@@ -725,18 +722,23 @@
         beta_trans=1.d0
         !b2=(beta/beta_trans)*(beta/beta_trans)
         b2=beta*beta
-        Rhigh=100.
-        Rlow=1.
+        Rhigh=1d0
+        Rlow=1d0
+        Nhigh=1d0
+        Nlow=1d0
 !        write(6,*) 'trat where'
         where(f%bmag.gt.0d0)
            trat=Rhigh*b2/(1d0+b2)+Rlow/(1d0+b2)
+           nrat=Nhigh*b2/(1d0+b2)+Nlow/(1d0+b2)
         elsewhere
            trat=Rhigh
+           nrat=Nhigh
         endwhere
         
-        Thetae_unit = (gam - 1d0)* mp / trat
+!        Thetae_unit = (gam - 1d0)* mp / trat
+!        Thetae_unit = mp / trat
         
-        tempcgs=(f%p/f%rho)*Thetae_unit*c*c/k
+        tempcgs=(f%p/f%rho)*mp*c*c/k/trat
 
         ! And finally, bfield conversion is just square root of this:
 
@@ -744,13 +746,20 @@
         bcgs=f%bmag*sqrt(4.*pi*rhocgs/f%rho)*c
         ! Convert HL units to cgs:
 !        bcgs=bcgs*sqrt(4.*pi)
+! scale ncgs to tune disk density manually
+!        ncgs=ncgs/nrat
         ! non-thermal e- put in by hand
-        ncgsnth=ncgs
+!        ncgsnth=ncgs
 !        if(any(isnan(tempcgs))) then
 !            write(6,*) 'temp: ',tempcgs
 !            write(6,*) 'trat: ',trat
 !            write(6,*) 'beta: ', beta
 !        endif
+        where(f%bmag**2d0/f%rho.gt.1d0)
+           ncgsnth=sp%jetalphaval*bcgs**2d0/8d0/pi/sp%gminval*(sp%p1-2d0)/(sp%p1-1d0)/8.2d-7
+        elsewhere
+           ncgsnth=0d0
+        endwhere
         !        write(6,*) 'leaving convert', maxval(bcgs), maxval(ncgs), maxval(tempcgs)
         !        write(6,*) 'convert b: ',bcgs
         !        write(6,*) 'convert n: ',ncgs/1e7
@@ -758,7 +767,9 @@
         !        write(6,*) 'convert temp 2: ',f%p/f%rho*mp/k*c**2./1e10
         !        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh
         !        write(6,*) 'convert bh: ',tcgs,lcgs
-!        write(6,*) 'end convert fluidvars harm3d'
+!        write(6,*) 'harm3d convert params: ',sp%p1,sp%gminval,pi,sp%jetalphaval
+!        write(6,*) 'harm3d convert bcgs: ',minval(bcgs),maxval(bcgs)
+!        write(6,*) 'end convert fluidvars harm3d ncgsnth: ',minval(ncgsnth),maxval(ncgsnth)
         end subroutine convert_fluidvars_harm3d
 
         subroutine convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
@@ -1316,11 +1327,13 @@
           zero=0d0
           one=1d0
           gmax=sp%gmax
+!          write(6,*) 'fluid assign source params: ',sp%type,CONST,TAIL
           select case(sp%type)
              case (CONST)
                 sp%gmin=sp%gminval
                 sp%jetalpha=sp%jetalphaval
                 sp%mu=sp%muval
+!                write(6,*) 'fluid assign source params: ',sp%gminval,sp%gmin
              case (TAIL)
                 sp%jetalpha=sp%jetalphaval
                 sp%mu=sp%muval
