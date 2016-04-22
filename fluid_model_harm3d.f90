@@ -260,7 +260,6 @@
         rttd=0.
         rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
         p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))
-
 !        write(6,*) 'rho: ', rho, p
         vrl0=merge(interp(vrli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
         vtl0=merge(interp(vtli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
@@ -359,6 +358,9 @@
         type (four_vector), dimension(:), allocatable :: uks,bks
         real(8), dimension(:,:), allocatable :: grid, data, tmetric
         integer :: i,j, nelem, nelem2
+        integer :: WRITE_BINARY
+! option to write an ASCII file read here back out as a binary
+        WRITE_BINARY=1
           ! Read HARM data from a file of given line length, 
           ! positions of desired variables
           ! JAD 11/24/2012 based on previous IDL codes
