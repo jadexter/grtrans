@@ -722,7 +722,7 @@
         beta_trans=1.d0
         !b2=(beta/beta_trans)*(beta/beta_trans)
         b2=beta*beta
-        Rhigh=1d0
+        Rhigh=100d0
         Rlow=1d0
         Nhigh=1d0
         Nlow=1d0
