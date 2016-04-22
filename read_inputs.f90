@@ -29,7 +29,7 @@
       real(kind=8), dimension(4) :: gridvals
       integer, dimension(3) :: nn
       ! fluid arguments
-      character(len=100) :: fdfile,fhfile,fgfile,fsim
+      character(len=300) :: fdfile,fhfile,fgfile,fsim
       integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
            fnr,foffset,fdindf,fmagcrit,fbl06,nweights
       integer, dimension(7) :: coefindx
