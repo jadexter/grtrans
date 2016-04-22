@@ -1200,7 +1200,7 @@
         integer :: nx, status, writeall
         integer, intent(in) :: transform
         character(len=20), intent(in), optional :: ifile
-        character(len=40), intent(in), optional :: simt,gf,df
+        character(len=300), intent(in), optional :: simt,gf,df
         integer, intent(in), optional :: nft,indft,jf,off,ntt,dindft,mct
         character(len=20) :: default_ifile='thickdisk.in', append
         character(len=file_len) :: header_file

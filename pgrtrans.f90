@@ -46,7 +46,7 @@
             real(kind=8) :: spin
             integer, dimension(3), intent(in) :: nn
 ! FLUID ARGUMENTS
-            character(len=100), intent(in) :: fdfile,fhfile,fgfile,fsim
+            character(len=300), intent(in) :: fdfile,fhfile,fgfile,fsim
             integer, intent(in) :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
                  fnr,foffset,fdindf,fmagcrit,fbl06
             real(8), intent(in) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &

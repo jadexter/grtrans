@@ -41,7 +41,7 @@
       end type
 
       type fluid_args
-         character(len=100) :: dfile,hfile,gfile,sim
+         character(len=300) :: dfile,hfile,gfile,sim
          integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset, &
               dindf,magcrit,bl06
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
