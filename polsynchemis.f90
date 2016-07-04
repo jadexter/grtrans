@@ -573,11 +573,11 @@
       nui=gmin*gmin*nubperp
       kstaralphaq=1d0
       kstaralphav=2d0*(alpha+3d0/2d0)/(alpha+1)
-      kstarq=kstaralphaq*kperp*(nubperp/nu)**3d0*gmin**(-2d0*alpha-1d0)* &
-      (1d0-(nui/nu)**(alpha-1d0/2d0))*(alpha-1d0/2d0)**(-1d0)*gapfac
-      kstarq=merge(kstarq,zero,nu.gt.nui)
+      kstarq=-kstaralphaq*kperp*(nubperp/nu)**3d0*gmin**(-2d0*alpha+1d0)* &
+      (1d0-(nui/nu)**(alpha-1d0/2d0))*(alpha-1d0/2d0)**(-1d0)!*gapfac
+!      kstarq=merge(kstarq,zero,nu.gt.nui)
       kstarv=kstaralphav*kperp*(nubperp/nu)**2d0*log(gmin)* &
-      gmin**(-2*(alpha+1))/tanth*gavfac
+      gmin**(-2*(alpha+1))/tanth!*gavfac
       afac=(2d0*pi)**3*A*ec*ec*sqrt(3d0)*omega0*(p+2d0)/32d0/ &
        pi**2/m/c/omega**2*(2d0*omega/3d0/omega0)**(-p/2d0)
       ai=afac*gafac

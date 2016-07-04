@@ -212,22 +212,22 @@
         rttd=0.
         rho=merge(interp(rhoi,rttd,rd,td),dzero,x1.gt.uniqx1(1))
         p=merge(interp(ppi,rttd,rd,td),fone,x1.gt.uniqx1(1))
-        write(6,*) 'rho: ', rho(1),rhoi(1,:),rd(1),td(1)
-        write(6,*) 'rho: ',zr(1),x0(1)%data,theta(1),x1(1),x2(1)
-        write(6,*) 'rho: ',lx1(1),lx2(1),ux1(1),ux2(1)
-        write(6,*) 'rho: ',size(indx),size(x1l)*8
+!        write(6,*) 'rho: ', rho(1),rhoi(1,:),rd(1),td(1)
+!        write(6,*) 'rho: ',zr(1),x0(1)%data,theta(1),x1(1),x2(1)
+!        write(6,*) 'rho: ',lx1(1),lx2(1),ux1(1),ux2(1)
+!        write(6,*) 'rho: ',size(indx),size(x1l)*8
 !        write(6,*) 'rho: ',size(((/x1l+x2l+1+n*tindx/),(/x1l+x2u+1+n*tindx/),(/!x1u+x\
 !2l+1+n*tindx/),(/x1u+x2u+1+n*tindx/), &                                                
 !             (/x1l+x2l+1+n*(tindx+1)/),(/x1l+x2u+1+n*(tindx+1)/),(/x1u+x2l+1+n*!(tind\
 !x+1)/), &                                                                              
 !             (/x1u+x2u+1+n*(tindx+1)/)/))                                             
 !        write(6,*) 'rho: ',rttd(1)
-        write(6,*) 'rho: ',rttd(1),maxtindx,tindx(1),tindx(2),tt(1),tstep, &
-             floor(tt(1)/tstep), floor(tt(2)/tstep),tt(2)
-        write(6,*) 'rho: ',indx((/1,size(x1u)+1,2*size(x1u)+1,3*size(x1u)+1, &
-             4*size(x1u)+1,5*size(x1u)+1,6*size(x1u)+1,7*size(x1u)+1/))
-        write(6,*) 'rho: ',rho_arr(indx((/1,size(x1u)+1,2*size(x1u)+1,3*size(x1u)+1, &
-             4*size(x1u)+1,5*size(x1u)+1,6*size(x1u)+1,7*size(x1u)+1/)))
+!        write(6,*) 'rho: ',rttd(1),maxtindx,tindx(1),tindx(2),tt(1),tstep, &
+!             floor(tt(1)/tstep), floor(tt(2)/tstep),tt(2)
+!        write(6,*) 'rho: ',indx((/1,size(x1u)+1,2*size(x1u)+1,3*size(x1u)+1, &
+!             4*size(x1u)+1,5*size(x1u)+1,6*size(x1u)+1,7*size(x1u)+1/))
+!        write(6,*) 'rho: ',rho_arr(indx((/1,size(x1u)+1,2*size(x1u)+1,3*size(x1u)+1, &
+!             4*size(x1u)+1,5*size(x1u)+1,6*size(x1u)+1,7*size(x1u)+1/)))
 !        write(6,*) 'rho: ', rho, p
         vrl0=merge(interp(vrli,rttd,rd,td),dzero,x1.gt.uniqx1(1))
         vtl0=merge(interp(vtli,rttd,rd,td),fone,x1.gt.uniqx1(1))
