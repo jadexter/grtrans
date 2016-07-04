@@ -412,7 +412,7 @@
              deallocate(data)
              x1_arr=grid(:,1); x2_arr=grid(:,2); x3_arr=grid(:,3); r_arr=grid(:,4); th_arr=grid(:,5); ph_arr=grid(:,6)
           else
-             call read_harm3d_data(dfile,rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
+             call read_harm3d_data(trim(dfile) // '.bin',rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
                   b%data(2),b%data(3),b%data(4))
              call read_harm3d_grid_file()
              r_arr=exp(x1_arr); th_arr=x2_arr; ph_arr=x3_arr
