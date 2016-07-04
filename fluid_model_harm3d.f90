@@ -7,9 +7,9 @@
       use math, only: zbrent
       implicit none
 
-      namelist /harm/  dfile, hfile, nt, indf
+      namelist /harm/  dfile, hfile, nt, indf, gfile
 
-      character(len=40) :: dfile, hfile
+      character(len=100) :: dfile, hfile, gfile
       integer :: nx1, nx2, nx3, n, ndumps, nt, indf, dlen, nhead
       integer :: ndim=3
       integer, dimension(:), allocatable :: dumps
@@ -347,7 +347,7 @@
         end subroutine read_harm3d_data_header
 
         subroutine read_harm3d_data_file(data_file,tcur,rho,p,u,b,mdot)
-        character(len=40), intent(in) :: data_file
+        character(len=100), intent(in) :: data_file
         integer :: nhead,dlen
         integer :: rhopos,ppos,vpos,bpos,gdetpos
         integer, intent(in), optional :: mdot
@@ -358,9 +358,8 @@
         type (four_vector), dimension(:), allocatable :: uks,bks
         real(8), dimension(:,:), allocatable :: grid, data, tmetric
         integer :: i,j, nelem, nelem2
-        integer :: WRITE_BINARY
+        integer :: BINARY=1
 ! option to write an ASCII file read here back out as a binary
-        WRITE_BINARY=1
           ! Read HARM data from a file of given line length, 
           ! positions of desired variables
           ! JAD 11/24/2012 based on previous IDL codes
@@ -369,18 +368,19 @@
           dlen=31; nhead=29
           allocate(header(nhead))
           rhopos=6; ppos=7; vpos=14; bpos=22; gdetpos=30
-          write(6,*) 'data file: ',data_file
-          open(unit=8,file=data_file,form='formatted',status='old',action='read')
-          allocate(data(dlen,nx3)); nelem=nx3
           allocate(grid(nx1*nx2*nx3,6)); allocate(p(nx1*nx2*nx3)); allocate(rho(nx1*nx2*nx3))
           allocate(u(nx1*nx2*nx3)); allocate(b(nx1*nx2*nx3)); allocate(gdet(nx1*nx2*nx3))
           allocate(uks(nx1*nx2*nx3)); allocate(bks(nx1*nx2*nx3))
-          write(6,*) 'read harm sizes', dlen, nx2, size(data)
-          read(8,*) header
-          tcur=header(1)
-          deallocate(header)
-          write(6,*) 'read harm past header: ',nx1,nx2,nx3,nelem,dlen
-          do i=0,(nx1*nx2*nx3)/(nelem)-1
+          write(6,*) 'data file: ',data_file
+          if(BINARY.ne.1) then
+             open(unit=8,file=data_file,form='formatted',status='old',action='read')
+             allocate(data(dlen,nx3)); nelem=nx3
+             write(6,*) 'read harm sizes', dlen, nx2, size(data)
+             read(8,*) header
+             tcur=header(1)
+             deallocate(header)
+             write(6,*) 'read harm past header: ',nx1,nx2,nx3,nelem,dlen
+             do i=0,(nx1*nx2*nx3)/(nelem)-1
 !                write(6,*) 'i: ',i
                 read(8,*) data
 !                write(6,*) 'harm data: ', data(:,1)
@@ -405,23 +405,29 @@
 !                write(6,*) 'sizes grid: ',size(grid(1+i*nelem+j*nelem2:(1+i)*nelem+j*nelem2:(1+i)*nelem+(1+j)*nelem2,:)),size(data(1:6,:))
 !            write(6,*) 'sizes: ',size(gdet),size(data(gdetpos+1,:))
                 gdet(1+i*nelem:(1+i)*nelem)=(data(gdetpos+1,:))
-!             write(6,*) 'data loop'
-          end do
+                !             write(6,*) 'data loop'
+             end do
 !          write(6,*) 'after read loop'
-          close(unit=8)
-          deallocate(data)
+             close(unit=8)
+             deallocate(data)
+             x1_arr=grid(:,1); x2_arr=grid(:,2); x3_arr=grid(:,3); r_arr=grid(:,4); th_arr=grid(:,5); ph_arr=grid(:,6)
+          else
+             call read_harm3d_data(dfile,rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
+                  b%data(2),b%data(3),b%data(4))
+             call read_harm3d_grid_file()
+             r_arr=exp(x1_arr); th_arr=x2_arr; ph_arr=x3_arr
+          endif
           write(6,*) "min vals u", minval(u%data(1)), minval(u%data(2)), minval(u%data(3)), minval(u%data(4))
           write(6,*) "max vals u", maxval(u%data(1)), maxval(u%data(2)), maxval(u%data(3)), maxval(u%data(4))
           write(6,*) 'read harm grid sizes', size(x1_arr), size(x2_arr), size(x3_arr), size(r_arr), size(th_arr), size(ph_arr)
-          x1_arr=grid(:,1); x2_arr=grid(:,2); x3_arr=grid(:,3); r_arr=grid(:,4); th_arr=grid(:,5); ph_arr=grid(:,6)
           write(6,*) 'read harm assign grid'
           deallocate(grid)
-          if (present(mdot)) then
+!          if (present(mdot)) then
              ! Calculate accretion rate in code units:
              !  nx1=n_elements(uniqx1) ; nx2=n_elements(uniqx2) ; nz=n_elements(uniqx3) 
 !             dx2=uniqx2(2)-uniqx2(1) ; dx3=uniqx3(2)-uniqx3(1)
 !             mdotarr=-1.*sum(sum(reform(gdet*rho*v(:,1),nx1,nx2,nz),3),2)*dx2*dx3
-          endif
+!          endif
           ! Transform velocities, magnetic fields from MKS to KS and then BL:
           write(6,*) 'read harm transform coords r ', minval(r_arr), maxval(r_arr), asim
           write(6,*) 'read harm transform coords th ',minval(x2_arr), maxval(x2_arr), h
@@ -460,19 +466,67 @@
           deallocate(udotu); deallocate(bdotu); deallocate(bdotb)
         end subroutine read_harm3d_data_file
 
+        subroutine read_harm3d_grid_file()
+!        integer, intent(in) :: nt
+        integer :: n
+        open(unit=8,file=gfile,form='unformatted',status='old')
+        read(8) nx1,nx2,nx3
+        n=nx1*nx2*nx3
+        ! allocate data
+        !          call init_harm3d_data(n,n*nt)
+        write(6,*) 'read grid: ',size(x1_arr),size(x2_arr),size(x3_arr)
+        read(8) x1_arr
+        read(8) x2_arr
+        read(8) x3_arr
+        close(unit=8)
+        end subroutine read_harm3d_grid_file
 
-        subroutine initialize_harm3d_model(a,ifile,df,hf,ntt,indft)
+        subroutine read_harm3d_data(dfile,rho,p,u0,vr,vth,vph,b0,br,bth,bph)
+        integer :: nx, status
+        real, dimension(:), allocatable :: data
+        real(8), intent(inout), dimension(:) :: rho,p,u0,vr,vth,vph,b0,br,bth,bph
+        real, dimension(size(rho),10) :: metric
+        real, dimension(size(rho)) :: ui2
+        character(len=100), intent(in) :: dfile
+        open(unit=8,file=dfile,form='unformatted',status='old')
+        read(8) nx
+        if(nx.ne.9*nx1*nx2*nx3) then
+           write(6,*) 'ERROR: INCORRECT DATA SIZE IN READ_HARM3D_DATA: ',nx,nx1,nx2,nx3
+           return
+        endif
+        allocate(data(nx))
+        read(8) data
+        close(8)
+        rho=data(1:nx1*nx2*nx3)
+        p=data(nx1*nx2*nx3+1:2*nx1*nx2*nx3)
+        u0=data(2*nx1*nx2*nx3+1:3*nx1*nx2*nx3)
+        vr=data(3*nx1*nx2*nx3+1:4*nx1*nx2*nx3)
+        vth=data(4*nx1*nx2*nx3+1:5*nx1*nx2*nx3)
+        vph=data(5*nx1*nx2*nx3+1:6*nx1*nx2*nx3)
+        b0=data(6*nx1*nx2*nx3+1:7*nx1*nx2*nx3)
+        br=data(7*nx1*nx2*nx3+1:8*nx1*nx2*nx3)
+        bth=data(8*nx1*nx2*nx3+1:9*nx1*nx2*nx3)
+        bph=data(9*nx1*nx2*nx3+1:10*nx1*nx2*nx3)
+        deallocate(data)
+! calculate u0 from others (from IDL grtrans):
+!        metric=kerr_metric(r_arr,th_arr,asim)
+!        ui2=metric(:,1)+2.*metric(:,4)*vph+vr**2*metric(:,5)+metric(:,8)*vth**2+metric(:,10)*vph**2
+!        u0=1./sqrt(-ui2)
+        end subroutine read_harm3d_data
+
+        subroutine initialize_harm3d_model(a,ifile,df,hf,gf,ntt,indft)
         real(kind=8), intent(in) :: a
         integer :: nx, status, nhead
         character(len=20), intent(in), optional :: ifile
         character(len=20) :: default_ifile='harm.in'
-        character(len=40), intent(in), optional :: df,hf
+        character(len=100), intent(in), optional :: df,hf,gf
         integer, intent(in), optional :: ntt,indft
         nhead=29
 ! if all inputs are given, assign variables rather than reading from file
         if (present(df)) then
            dfile = df
            hfile = hf
+           gfile = gf
            nt = ntt
            indf = indft
         else
@@ -502,7 +556,7 @@
         type (four_vector), dimension(:), allocatable :: u, b
         integer, intent(in) :: nt
         character(len=20) :: append
-        character(len=40) :: data_file
+        character(len=100) :: data_file
         integer :: k
         real(8) :: tcur, tstep_test
         allocate(rho(n)); allocate(p(n))

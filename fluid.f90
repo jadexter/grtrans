@@ -170,7 +170,7 @@
         elseif(fname=='HARM') then
           call initialize_harm_model(a,ifile,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf)
         elseif(fname=='HARM3D') then
-            call initialize_harm3d_model(a,ifile,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf)
+            call initialize_harm3d_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
         elseif(fname=='SPHACC') then
            call init_sphacc()
         elseif(fname=='FFJET') then
