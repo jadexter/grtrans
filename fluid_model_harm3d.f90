@@ -354,7 +354,7 @@
         integer, intent(in), optional :: mdot
         real(8), intent(out) :: tcur
         real(8), dimension(:), allocatable, intent(out) :: p,rho
-        real(8), dimension(:), allocatable :: gdet, header, udotu, bdotu,bdotb
+        real(8), dimension(:), allocatable :: gdet, header, udotu, bdotu,bdotb, pmin
         type (four_vector), dimension(:), allocatable, intent(out) :: u,b
         type (four_vector), dimension(:), allocatable :: uks,bks
         real(8), dimension(:,:), allocatable :: grid, data, tmetric
@@ -369,9 +369,10 @@
           dlen=31; nhead=29
           allocate(header(nhead))
           rhopos=6; ppos=7; vpos=14; bpos=22; gdetpos=30
-          allocate(grid(nx1*nx2*nx3,6)); allocate(p(nx1*nx2*nx3)); allocate(rho(nx1*nx2*nx3))
+          allocate(grid(nx1*nx2*nx3,6)); allocate(p(nx1*nx2*nx3)); allocate(rho(nx1*nx2*nx3)); allocate(pmin(nx1*nx2*nx3))
           allocate(u(nx1*nx2*nx3)); allocate(b(nx1*nx2*nx3)); allocate(gdet(nx1*nx2*nx3))
           allocate(uks(nx1*nx2*nx3)); allocate(bks(nx1*nx2*nx3))
+          pmin=1e-18
           write(6,*) 'data file: ',data_file
           if(BINARY.ne.1) then
              open(unit=8,file=data_file,form='formatted',status='old',action='read')
@@ -419,6 +420,7 @@
              call read_harm3d_grid_file()
              r_arr=exp(x1_arr); th_arr=x2_arr*pi; ph_arr=x3_arr
           endif
+          p=merge(p,pmin,p > pmin)
           write(6,*) "min vals u", minval(u%data(1)), minval(u%data(2)), minval(u%data(3)), minval(u%data(4))
           write(6,*) "max vals u", maxval(u%data(1)), maxval(u%data(2)), maxval(u%data(3)), maxval(u%data(4))
           write(6,*) 'read harm grid sizes', size(x1_arr), size(x2_arr), size(x3_arr), size(r_arr), size(th_arr), size(ph_arr)
