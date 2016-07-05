@@ -348,6 +348,7 @@
 
         subroutine read_harm3d_data_file(data_file,tcur,rho,p,u,b,mdot)
         character(len=100), intent(in) :: data_file
+        character(len=100) :: data_file_app
         integer :: nhead,dlen
         integer :: rhopos,ppos,vpos,bpos,gdetpos
         integer, intent(in), optional :: mdot
@@ -412,10 +413,11 @@
              deallocate(data)
              x1_arr=grid(:,1); x2_arr=grid(:,2); x3_arr=grid(:,3); r_arr=grid(:,4); th_arr=grid(:,5); ph_arr=grid(:,6)
           else
-             call read_harm3d_data(trim(data_file) // '.bin',rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
+             data_file_app = trim(data_file) // '.bin'
+             call read_harm3d_data(data_file_app,rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
                   b%data(2),b%data(3),b%data(4))
              call read_harm3d_grid_file()
-             r_arr=exp(x1_arr); th_arr=x2_arr; ph_arr=x3_arr
+             r_arr=exp(x1_arr); th_arr=x2_arr*pi; ph_arr=x3_arr
           endif
           write(6,*) "min vals u", minval(u%data(1)), minval(u%data(2)), minval(u%data(3)), minval(u%data(4))
           write(6,*) "max vals u", maxval(u%data(1)), maxval(u%data(2)), maxval(u%data(3)), maxval(u%data(4))
@@ -468,10 +470,10 @@
 
         subroutine read_harm3d_grid_file()
 !        integer, intent(in) :: nt
-        integer :: n
+!        integer :: n
         open(unit=8,file=gfile,form='unformatted',status='old')
-        read(8) nx1,nx2,nx3
-        n=nx1*nx2*nx3
+!        read(8) nx1,nx2,nx3
+!        n=nx1*nx2*nx3
         ! allocate data
         !          call init_harm3d_data(n,n*nt)
         write(6,*) 'read grid: ',size(x1_arr),size(x2_arr),size(x3_arr)
@@ -490,7 +492,7 @@
         character(len=100), intent(in) :: dfile
         open(unit=8,file=dfile,form='unformatted',status='old')
         read(8) nx
-        if(nx.ne.9*nx1*nx2*nx3) then
+        if(nx.ne.10*nx1*nx2*nx3) then
            write(6,*) 'ERROR: INCORRECT DATA SIZE IN READ_HARM3D_DATA: ',nx,nx1,nx2,nx3
            return
         endif
