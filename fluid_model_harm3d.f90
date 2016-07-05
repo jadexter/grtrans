@@ -172,16 +172,18 @@
         ux3=lx3+1
 !        lx2=merge(merge(lx2,one,lx2.ge.1),umax,lx2.le.(nx2-1))
         lx2=merge(lx2,one,lx2.ge.1)
+        lx2=merge(lx2,nx2,lx2.le.nx2)
+        ux2=merge(ux2,one,ux2.ge.1)
         ux2=merge(ux2,nx2,ux2.le.nx2)
 !        write(6,*) 'nx1 nx2 nx3: ',nx1,nx2,nx3,minval(zphi),maxval(zphi),minval(zr),maxval(zr),minval(theta), &
 !             maxval(theta)
-!        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2), minval(lx3), maxval(ux3)
+!       write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2), minval(lx3), maxval(ux3)
 ! Deal with poles
 !        write(6,*) 'poles'
         where(ux2.ne.lx2)
            dth=uniqth(ux2)-uniqth(lx2)
         elsewhere
-            dth=uniqth(1)
+            dth=uniqth(1)*2
         endwhere
 ! periodic in phi
         minph=uniqph(lx3)
@@ -289,25 +291,24 @@
         ,a)))
 
 !        write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
-
 !        write(6,*) 'harm vals r: ',zr
 !        write(6,*) 'harm vals rho: ',rho
 !        write(6,*) 'harm vals rd: ',rd
 !        write(6,*) 'harm vals ux: ',nx1,ux1
-!        write(6,*) 'harm vals minloc: ',minloc(bmag),minval(bmag),rd(minloc(bmag)), &
-!             td(minloc(bmag)),x0(minloc(bmag))%data(3),uniqth(lx2(minloc(bmag))), &
-!             lx2(minloc(bmag)),pd(minloc(bmag)),lx1(minloc(bmag)),ux1(minloc(bmag)), &
-!             uniqx1(1),x1(minloc(bmag))
-!        write(6,*) 'harm vals minloc b0i: ',b0i(minloc(bmag),:)
-!        write(6,*) 'harm vals minloc bri: ',bri(minloc(bmag),:)
-!        write(6,*) 'harm vals minloc bthi: ',bthi(minloc(bmag),:)
-!        write(6,*) 'harm vals minloc bphi: ',bphi(minloc(bmag),:)
-!        write(6,*) 'harm vals interp bi: ',b(minloc(bmag))%data(1),b(minloc(bmag))%data(2), &
-!             b(minloc(bmag))%data(3),b(minloc(bmag))%data(4)
-!        write(6,*) 'harm vals minloc x0: ', ri(minloc(bmag),:),thi(minloc(bmag),:),&
-!             phii(minloc(bmag),:)
-!        write(6,*) 'harm coords: ',zr(minloc(bmag)),theta(minloc(bmag)),zphi(minloc(bmag))
-!        write(6,*) 'harm vals rhoi: ',rhoi(minloc(bmag),:)
+!        write(6,*) 'harm vals minloc: ',minloc(p),minval(p),rd(minloc(p)), &
+!             td(minloc(p)),x0(minloc(p))%data(3),uniqth(lx2(minloc(p))), &
+!             lx2(minloc(p)),pd(minloc(p)),lx1(minloc(p)),ux1(minloc(p)), &
+!             uniqx1(1),x1(minloc(p))
+!        write(6,*) 'harm vals minloc ppi: ',ppi(minloc(p),:)
+!        write(6,*) 'harm vals minloc bri: ',bri(minloc(p),:)
+!        write(6,*) 'harm vals minloc bthi: ',bthi(minloc(p),:)
+!        write(6,*) 'harm vals minloc bphi: ',bphi(minloc(p),:)
+!        write(6,*) 'harm vals interp bi: ',b(minloc(p))%data(1),b(minloc(p))%data(2), &
+!             b(minloc(p))%data(3),b(minloc(p))%data(4)
+!        write(6,*) 'harm vals minloc x0: ', ri(minloc(p),:),thi(minloc(p),:),&
+!             phii(minloc(p),:)
+!        write(6,*) 'harm coords: ',zr(minloc(p)),theta(minloc(p)),zphi(minloc(p))
+!        write(6,*) 'harm vals rhoi: ',rhoi(minloc(p),:)
         end subroutine harm3d_vals
 
         subroutine read_harm3d_inputs(ifile)

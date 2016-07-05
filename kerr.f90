@@ -765,10 +765,10 @@
 !        write(6,*) 'comoving ortho khat: ',khat%data(1)
         cosne=g*sqrt(beta*beta+mus*mus*(alpha*alpha-a*a))/r
         if(any(isnan(s2xi)).or.any(isnan(c2xi))) then
-           write(6,*) 'NaN in comoving ortho aadotbp: ',aadotbp
-           write(6,*) 'NaN in comoving ortho bpdotbb: ',bpdotbb
-           write(6,*) 'NaN in comoving ortho ahat: ',aa%data(2),aa%data(3),aa%data(4)
-           write(6,*) 'NaN in comoving ortho Kpw: ',Kap1,Kap2
+!           write(6,*) 'NaN in comoving ortho aadotbp: ',aadotbp
+!           write(6,*) 'NaN in comoving ortho bpdotbb: ',bpdotbb
+!           write(6,*) 'NaN in comoving ortho ahat: ',aa%data(2),aa%data(3),aa%data(4)
+!           write(6,*) 'NaN in comoving ortho Kpw: ',Kap1,Kap2
         endif
       end subroutine comoving_ortho_core
 

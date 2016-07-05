@@ -629,12 +629,12 @@
 !         e%K(:,6)=s2xi*e%K(:,5); e%K(:,5)=c2xi*e%K(:,5)
          if(any(isnan(e%j).or.any(isnan(e%K)))) then
             write(6,*) 'NaN in rotate_emis!'
-            write(6,*) 's2xi: ',s2xi
-            write(6,*) 'c2xi: ',c2xi
-            write(6,*) 'jq: ',jq
-            write(6,*) 'ej2: ',e%j(:,2)
-            write(6,*) 'ang: ',e%incang
-            write(6,*) 'ek5: ',e%K(:,5)
+!            write(6,*) 's2xi: ',s2xi
+!            write(6,*) 'c2xi: ',c2xi
+!            write(6,*) 'jq: ',jq
+!            write(6,*) 'ej2: ',e%j(:,2)
+!            write(6,*) 'ang: ',e%incang
+!            write(6,*) 'ek5: ',e%K(:,5)
          endif
          end subroutine rotate_emis
 

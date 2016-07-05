@@ -142,16 +142,16 @@
         jj=ej; KK=eK
         if(any(isnan(jj))) then
            write(6,*) 'nan in radtrans_integrate j'
-           write(6,*) 'radtrans_integrate j1: ',jj(:,1)
-           write(6,*) 'radtrans_integrate j2: ',jj(:,2)
+!           write(6,*) 'radtrans_integrate j1: ',jj(:,1)
+!           write(6,*) 'radtrans_integrate j2: ',jj(:,2)
         endif
         if(any(isnan(KK))) then
            write(6,*) 'nan in radtrans_integrate K'
-           write(6,*) 'radtrans_integrate K1: ',KK(:,1)
-           write(6,*) 'radtrans_integrate K2: ',KK(:,2)
-           write(6,*) 'radtrans_integrate K4: ',KK(:,4)
-           write(6,*) 'radtrans_integrate K5: ',KK(:,5)
-           write(6,*) 'radtrans_integrate K7: ',KK(:,7)
+!           write(6,*) 'radtrans_integrate K1: ',KK(:,1)
+!           write(6,*) 'radtrans_integrate K2: ',KK(:,2)
+!           write(6,*) 'radtrans_integrate K4: ',KK(:,4)
+!           write(6,*) 'radtrans_integrate K5: ',KK(:,5)
+!           write(6,*) 'radtrans_integrate K7: ',KK(:,7)
         endif
 ! spherical stokes case
         if (iflag==0) then
@@ -179,9 +179,9 @@
         rnpts = nptsout
 !        write(6,*) 'intensity: ', rnpts, rI(rnpts,1)
         if(isnan(intensity(1,rnpts))) then
-           write(6,*) 'NaN in integrate ej: ',ej
-           write(6,*) 'NaN in integrate jj 2: ',jj
-           write(6,*) 'NaN in integrate eK: ',eK
+           write(6,*) 'NaN in integrate ej: '!,ej
+!           write(6,*) 'NaN in integrate jj 2: ',jj
+!           write(6,*) 'NaN in integrate eK: ',eK
         endif
         return
       end subroutine integrate
@@ -287,10 +287,10 @@
               1,maxsteps,stats,hmax=hmax)
         endif
         if(isnan(intensity(1,i2))) then
-           write(6,*) 'NaN in integrate: ',i1,i2,s(i1:i2)
-           write(6,*) 'NaN in integrate intensity: ',intensity(1,i1:i2)
-           write(6,*) 'NaN in integrate j: ',jj(i1:i2,:)
-           write(6,*) 'NaN in integrate K: ',KK(i1:i2,:)
+!           write(6,*) 'NaN in integrate: ',i1,i2,s(i1:i2)
+!           write(6,*) 'NaN in integrate intensity: ',intensity(1,i1:i2)
+!           write(6,*) 'NaN in integrate j: ',jj(i1:i2,:)
+!           write(6,*) 'NaN in integrate K: ',KK(i1:i2,:)
         endif
         return
       end subroutine radtrans_integrate_lsoda
