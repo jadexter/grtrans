@@ -420,7 +420,8 @@
              call read_harm3d_grid_file()
              r_arr=exp(x1_arr); th_arr=x2_arr*pi; ph_arr=x3_arr
           endif
-          p=merge(p,pmin,p > pmin)
+          p=merge(p,pmin,p.gt.pmin)
+          write(6,*) "min vals p", minval(p)
           write(6,*) "min vals u", minval(u%data(1)), minval(u%data(2)), minval(u%data(3)), minval(u%data(4))
           write(6,*) "max vals u", maxval(u%data(1)), maxval(u%data(2)), maxval(u%data(3)), maxval(u%data(4))
           write(6,*) 'read harm grid sizes', size(x1_arr), size(x2_arr), size(x3_arr), size(r_arr), size(th_arr), size(ph_arr)
