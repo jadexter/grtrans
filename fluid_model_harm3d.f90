@@ -107,7 +107,7 @@
         subroutine harm3d_vals(x0,a,rho,p,b,u,bmag)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
-        real(kind=8), dimension(size(x0)) :: done
+        real(kind=8), dimension(size(x0)) :: done,pfac,nfac
         real, dimension(size(x0)) :: x3,x2,x1,zm,theta,fone, &
          vpl0,vrl0,vtl0,rd,td, pd,rttd,zr,dzero, &
          vr0,vth0,vph0,bth,dummy,tt,ttd,zt,zphi,zpp
@@ -202,7 +202,12 @@
 ! When the geodesic is inside the innermost zone center located outside the horizon, 
 ! use nearest neighbor rather than interpolate
         where(uniqr(lx1).le.(1.+sqrt(1.-a**2.)))
-            rd=1.
+           rd=1.
+           pfac=1e-3
+           nfac=1e-3
+        elsewhere
+           pfac=1.
+           nfac=1.
         endwhere
 !        write(6,*) 'coords: ',
 !        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
@@ -257,11 +262,11 @@
         ri=reshape(r_arr(indx),(/npts,2**(ndim+1)/))
         thi=reshape(th_arr(indx),(/npts,2**(ndim+1)/))
         phii=reshape(ph_arr(indx),(/npts,2**(ndim+1)/))
-!        write(6,*) 'after reshape', minval(ttd), maxval(ttd)
+                                                                                               !        write(6,*) 'after reshape', minval(ttd), maxval(ttd)
 !        rttd=ttd
         rttd=0.
-        rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
-        p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))
+        rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
+        p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
 !        write(6,*) 'rho: ', rho, p
         vrl0=merge(interp(vrli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
         vtl0=merge(interp(vtli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
@@ -289,24 +294,24 @@
         u%data(4)=u%data(1)*dble(vph0)
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
-
-!        write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
+        write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
 !        write(6,*) 'harm vals r: ',zr
 !        write(6,*) 'harm vals rho: ',rho
 !        write(6,*) 'harm vals rd: ',rd
 !        write(6,*) 'harm vals ux: ',nx1,ux1
-!        write(6,*) 'harm vals minloc: ',minloc(p),minval(p),rd(minloc(p)), &
-!             td(minloc(p)),x0(minloc(p))%data(3),uniqth(lx2(minloc(p))), &
-!             lx2(minloc(p)),pd(minloc(p)),lx1(minloc(p)),ux1(minloc(p)), &
-!             uniqx1(1),x1(minloc(p))
-!        write(6,*) 'harm vals minloc ppi: ',ppi(minloc(p),:)
-!        write(6,*) 'harm vals minloc bri: ',bri(minloc(p),:)
-!        write(6,*) 'harm vals minloc bthi: ',bthi(minloc(p),:)
-!        write(6,*) 'harm vals minloc bphi: ',bphi(minloc(p),:)
-!        write(6,*) 'harm vals interp bi: ',b(minloc(p))%data(1),b(minloc(p))%data(2), &
-!             b(minloc(p))%data(3),b(minloc(p))%data(4)
-!        write(6,*) 'harm vals minloc x0: ', ri(minloc(p),:),thi(minloc(p),:),&
-!             phii(minloc(p),:)
+!        write(6,*) 'harm vals udotu: ',(abs(u*u+1))(minloc(zr))
+        write(6,*) 'harm vals minloc: ',minloc(zr),rd(minloc(zr)), &
+             td(minloc(zr)),x0(minloc(zr))%data(3),uniqth(lx2(minloc(zr))), &
+             lx2(minloc(zr)),pd(minloc(zr)),lx1(minloc(zr)),ux1(minloc(zr)), &
+             uniqx1(1),x1(minloc(zr))
+        write(6,*) 'harm vals minloc b0i: ',b0i(minloc(zr),:)
+        write(6,*) 'harm vals minloc bri: ',bri(minloc(zr),:)
+        write(6,*) 'harm vals minloc bthi: ',bthi(minloc(zr),:)
+        write(6,*) 'harm vals minloc bphi: ',bphi(minloc(zr),:)
+        write(6,*) 'harm vals interp bi: ',b(minloc(zr))%data(1),b(minloc(zr))%data(2), &
+             b(minloc(zr))%data(3),b(minloc(zr))%data(4)
+        write(6,*) 'harm vals minloc x0: ', ri(minloc(zr),:),thi(minloc(zr),:),&
+             phii(minloc(zr),:)
 !        write(6,*) 'harm coords: ',zr(minloc(p)),theta(minloc(p)),zphi(minloc(p))
 !        write(6,*) 'harm vals rhoi: ',rhoi(minloc(p),:)
         end subroutine harm3d_vals
