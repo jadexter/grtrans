@@ -294,24 +294,24 @@
         u%data(4)=u%data(1)*dble(vph0)
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
-        write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
+!        write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
 !        write(6,*) 'harm vals r: ',zr
 !        write(6,*) 'harm vals rho: ',rho
 !        write(6,*) 'harm vals rd: ',rd
 !        write(6,*) 'harm vals ux: ',nx1,ux1
 !        write(6,*) 'harm vals udotu: ',(abs(u*u+1))(minloc(zr))
-        write(6,*) 'harm vals minloc: ',minloc(zr),rd(minloc(zr)), &
-             td(minloc(zr)),x0(minloc(zr))%data(3),uniqth(lx2(minloc(zr))), &
-             lx2(minloc(zr)),pd(minloc(zr)),lx1(minloc(zr)),ux1(minloc(zr)), &
-             uniqx1(1),x1(minloc(zr))
-        write(6,*) 'harm vals minloc b0i: ',b0i(minloc(zr),:)
-        write(6,*) 'harm vals minloc bri: ',bri(minloc(zr),:)
-        write(6,*) 'harm vals minloc bthi: ',bthi(minloc(zr),:)
-        write(6,*) 'harm vals minloc bphi: ',bphi(minloc(zr),:)
-        write(6,*) 'harm vals interp bi: ',b(minloc(zr))%data(1),b(minloc(zr))%data(2), &
-             b(minloc(zr))%data(3),b(minloc(zr))%data(4)
-        write(6,*) 'harm vals minloc x0: ', ri(minloc(zr),:),thi(minloc(zr),:),&
-             phii(minloc(zr),:)
+!        write(6,*) 'harm vals minloc: ',minloc(zr),rd(minloc(zr)), &
+!             td(minloc(zr)),x0(minloc(zr))%data(3),uniqth(lx2(minloc(zr))), &
+!             lx2(minloc(zr)),pd(minloc(zr)),lx1(minloc(zr)),ux1(minloc(zr)), &
+!             uniqx1(1),x1(minloc(zr))
+!        write(6,*) 'harm vals minloc b0i: ',b0i(minloc(zr),:)
+!        write(6,*) 'harm vals minloc bri: ',bri(minloc(zr),:)
+!        write(6,*) 'harm vals minloc bthi: ',bthi(minloc(zr),:)
+!        write(6,*) 'harm vals minloc bphi: ',bphi(minloc(zr),:)
+!        write(6,*) 'harm vals interp bi: ',b(minloc(zr))%data(1),b(minloc(zr))%data(2), &
+!             b(minloc(zr))%data(3),b(minloc(zr))%data(4)
+!        write(6,*) 'harm vals minloc x0: ', ri(minloc(zr),:),thi(minloc(zr),:),&
+!             phii(minloc(zr),:)
 !        write(6,*) 'harm coords: ',zr(minloc(p)),theta(minloc(p)),zphi(minloc(p))
 !        write(6,*) 'harm vals rhoi: ',rhoi(minloc(p),:)
         end subroutine harm3d_vals
