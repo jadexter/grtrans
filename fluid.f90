@@ -722,7 +722,8 @@
         beta_trans=1.d0
         !b2=(beta/beta_trans)*(beta/beta_trans)
         b2=beta*beta
-        Rhigh=100d0
+! defaults to 100, for now gmin even though should just be its own source param
+        Rhigh=sp%gminval
         Rlow=1d0
         Nhigh=1d0
         Nlow=1d0
