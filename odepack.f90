@@ -47,9 +47,9 @@
         real(kind=8), intent(out), dimension(size(y),size(t)) :: &
                                                              yout
         real(kind=8), intent(in) :: oatol, ortol
-        integer, intent(out), optional, dimension(4) :: si
-        integer, intent(in), optional :: mt,mxs
-        integer :: oiopt,oitask,ojt,oneq,npts,i
+        real(kind=8), intent(out), optional, dimension(8) :: si
+        integer(kind=4), intent(in), optional :: mt,mxs
+        integer(kind=4) :: oiopt,oitask,ojt,oneq,npts,i
         real(kind=8) :: tout, t0
         real(kind=8), intent(in), optional :: hmin, hmax
         character(len=50) :: errmsg
@@ -57,6 +57,7 @@
         npts=size(t)
         ojt=1; oitask=1; oiopt=0
         t0=t(1)
+        yout(:,:)=0d0
 !        write(6,*) 'init: ',y,npts,t
 !        write(6,*) 't0: ',t0,oatol,ortol,oneq
         if(present(mt)) oitask=4
@@ -91,6 +92,9 @@
           if(istate.lt.0) then
 ! error: set this pixel to zero and break
              write(6,*) 'istate lt 0 in lsoda: ',i,istate,errmsg
+             write(6,*) 'istate lt 0 in lsoda: ',tout,y
+             write(6,*) 'istate lt 0 in lsoda: ',rwork(6),rwork(7), &
+                  iwork(6),oatol,ortol,oneq
              yout(:,:)=0d0
              exit
           endif
@@ -103,6 +107,7 @@
 !        write(6,*) 'Method: ',iwork(19)
         if(present(si)) then
           si(1)=iwork(12); si(2)=iwork(13); si(3)=iwork(19); si(4)=iwork(11)
+          si(5)=rwork(11); si(6)=rwork(12); si(7)=rwork(13); si(8)=rwork(15)
         endif
         call lsoda_destroy()
         end subroutine lsoda_basic
