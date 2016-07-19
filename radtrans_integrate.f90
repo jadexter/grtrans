@@ -7,16 +7,15 @@
     implicit none
 
     ! global data to avoid needing to pass arguments through external integration routines (e.g., lsoda)
-    integer :: lindx=25,nequations,nptstot,npts,nptsout,iflag,i1,i2
+    integer :: lindx=25,nequations,nptstot,npts,nptsout,iflag
     real(kind=8), dimension(:,:), allocatable :: KK,jj,intensity,PP
-    real(kind=8), dimension(:), allocatable :: s,ss,s0,tau,stokesq,stokesu,stokesv,&
-         stokeslp,stokesphi,stokespsi
+    real(kind=8), dimension(:), allocatable :: s,ss,s0,tau,stokesq,stokesu,stokesv
     real(kind=8), dimension(:,:,:), allocatable :: QQ,imm,OO
 
     integer :: IS_LINEAR_STOKES = 1
     integer(kind=4) :: maxsteps = 100000
-    real(kind=8), dimension(8) :: stats
-    real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2, sphtolfac=1d0
+    integer, dimension(4) :: stats
+    real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2, sphtolfac=1d3
 
 !$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats,stokesq,stokesu,stokesv)
 !$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO,IS_LINEAR_STOKES,sphtolfac)
@@ -124,9 +123,6 @@
            allocate(stokesq(npts))
            allocate(stokesu(npts))
            allocate(stokesv(npts))
-           allocate(stokeslp(npts))
-           allocate(stokesphi(npts))
-           allocate(stokespsi(npts))
         endif
       end subroutine init_radtrans_integrate_data
 
@@ -197,7 +193,7 @@
         real(kind=8), dimension(:), allocatable :: tau_temp,intvals,q,u,v
         integer, dimension(:), allocatable :: inds
         real(kind=8) :: weight
-        integer :: lamdex,i,ii,taudex
+        integer :: lamdex,i,ii,i1,i2,taudex
         i1=1; i2=nptstot
         I0 = 0d0
         if(maxval(tau).le.MAX_TAU) then
@@ -265,24 +261,18 @@
 ! testing higher error tolerance for sph stokes to converge on difficult problems
               call lsoda_basic(radtrans_lsoda_calc_rhs_sph,I0(1:nequations), &
                    s(i1:i2),oatol*sphtolfac, &
-                   ortol,radtrans_lsoda_calc_jac_sph,intensity(:,i1:i2), &
+                   ortol*sphtolfac,radtrans_lsoda_calc_jac_sph,intensity(:,i1:i2), &
                    1,maxsteps,stats,hmax=hmax)
 ! convert to linear stokes parameters
 !              allocate(q(npts));allocate(u(npts))
 !              allocate(v(npts))
 !              write(6,*) 'sph stokes intensity: ',maxval(intensity(1,i1:i2)), &
 !                   maxval(intensity(2,i1:i2))
-! save spherical stokes for debugging
-              stokeslp(i1:i2)=intensity(2,i1:i2)
-              stokesphi(i1:i2)=intensity(3,i1:i2)
-              stokespsi(i1:i2)=intensity(4,i1:i2)
-! convert to regular stokes
               stokesq(i1:i2)=intensity(2,i1:i2)*sin(intensity(4,i1:i2)) &
                    *cos(intensity(3,i1:i2))
               stokesu(i1:i2)=intensity(2,i1:i2)*sin(intensity(4,i1:i2)) &
                    *sin(intensity(3,i1:i2))
               stokesv(i1:i2)=intensity(2,i1:i2)*cos(intensity(4,i1:i2))
-! assign regular stokes to output intensity
               intensity(2,i1:i2)=stokesq(i1:i2); intensity(3,i1:i2)=stokesu(i1:i2)
               intensity(4,i1:i2)=stokesv(i1:i2)
 !              write(6,*) 'sph stokes intensity: ',maxval(q),maxval(v)
@@ -857,7 +847,6 @@
            deallocate(OO)
         elseif(iflag==3) then
            deallocate(stokesq);deallocate(stokesu);deallocate(stokesv)
-           deallocate(stokeslp); deallocate(stokesphi); deallocate(stokespsi)
         endif
       end subroutine del_radtrans_integrate_data
    
