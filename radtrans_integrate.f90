@@ -18,8 +18,8 @@
     real(kind=8), dimension(8) :: stats
     real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2, sphtolfac=1d0
 
-!$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats,stokesq,stokesu,stokesv,stokespsi)
-!$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO,IS_LINEAR_STOKES,sphtolfac,stokeslp,stokesphi)
+!$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats,stokesq,stokesu,stokesv)
+!$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO,IS_LINEAR_STOKES,sphtolfac)
 
     interface integrate
        module procedure integrate
