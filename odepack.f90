@@ -90,7 +90,7 @@
 !          write(6,*) 'made it'
           if(istate.lt.0) then
 ! error: set this pixel to zero and break
-             write(6,*) 'istate lt 0 in lsoda: ',i,istate,errmsg
+!             write(6,*) 'istate lt 0 in lsoda: ',i,istate,errmsg
              yout(:,:)=0d0
              exit
           endif
