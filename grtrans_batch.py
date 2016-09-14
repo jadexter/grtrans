@@ -478,13 +478,42 @@ class grtrans:
 # convert spectrum and intensities to cgs units of F_\nu
 
 
-    def disp_grtrans_image(self,idex):
+    def disp_grtrans_image(self,idex=0,stokes=0):
         if self.ivals.ndim < 3:
-            imgplot = plt.imshow(np.transpose(self.ivals[:,0].reshape((self.nx,self.ny))),origin='lower')
+            imgplot = plt.imshow(np.transpose(self.ivals[:,stokes].reshape((self.nx,self.ny))),origin='lower')
         else:
-            imgplot = plt.imshow(np.transpose(self.ivals[:,0,idex].reshape((self.nx,self.ny))),origin='lower')
+            imgplot = plt.imshow(np.transpose(self.ivals[:,stokes,idex].reshape((self.nx,self.ny))),origin='lower')
         plt.show()
 
-    def disp_pgrtrans_image(self,idex):
-        imgplot = plt.imshow(np.transpose(self.ivals[0,:,idex].reshape((self.nx,self.ny))),origin='lower')
+    def disp_pgrtrans_image(self,idex=0,stokes=0):
+        imgplot = plt.imshow(np.transpose(self.ivals[stokes,:,idex].reshape((self.nx,self.ny))),origin='lower')
         plt.show()
+
+    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8):
+        ###----------------------------------------------
+        X = np.arange(self.nx/nsamp,dtype=int)*nsamp+nsamp/2
+        Y = np.arange(self.ny/nsamp,dtype=int)*nsamp+nsamp/2
+        U,V = np.meshgrid(X,Y)
+        if pgrtrans==1:
+            evpa = 0.5*np.arctan2(self.ivals[2,:,:],self.ivals[1,:,:])
+            m = np.sqrt(self.ivals[1,:,:]**2.+self.ivals[2,:,:]**2.)
+            img = self.ivals[0,:,:]
+        else:
+            evpa = 0.5*np.arctan2(self.ivals[:,2,:],self.ivals[:,1,:])
+            m = np.sqrt(self.ivals[:,1,:]**2.+self.ivals[:,2,:]**2.)
+            img = self.ivals[:,0,:]
+        scale=np.max(m)*10.
+        mx = (np.transpose(np.resize(m[:,idex] * np.cos(evpa[:,idex]),(self.ny,self.nx))))
+        my = (np.transpose(np.resize(m[:,idex] * np.sin(evpa[:,idex]),(self.ny,self.nx))))
+        my=my[nsamp/2::nsamp,nsamp/2::nsamp]; mx=mx[nsamp/2::nsamp,nsamp/2::nsamp]
+#        i=img/np.max(img)/sat
+
+        fig = plt.figure()
+        plt.xlabel('alpha', fontsize=16)
+        plt.ylabel('beta', fontsize=16)
+        plt.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
+        plt.imshow(np.transpose(img[:,idex].reshape((self.nx,self.ny))),origin='lower')
+
+        quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
+                         width=5e-3, headwidth=1,headaxislength=0) # common options
+        plt.quiver(U,V,mx,my,**quiveropts)

@@ -446,11 +446,7 @@
         real(kind=8), intent(out), dimension(1+neq*(neq-1)/2) :: K
         real(kind=8) :: weight
         integer :: indx,uindx
-!         call interp_geo_point(lam,gOB)
-!         call get_fluid_vars(x0,f)
-!         call calc_emissivity(nu,f,e)
-!         call calc_emissivity(e)
- !        call locate(s0,lam,lindx)
+! here is where we would need to change things: have a new routine that calculates new j, K with new rel. factors at point lam
         call get_weight(ss,lam,lindx,weight)
         indx=npts-lindx+1; uindx=minval((/indx+1,npts/))
         j=(1d0-weight)*jj(indx,:)+weight*jj(uindx,:)

@@ -367,7 +367,7 @@ C Reset nup value in case it's changed.
 *                       set U0=UOUT.
 *               MU0 -- Starting mu=cos(theta) value.
 *               MUF -- Final mu value, given if USEGEOR=.TRUE. and computed otherwise.
-*               A -- Black hole spin, on interval [0,1).
+*               A -- Black hole spin, on interval (-1,1).
 *               L -- Dimensionless z-component of angular momentum.
 *               Q2 -- Dimensionless Carter's constant.
 *               ALPHA -- Impact parameter at infinity perpendicular to the black hole spin axis. alpha=0
