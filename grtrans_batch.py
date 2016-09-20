@@ -468,15 +468,14 @@ class grtrans:
 #        self.convert_to_lum()
 
 # convert spectrum and intensities to L_iso in cgs units
-    def convert_to_lum(self):
+    def convert_to_Jy(self,D):
         lbh = pcG*self.mbh/pcc2
-        fac = lbh**3*4.*np.pi
-        ifac = lbh
-        self.ivals *= ifac
+        fac = lbh**2/D**2.*1e23
+        da =self.ab[self.nx,0]-self.ab[0,0]
+        db=self.ab[1,1]-self.ab[0,1]
+#        ifac = lbh
+        self.ivals *= fac*da*db
         self.spec *= fac
-
-# convert spectrum and intensities to cgs units of F_\nu
-
 
     def disp_grtrans_image(self,idex=0,stokes=0):
         if self.ivals.ndim < 3:
@@ -489,8 +488,7 @@ class grtrans:
         imgplot = plt.imshow(np.transpose(self.ivals[stokes,:,idex].reshape((self.nx,self.ny))),origin='lower')
         plt.show()
 
-    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8):
-        ###----------------------------------------------
+    def get_pol_vectors(self,idex=0,pgrtrans=1,nsamp=8):
         X = np.arange(self.nx/nsamp,dtype=int)*nsamp+nsamp/2
         Y = np.arange(self.ny/nsamp,dtype=int)*nsamp+nsamp/2
         U,V = np.meshgrid(X,Y)
@@ -506,8 +504,12 @@ class grtrans:
         mx = (np.transpose(np.resize(m[:,idex] * np.cos(evpa[:,idex]),(self.ny,self.nx))))
         my = (np.transpose(np.resize(m[:,idex] * np.sin(evpa[:,idex]),(self.ny,self.nx))))
         my=my[nsamp/2::nsamp,nsamp/2::nsamp]; mx=mx[nsamp/2::nsamp,nsamp/2::nsamp]
-#        i=img/np.max(img)/sat
+        return U,V,mx,my,img,scale
 
+    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8):
+        ###----------------------------------------------
+        U,V,mx,my,img,scale = get_pol_vectors(self,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp)
+#        i=img/np.max(img)/sat
         fig = plt.figure()
         plt.xlabel('alpha', fontsize=16)
         plt.ylabel('beta', fontsize=16)
