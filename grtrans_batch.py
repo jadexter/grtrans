@@ -473,7 +473,6 @@ class grtrans:
         fac = lbh**2/D**2.*1e23
         da =self.ab[self.nx,0]-self.ab[0,0]
         db=self.ab[1,1]-self.ab[0,1]
-#        ifac = lbh
         self.ivals *= fac*da*db
         self.spec *= fac
 
