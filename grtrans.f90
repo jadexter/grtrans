@@ -34,7 +34,7 @@
        write(6,*) 'dfile: ',fdfile
        if(extra==1) then
           if(nup.gt.1) then
-             nextra=13
+             nextra=18
           else
              nextra=7
           endif
@@ -50,7 +50,7 @@
        allocate(sparams(nparams))
        do iii=1,nparams
           sparams(iii)%mdot=mdots(iii); sparams(iii)%mbh=mbh
-          sparams(iii)%nfac=2.; sparams(iii)%bfac=70.
+          sparams(iii)%nfac=ftscl; sparams(iii)%bfac=frscl
           sparams(iii)%jetalphaval=jetalpha
           sparams(iii)%gminval=gmin; sparams(iii)%muval=muval
           sparams(iii)%gmax=gmax

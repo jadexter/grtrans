@@ -507,7 +507,7 @@ class grtrans:
 
     def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8):
         ###----------------------------------------------
-        U,V,mx,my,img,scale = get_pol_vectors(self,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp)
+        U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp)
 #        i=img/np.max(img)/sat
         fig = plt.figure()
         plt.xlabel('alpha', fontsize=16)
@@ -516,5 +516,5 @@ class grtrans:
         plt.imshow(np.transpose(img[:,idex].reshape((self.nx,self.ny))),origin='lower')
 
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
-                         width=5e-3, headwidth=1,headaxislength=0) # common options
+                         width=2e-2, headwidth=1,headaxislength=0) # common options
         plt.quiver(U,V,mx,my,**quiveropts)

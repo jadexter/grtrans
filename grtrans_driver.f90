@@ -17,6 +17,7 @@
        use chandra_tab24, only: interp_chandra_tab24
        use radtrans_integrate, only: integrate, del_radtrans_integrate_data, &
             init_radtrans_integrate_data, intensity
+       use math, only: tsum
 
        implicit none
 
@@ -68,7 +69,7 @@
          real(kind=8) :: fac
          real(kind=8), dimension(:), allocatable :: s2xi,c2xi,s2psi,c2psi, &
           rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy,vrl,vtl,vpl,cosne2, &
-         aat,aar,aath,aaph,kht,khr,khth,khph,bht,bhr,bhth,bhph
+         aat,aar,aath,aaph,kht,khr,khth,khph,bht,bhr,bhth,bhph,dlp
          real(kind=8), dimension(:,:), allocatable :: aahat
          real(kind=8), dimension(:,:), allocatable :: tau_arr
          integer :: k,npow,status,j,nf,nitems,m,kk,taudex,ii,nvals
@@ -216,7 +217,7 @@
 !                           if(r%npts.gt.1) then
                            allocate(tau_arr(g%npts,6))
                            allocate(tau_temp(g%npts)); allocate(intvals(g%npts))
-                           allocate(dummy(g%npts)); allocate(inds(6))
+                           allocate(dummy(g%npts)); allocate(inds(6)); allocate(dlp(r%npts-1))
                            inds=(/1,2,3,4,5,7/)
 !                           write(6,*) 'tau_arr', size(g%lambda), size(tau_temp)
                            do ii=1,6
@@ -235,6 +236,13 @@
 !                           write(6,*) 'rtau',size(r%tau(1:6)),size(tau_arr(taudex,:))
                            ! now do emissivity-weighted ray averages of other quantities
                            dummy=e%j(:,1)*exp(-tau(1:g%npts))
+                           if(r%neq==4) then
+                              dlp=sqrt(r%I(1,r%npts:2:-1)**2.+r%I(2,r%npts:2:-1)**2.)-&
+                                sqrt(r%I(1,r%npts-1:1:-1)**2.+r%I(2,r%npts-1:1:-1)**2.)
+                           else
+                              dlp(:)=0.
+                           endif
+!                           write(6,*) 'dlp: ',minval(dlp),maxval(dlp)
 !                           write(6,*) 'rtau', size(r%tau),size(r%tau(7:7))
 !                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex))
 !                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex)*g%x(1:taudex)%data(2))
@@ -256,8 +264,15 @@
 ! this one is \beta...
                            intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*f%p*2./f%bmag**2.)
                            r%tau(13)=intvals(taudex)
+! new ones added for fraction of emission produced above/below midplane (e.g. counter-jet or forward jet images), and weighted r,th,\tau_FR,\tau_FC for LP
+                           intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*sign(1d0,cos(g%x%data(3))))
+                           r%tau(14)=intvals(taudex)
+                           r%tau(15)=sum(dlp*g%x(1:r%npts)%data(2))/sum(dlp)
+                           r%tau(16)=sum(dlp*g%x(1:r%npts)%data(3))/sum(dlp)
+                           r%tau(17)=sum(dlp*tau_arr(1:r%npts,5))/sum(dlp)
+                           r%tau(18)=sum(dlp*tau_arr(1:r%npts,6))/sum(dlp)
                            deallocate(tau_arr); deallocate(tau_temp); deallocate(intvals); deallocate(dummy)
-                           deallocate(inds)
+                           deallocate(inds); deallocate(dlp)
 !                           else
                         endif
                      else

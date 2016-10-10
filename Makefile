@@ -111,7 +111,7 @@ calcgmin.o: ./calcgmin.f90
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./calcgmin.f90
 geodesics.o: ./geodesics.f90 class_four_vector.o interpolate.o kerr.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./geodesics.f90
-grtrans_driver.o: ./grtrans_driver.f90 fluid.o radtrans_integrate.o rad_trans.o geodesics.o emis.o odepack.o camera.o interpolate.o phys_constants.o kerr.o read_inputs.o chandra_tab24.o
+grtrans_driver.o: ./grtrans_driver.f90 fluid.o radtrans_integrate.o rad_trans.o geodesics.o emis.o odepack.o camera.o interpolate.o phys_constants.o kerr.o read_inputs.o chandra_tab24.o math.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./grtrans_driver.f90
 grtrans.o: ./grtrans.f90 grtrans_driver.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./grtrans.f90

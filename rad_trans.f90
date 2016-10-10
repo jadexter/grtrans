@@ -44,7 +44,7 @@
          r%I(:,:)=0d0; r%npts=r%onpts
          if(extra.eq.1) then
             if(npts.ne.1) then
-               nextra=13
+               nextra=18
             else
                nextra=7
             endif
