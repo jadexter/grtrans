@@ -267,10 +267,10 @@
 ! new ones added for fraction of emission produced above/below midplane (e.g. counter-jet or forward jet images), and weighted r,th,\tau_FR,\tau_FC for LP
                            intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*sign(1d0,cos(g%x%data(3))))
                            r%tau(14)=intvals(taudex)
-                           r%tau(15)=sum(dlp*g%x(1:r%npts)%data(2))/sum(dlp)
-                           r%tau(16)=sum(dlp*g%x(1:r%npts)%data(3))/sum(dlp)
-                           r%tau(17)=sum(dlp*tau_arr(1:r%npts,5))/sum(dlp)
-                           r%tau(18)=sum(dlp*tau_arr(1:r%npts,6))/sum(dlp)
+                           r%tau(15)=sum(dlp*g%x(1:r%npts-1)%data(2))/sum(dlp)
+                           r%tau(16)=sum(dlp*g%x(1:r%npts-1)%data(3))/sum(dlp)
+                           r%tau(17)=sum(dlp*tau_arr(1:r%npts-1,5))/sum(dlp)
+                           r%tau(18)=sum(dlp*tau_arr(1:r%npts-1,6))/sum(dlp)
                            deallocate(tau_arr); deallocate(tau_temp); deallocate(intvals); deallocate(dummy)
                            deallocate(inds); deallocate(dlp)
 !                           else
