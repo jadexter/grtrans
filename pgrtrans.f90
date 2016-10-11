@@ -106,7 +106,7 @@
             !replace read_inputs with actual inputs
             if(extra==1) then
                if (nup.gt.1) then
-                  nextra=18
+                  nextra=19
                else
                   nextra=7
                endif

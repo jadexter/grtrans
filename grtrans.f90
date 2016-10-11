@@ -34,7 +34,7 @@
        write(6,*) 'dfile: ',fdfile
        if(extra==1) then
           if(nup.gt.1) then
-             nextra=18
+             nextra=19
           else
              nextra=7
           endif
