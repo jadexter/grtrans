@@ -516,5 +516,5 @@ class grtrans:
         plt.imshow(np.transpose(img[:,idex].reshape((self.nx,self.ny))),origin='lower')
 
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
-                         width=2e-2, headwidth=1,headaxislength=0) # common options
+                         width=8e-3, headwidth=1,headaxislength=0) # common options
         plt.quiver(U,V,mx,my,**quiveropts)
