@@ -1,0 +1,6 @@
+/*.a
+/*.o
+/*.mod
+/*.so
+/Makefile.top
+/grtrans
