@@ -24,7 +24,7 @@ OMPLIB = -lgomp
 FCNAME=gnu95
 PHIFLAGS=
 ifeq ($(DEBUG),1)
-OTHERFLAGS = -ffixed-line-length-132 -pg -W -Wall -fPIC
+OTHERFLAGS = -ffixed-line-length-132 -g -pg -W -Wall -fPIC
 #OMP=
 #OMPLIB=
 else
