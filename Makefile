@@ -39,7 +39,7 @@ LIBS=$(GRTRANSDIR)/libcfitsio_phi.a
 LINKFLAGS=$(OMP) $(PHIFLAGS)
 else
 LINKFLAGS=$(OMP)
-LIBS=-L/$(CFITSIODIR) -lcfitsio
+LIBS=-L$(CFITSIODIR) -lcfitsio
 endif
 
 .DEFAULT:
