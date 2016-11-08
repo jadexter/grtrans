@@ -62,8 +62,12 @@ class geokerr:
         class_geokerr.init_geokerr_data(self.npts)
         class_geokerr.call_geokerr(self.u0,self.uf[i],self.inputs.uout,self.inputs.mu0,self.muf[i],self.inputs.a,self.l[i],self.q2[i],self.alpha[i],self.beta[i],self.tpm[i],self.tpr[i],self.su[i],self.sm[i],self.inputs.n[2],self.offset,self.inputs.phit,self.inputs.usegeor,self.inputs.mufill,self.inputs.kext,self.inputs.next)
 # now copy useful parts of geodesic
-# first iteration with just whole thing up to last point used
-        self.i1=0; self.i2=self.npts
+        self.i1=0
+        print 'class geokerr tpri: ',class_geokerr.tpri[-1]
+        if class_geokerr.tpri[self.inputs.n[2]-1]==0:
+            self.i2=self.inputs.n[2]
+        else:
+            self.i2=self.npts
         self.u = class_geokerr.u[self.i1:self.i2].copy()
         self.mu = class_geokerr.mu[self.i1:self.i2].copy()
         self.dphi = class_geokerr.dphi[self.i1:self.i2].copy()
@@ -89,8 +93,10 @@ class geokerr:
         tarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n))
         lamarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n))
         phiarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n))
-        tpmiarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n))
-        tpriarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n))
+        tpmiarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n),dtype='int')
+        tpriarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n),dtype='int')
+        i1 = np.zeros(self.inputs.n[0]*self.inputs.n[1],dtype='int')
+        i2 = np.zeros(self.inputs.n[0]*self.inputs.n[1],dtype='int')
         for i in range(self.inputs.n[0]*self.inputs.n[1]):
             self.run_single_geodesic(i)
             uarr[i,self.i1:self.i2] = self.u
@@ -100,5 +106,6 @@ class geokerr:
             lamarr[i,self.i1:self.i2] = self.lam
             tpmiarr[i,self.i1:self.i2] = self.tpmi
             tpriarr[i,self.i1:self.i2] = self.tpri
+            i1[i]=self.i1; i2[i]=self.i2
 
-        return uarr,muarr,tarr,lamarr,phiarr,tpmiarr,tpriarr
+        return uarr,muarr,tarr,lamarr,phiarr,tpmiarr,tpriarr,i1,i2
