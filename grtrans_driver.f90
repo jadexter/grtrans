@@ -271,7 +271,7 @@
                            r%tau(16)=sum(dlp*g%x(1:r%npts-1)%data(3))/sum(dlp)
                            r%tau(17)=sum(dlp*tau_arr(1:r%npts-1,5))/sum(dlp)
                            r%tau(18)=sum(dlp*tau_arr(1:r%npts-1,6))/sum(dlp)
-                           r%tau(19)=sum(dlp*g%x(1:r%npts-1)%data(3))/sum(dlp)
+                           r%tau(19)=sum(dlp*sign(1d0,cos(g%x(1:r%npts-1)%data(3))))/sum(dlp)
                            deallocate(tau_arr); deallocate(tau_temp); deallocate(intvals); deallocate(dummy)
                            deallocate(inds); deallocate(dlp)
 !                           else

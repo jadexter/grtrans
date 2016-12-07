@@ -488,6 +488,14 @@ class grtrans:
         plt.show()
 
     def get_pol_vectors(self,idex=0,pgrtrans=1,nsamp=8):
+        if (np.mod(self.nx,nsamp)) != 0:
+            for i in range(nsamp):
+                nsamptry = nsamp-(i+1)
+                print 'nsamp change: ',i,nsamp-(i+1),np.mod(self.nx,nsamptry)
+                if np.mod(self.nx,nsamptry)==0:
+                    nsamp = nsamptry
+                    break
+            print 'warning: nx/nsamp not an integer, changing nsamp = ',nsamp
         X = np.arange(self.nx/nsamp,dtype=int)*nsamp+nsamp/2
         Y = np.arange(self.ny/nsamp,dtype=int)*nsamp+nsamp/2
         U,V = np.meshgrid(X,Y)
