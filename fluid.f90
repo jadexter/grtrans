@@ -738,8 +738,9 @@
         
 !        Thetae_unit = (gam - 1d0)* mp / trat
 !        Thetae_unit = mp / trat
-        
-        tempcgs=(f%p/f%rho)*mp*c*c/k/trat
+
+! changed to add 1+trat to have maximum T_e = T_tot / 2
+        tempcgs=(f%p/f%rho)*mp*c*c/k/(1d0+trat)
 
         ! And finally, bfield conversion is just square root of this:
 
