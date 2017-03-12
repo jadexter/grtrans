@@ -567,46 +567,51 @@
 !        write(6,*) 'mb09 u: ',f%u*f%u, f%b*f%b
         end subroutine get_mb09_fluidvars
 
+! scale code to cgs units given mbh and simulation and cgs mdot values
+        subroutine scale_sim_units(mbh,mdotcgs,mdot,rho,p,bmag, &
+             ncgs,bcgs,tempcgs)
+          real(kind=8), intent(in) :: mbh,mdot,mdotcgs
+          real(kind=8) :: lcgs,tcgs
+          real, dimension(:) :: rho,p,bmag
+          real(kind=8), dimension(size(rho)) :: rhocgs,pcgs
+          real(kind=8), dimension(size(rho)), intent(inout) :: ncgs,bcgs,tempcgs
+        ! JAD 11/26/2012 adapted from IDL code
+        ! Black hole mass sets time and length scales:
+!        write(6,*) 'convert mbh: ',sp%mbh
+        lcgs=GC*mbh*msun/c**2; tcgs=lcgs/c
+        rhocgs=mdotcgs/mdot/lcgs**3*tcgs*rho; ncgs=rhocgs/mp
+        ! Use this to convert pressure:
+        pcgs=p*rhocgs/rho*c**2.
+        ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
+        tempcgs=pcgs/ncgs/k
+        ! And finally, bfield conversion is just square root of this:
+        bcgs=bmag*sqrt(rhocgs/rho)*c
+        ! Convert HL units to cgs:
+        bcgs=bcgs*sqrt(4.*pi)
+        end subroutine scale_sim_units
+
+! non-thermal e- where jet energy density is high (e.g. Broderick & McKinney 2010, Dexter+2012)
+        subroutine nonthermale_b2(alpha,gmin,p1,p2,bmagrho,bcgs,ncgsnth)
+          real(kind=8), intent(in) :: alpha,gmin,p1,p2
+          real(kind=8), intent(in), dimension(:) :: bmagrho,bcgs
+          real(kind=8), intent(inout), dimension(:) :: ncgsnth
+        where(bmagrho.gt.1.)
+           ncgsnth=alpha*bcgs**2./8./pi/gmin*(p1-2.)/(p1-1.)/8.2e-7
+        elsewhere
+           ncgsnth=0.
+        endwhere
+        end subroutine nonthermale_b2
+
         subroutine convert_fluidvars_thickdisk(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
         real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
         real(kind=8) :: lcgs,tcgs,mdot
-        ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
-        ! JAD 11/26/2012 adapted from IDL code
-        ! Black hole mass sets time and length scales:
-!        write(6,*) 'convert mbh: ',sp%mbh
-        lcgs=GC*sp%mbh*msun/c**2; tcgs=lcgs/c
-!        write(6,*) 'lcgs: ',lcgs,tcgs
-        ! Typical mb09 code mdot value. (not even close for thickdisk but for comparison to IDL purposes JAD 1/11/2013)
-        mdot=.0013
-        ! Now convert density using black hole to scale length/time, 
-        ! accretion rate to scale torus mass:
-        !write(6,*) 'convert mdot: ',mdot,sp%mdot
-        rhocgs=sp%mdot/mdot/lcgs**3*tcgs*f%rho; ncgs=rhocgs/mp
-!        write(6,*) 'n: ',sp%mdot/mdot/lcgs**3.*tcgs/mp
-        ! Use this to convert pressure:
-        pcgs=f%p*rhocgs/f%rho*c**2.
-        ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
-        tempcgs=pcgs/ncgs/k
-        ! And finally, bfield conversion is just square root of this:
-        bcgs=f%bmag*sqrt(rhocgs/f%rho)*c
-        ! Convert HL units to cgs:
-        bcgs=bcgs*sqrt(4.*pi)
-        ! non-thermal particles from n ~ b^2 / \rho
-        where(f%bmag**2./f%rho.gt.1.)
-           ncgsnth=sp%jetalphaval*bcgs**2./8./pi/sp%gminval*(sp%p1-2.)/(sp%p1-1.)/8.2e-7
-        elsewhere
-           ncgsnth=0.
-        endwhere
-!        write(6,*) 'leaving convert', maxval(bcgs), maxval(ncgs), maxval(tempcgs)
-!        write(6,*) 'convert b: ',bcgs
-!        write(6,*) 'convert n: ',ncgs/1e7
-!        write(6,*) 'convert temp: ',tempcgs/1e10
-!        write(6,*) 'convert temp 2: ',f%p/f%rho*mp/k*c**2./1e10
-!        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh, sp%muval, sp%gmin, sp%jetalpha, sp%p1
-!        write(6,*) 'convert bh: ',tcgs,lcgs
+        mdot=0.0013
+        call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
+             bcgs,tempcgs)
+        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2,f%bmag**2d0/f%rho,bcgs,ncgsnth)
         end subroutine convert_fluidvars_thickdisk
 
         subroutine convert_fluidvars_mb09(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
@@ -615,34 +620,11 @@
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
         real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
         real(kind=8) :: lcgs,tcgs,mdot
-        ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
-        ! JAD 11/26/2012 adapted from IDL code
-        ! Black hole mass sets time and length scales:
-!        write(6,*) 'convert mbh: ',sp%mbh
-        lcgs=GC*sp%mbh*msun/c**2; tcgs=lcgs/c
-!        write(6,*) 'lcgs: ',lcgs,tcgs
-        ! Typical mb09 code mdot value. (not even close for mb09 but for comparison to IDL purposes JAD 1/11/2013)
         mdot=.0013
-        ! Now convert density using black hole to scale length/time, 
-        ! accretion rate to scale torus mass:
-!        write(6,*) 'convert mdot: ',mdot,sp%mdot
-        rhocgs=sp%mdot/mdot/lcgs**3*tcgs*f%rho; ncgs=rhocgs/mp
-!        write(6,*) 'n: ',sp%mdot/mdot/lcgs**3.*tcgs/mp
-        ! Use this to convert pressure:
-        pcgs=f%p*rhocgs/f%rho*c**2.
-        ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
-        tempcgs=pcgs/ncgs/k
-        ! And finally, bfield conversion is just square root of this:
-        bcgs=f%bmag*sqrt(rhocgs/f%rho)*c
-        ! Convert HL units to cgs:
-        bcgs=bcgs*sqrt(4.*pi)
-!        write(6,*) 'leaving convert', maxval(bcgs), maxval(ncgs), maxval(tempcgs)
-!        write(6,*) 'convert b: ',bcgs
-!        write(6,*) 'convert n: ',ncgs/1e7
-!        write(6,*) 'convert temp: ',tempcgs/1e10
-!        write(6,*) 'convert temp 2: ',f%p/f%rho*mp/k*c**2./1e10
-!        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh
-!        write(6,*) 'convert bh: ',tcgs,lcgs
+        call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
+             bcgs,tempcgs)
+! non-thermal e- by hand
+        ncgsnth=ncgs
         end subroutine convert_fluidvars_mb09
 
         subroutine convert_fluidvars_harm(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
@@ -651,36 +633,10 @@
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
         real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
         real(kind=8) :: lcgs,tcgs,mdot
-        ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
-        ! JAD 11/26/2012 adapted from IDL code
-        ! Black hole mass sets time and length scales:
-!        write(6,*) 'convert mbh: ',sp%mbh
-        lcgs=GC*sp%mbh*msun/c**2; tcgs=lcgs/c
-!        write(6,*) 'lcgs: ',lcgs,tcgs
-        ! Typical mb09 code mdot value.
         mdot=.003
-        ! Now convert density using black hole to scale length/time, 
-        ! accretion rate to scale torus mass:
-!        write(6,*) 'convert mdot: ',mdot,sp%mdot
-        rhocgs=sp%mdot/mdot/lcgs**3*tcgs*f%rho; ncgs=rhocgs/mp
-!        write(6,*) 'n: ',sp%mdot/mdot/lcgs**3.*tcgs/mp
-        ! Use this to convert pressure:
-        pcgs=f%p*rhocgs/f%rho*c**2.
-        ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
-        tempcgs=pcgs/ncgs/k
-        ! And finally, bfield conversion is just square root of this:
-        bcgs=f%bmag*sqrt(rhocgs/f%rho)*c
-        ! Convert HL units to cgs:
-        bcgs=bcgs*sqrt(4.*pi)
-        ! non-thermal e- put in by hand
+        call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
+             bcgs,tempcgs)
         ncgsnth=ncgs
-!        write(6,*) 'leaving convert', maxval(bcgs), maxval(ncgs), maxval(tempcgs)
-!        write(6,*) 'convert b: ',bcgs
-!        write(6,*) 'convert n: ',ncgs/1e7
-!        write(6,*) 'convert temp: ',tempcgs/1e10
-!        write(6,*) 'convert temp 2: ',f%p/f%rho*mp/k*c**2./1e10
-!        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh
-!        write(6,*) 'convert bh: ',tcgs,lcgs
         end subroutine convert_fluidvars_harm
 
         subroutine convert_fluidvars_harm3d(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
@@ -697,37 +653,17 @@
         real(kind=8), dimension(size(f%rho)) :: trat,nrat
         real(kind=8), dimension(size(f%rho)) :: two_temp_gam
         real(kind=8), dimension(size(f%rho)) :: Thetae_unit
-        ! Converts Cosmos++ code units to standard cgs units. Follows Schnittman et al. (2006).
-        ! JAD 11/26/2012 adapted from IDL code
-        ! Black hole mass sets time and length scales:
-!                write(6,*) 'convert mbh: ',sp%mbh
-        lcgs=GC*sp%mbh*msun/c**2; tcgs=lcgs/c
-        !        write(6,*) 'lcgs: ',lcgs,tcgs
-        ! Typical mb09 code mdot value.
         mdot=.003
-        ! Now convert density using black hole to scale length/time,
-        ! accretion rate to scale torus mass:
-        !        write(6,*) 'convert mdot: ',mdot,sp%mdot
-!        rhocgs=sp%mdot/mdot/lcgs**3*tcgs*f%rho; ncgs=rhocgs/mp
-        rhocgs=sp%mdot/lcgs**3*f%rho; ncgs=rhocgs/mp
-        !        write(6,*) 'n: ',sp%mdot/mdot/lcgs**3.*tcgs/mp
-        ! Use this to convert pressure:
-        pcgs=f%p*rhocgs/f%rho*c**2.
-        ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
-        !sperate e-/p model implemented 16/11 Jordy Davelaar
-        MPoME=1836.0
-        gam= 1.333333333333333259
-        
+        call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
+             bcgs,tempcgs)        
         beta=f%p/(f%bmag*f%bmag)/0.5
         beta_trans=1.d0
-        !b2=(beta/beta_trans)*(beta/beta_trans)
         b2=beta*beta
 ! defaults to 100, for now gmin even though should just be its own source param
         Rhigh=sp%gminval
         Rlow=1d0
         Nhigh=1d0
         Nlow=1d0
-!        write(6,*) 'trat where'
         where(f%bmag.gt.0d0)
            trat=Rhigh*b2/(1d0+b2)+Rlow/(1d0+b2)
            nrat=Nhigh*b2/(1d0+b2)+Nlow/(1d0+b2)
@@ -735,43 +671,9 @@
            trat=Rhigh
            nrat=Nhigh
         endwhere
-        
-!        Thetae_unit = (gam - 1d0)* mp / trat
-!        Thetae_unit = mp / trat
-
 ! changed to add 1+trat to have maximum T_e = T_tot / 2
         tempcgs=(f%p/f%rho)*mp*c*c/k/(1d0+trat)
-
-        ! And finally, bfield conversion is just square root of this:
-
-        !B_unit = CL * sqrt(4.*M_PI*RHO_unit);
-        bcgs=f%bmag*sqrt(4.*pi*rhocgs/f%rho)*c
-        ! Convert HL units to cgs:
-!        bcgs=bcgs*sqrt(4.*pi)
-! scale ncgs to tune disk density manually
-!        ncgs=ncgs/nrat
-        ! non-thermal e- put in by hand
-!        ncgsnth=ncgs
-!        if(any(isnan(tempcgs))) then
-!            write(6,*) 'temp: ',tempcgs
-!            write(6,*) 'trat: ',trat
-!            write(6,*) 'beta: ', beta
-!        endif
-        where(f%bmag**2d0/f%rho.gt.1d0)
-           ncgsnth=sp%jetalphaval*bcgs**2d0/8d0/pi/sp%gminval*(sp%p1-2d0)/(sp%p1-1d0)/8.2d-7
-        elsewhere
-           ncgsnth=0d0
-        endwhere
-        !        write(6,*) 'leaving convert', maxval(bcgs), maxval(ncgs), maxval(tempcgs)
-        !        write(6,*) 'convert b: ',bcgs
-        !        write(6,*) 'convert n: ',ncgs/1e7
-        !        write(6,*) 'convert temp: ',tempcgs/1e10
-        !        write(6,*) 'convert temp 2: ',f%p/f%rho*mp/k*c**2./1e10
-        !        write(6,*) 'convert mdot: ',sp%mdot, sp%mbh
-        !        write(6,*) 'convert bh: ',tcgs,lcgs
-!        write(6,*) 'harm3d convert params: ',sp%p1,sp%gminval,pi,sp%jetalphaval
-!        write(6,*) 'harm3d convert bcgs: ',minval(bcgs),maxval(bcgs)
-!        write(6,*) 'end convert fluidvars harm3d ncgsnth: ',minval(ncgsnth),maxval(ncgsnth)
+        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2,f%bmag**2d0/f%rho,bcgs,ncgsnth)
         end subroutine convert_fluidvars_harm3d
 
         subroutine convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
