@@ -681,7 +681,7 @@
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
         real(kind=8), dimension(size(f%rho)) :: trat
         real(kind=8) :: mdot,beta_trans
-        mdot=.003; beta_trans=1d0
+        mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
         call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
