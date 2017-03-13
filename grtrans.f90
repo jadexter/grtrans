@@ -1,7 +1,8 @@
 
-       subroutine grtrans_main(ifile,outfile)
+       subroutine grtrans_run(ifile,outfile)
        use omp_lib
        use grtrans_inputs
+       use pgrtrans
        use grtrans, only: grtrans_driver
        use ray_trace, only: ray_set,initialize_raytrace_camera, &
             kwrite_raytrace_camera, del_raytrace_camera
@@ -33,101 +34,19 @@
        call read_inputs(ifile)
        write(6,*) 'dfile: ',fdfile
 ! overlapping code with pgrtrans
-       if(extra==1) then
-          if(nup.gt.1) then
-             nextra=19
-          else
-             nextra=7
-          endif
-       endif
-! these can later be added to a loop over emis parameter structures
-!       eparams%gmin=gmin; 
-       eparams%gmax=gmax; eparams%p1=p1
-       eparams%p2=p2;
-       eparams%otherargs = epotherargs
-       eparams%coefindx = coefindx
-!       eparams%mu=muval
-       nparams=size(mdots)
-       allocate(sparams(nparams))
-       do iii=1,nparams
-          sparams(iii)%mdot=mdots(iii); sparams(iii)%mbh=mbh
-          sparams(iii)%nfac=ftscl; sparams(iii)%bfac=frscl
-          sparams(iii)%jetalphaval=jetalpha
-          sparams(iii)%gminval=gmin; sparams(iii)%muval=muval
-          sparams(iii)%gmax=gmax
-          sparams(iii)%p1=p1
-          sparams(iii)%p2=p2
-          call assign_source_params_type(sparams(iii),stype)
-       enddo
-       NCAMS=nparams*nfreq*nmu*nt
-       allocate(c(NCAMS))
-       write(6,*) 'outfile grtrans: ',outfile, NCAMS,nextra
-       do m=1,NCAMS
-         call initialize_raytrace_camera(c(m),nro,nphi,nvals,nextra)
-       enddo
-       call assign_fluid_args(fargs,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
+! call grtrans_main here with correct argument list
+       call grtrans_main(standard,mumin,mumax,nmu,phi0,spin,&
+            uout,uin, rcut, nrotype, gridvals, nn,i1,i2,fname, dt, nt, nload, &
+            nmdot, mdotmin, mdotmax,ename, mbh, nfreq, fmin, fmax, muval,&
+            gmin, gmax,p1, p2, jetalpha, stype,use_geokerr, nvals, iname,&
+            cflag, extra, debug,outfile,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
-            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,mbh,fnscl,fnnthscl,fnnthp,fbeta,&
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout)
-       call load_fluid_model(fname,spin,fargs)
-       if(nup.eq.1.and.nvals.eq.4) call load_chandra_tab24()
-       do j=1,nmu
-          call initialize_geokerr_args(gargs,nro*nphi)
-          call initialize_pixels(gargs,use_geokerr,standard,mu0(j),phi0,spin,uout,uin, &
-               rcut,nrotype,a1,a2,b1,b2,nro,nphi,nup)
-          if(nload.gt.1) then
-          ! loop over geodesics calculating first point to get t0 for everything
-             gargs%nup=1
-!             write(6,*) 'grtrans nload gt 1 loop',size(gargs%t0),allocated(gargs%t0),gargs%nup
-!$omp parallel do private(i) shared(gargs)
-!             do i=1,c(1)%nx*c(1)%ny
-             do i=i1,i2
-                call initialize_geo_tabs(gargs,i)
-                nthreads = omp_get_num_threads()
-!                threadnum = omp_get_thread_num()
-             enddo
-!$omp end parallel do
-             where(gargs%t0.gt.0.)
-                gargs%t0=gargs%t0-minval(gargs%t0)
-             elsewhere
-                gargs%t0=0.
-             endwhere
-             gargs%nup=nup
-          else
-             gargs%t0=0.
-          endif
-          wtime = omp_get_wtime()
-          do l=1,nt
-!$omp parallel do schedule(static,1) private(i) shared(gargs,gunit,c,j,nt,l,spin, &
-!$omp& iname,ename,fname,sparams,eparams,nfreq,nparams,freqs,nup,i1,i2,extra,debug)
-!             do i=1,c(1)%nx*c(1)%ny
-             do i=i1,i2
-!              do i=12826,12826
-                call grtrans_driver(gargs,gunit,c,i,(j-1)*nt+l,iname,ename,fname, &
-                  sparams,eparams,nfreq,nparams,freqs,nup,extra,debug)
-             enddo
-!$omp end parallel do
-             if(l.lt.nt) call advance_fluid_timestep(fname,dt)
-          enddo
-          write(6,*) 'grtrans wall time elapsed: ', omp_get_wtime() - wtime
-          spin=gargs%a
-          call del_geokerr_args(gargs)
-       enddo
-       if(nup.eq.1.and.nvals.eq.4) call del_chandra_tab24()
-       do m=1,ncams
-          call kwrite_raytrace_camera(c(m),12,outfile,cflag,m,ncams,size(knames), &
-         knames,kdescs,(/real(c(m)%nx),real(c(m)%ny),real(FREQS(1+mod(m-1,nfreq)))/), &
-         standard,mumin,mumax,nmu,phi0,spin,&
-         uout,uin, rcut, nrotype, gridvals, nn, &
-         fname, dt, nt, nload, nmdot, mdotmin, mdotmax, &
-         ename, mbh, nfreq, fmin, fmax, muval, gmin, gmax,&
-         p1, p2, jetalpha, stype, &
-         use_geokerr, nvals, iname, extra)
-         call del_raytrace_camera(c(m))
-       enddo
-       call unload_fluid_model(fname)
-       deallocate(c)
-       deallocate(sparams)
-       call delete_inputs()
+            fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,coefindx, &
+            epotherargs,nepotherargs)
+! if you want to use pgrtrans ivals, ab, freqs then do so before here
+       call del_pgrtrans_data()
+! this is now done directly in pgrtrans
+!       call delete_inputs()
        return
-       end subroutine grtrans_main
+       end subroutine grtrans_run

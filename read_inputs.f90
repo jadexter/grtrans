@@ -31,7 +31,7 @@
       ! fluid arguments
       character(len=300) :: fdfile,fhfile,fgfile,fsim
       integer :: fnt,findf,fnfiles,fjonfix,fnw,fnfreq_tab, &
-           fnr,foffset,fdindf,fmagcrit,fbl06,nweights
+           fnr,foffset,fdindf,fmagcrit,fbl06,nweights,nepotherargs
       integer, dimension(7) :: coefindx
       real(8) :: frspot,fr0spot,fn0spot,ftscl,frscl,fwmin,fwmax,ffmin, &
            ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta,fnp,ftp, &
@@ -58,31 +58,6 @@
           read(8,nml=analytic)
 !          write(6,*) 'general: ',iname
           close(unit=8)
-          a1=dble(gridvals(1))
-          a2=dble(gridvals(2))
-          b1=dble(gridvals(3))
-          b2=dble(gridvals(4))
-          nro=nn(1)
-          nphi=nn(2)
-          nup=nn(3)
-!          write(6,*) 'read inputs nup: ',spin
-! Compute frequencies w/ log spacing between and including fmin, fmax:
-          allocate(freqs(nfreq)); allocate(mu0(nmu)); allocate(mdots(nmdot))
-          if(nfreq==1) then
-            freqs=(/fmin/)
-          else
-            freqs=fmin*exp((/(i-1,i=1,nfreq)/)*log(fmax/fmin)/(nfreq-1))
-          endif
-          if(nmdot==1) then
-            mdots=(/mdotmin/)
-          else
-            mdots=mdotmin*exp((/(i-1,i=1,nmdot)/)*log(mdotmax/mdotmin)/(nmdot-1))
-          endif
-          if(nmu==1) then
-            mu0=(/mumin/)
-          else
-            mu0=mumin+(mumax-mumin)/(nmu-1)*(/(i-1,i=1,nmu)/)
-          endif
 ! new stuff for epotherargs:
           if(nweights==1) then
              allocate(epotherargs(2))
@@ -94,12 +69,13 @@
              epotherargs(2:7)=(/0.10714295,0.4459917,1.34219997, &
                   2.17450422,1.36515333,0.52892829/)
           endif
+          nepotherargs=nweights+1
 !          write(6,*) 'nup: ',nup,freqs,fmax,fmin,fmin*exp(log(fmax/fmin))
         end subroutine read_inputs
 
-        subroutine delete_inputs()
+!        subroutine delete_inputs()
 ! deallocate input variables
-        deallocate(mu0); deallocate(freqs); deallocate(mdots); deallocate(epotherargs)
-        end subroutine delete_inputs
+!        deallocate(mu0); deallocate(freqs); deallocate(mdots); deallocate(epotherargs)
+!        end subroutine delete_inputs
 
       end module grtrans_inputs

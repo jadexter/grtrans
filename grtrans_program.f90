@@ -9,5 +9,5 @@
        open(unit=8,file=readfile)
        read(8,nml=files)
        close(unit=8)
-       call grtrans_main(ifile,ofile)
+       call grtrans_run(ifile,ofile)
        end program
