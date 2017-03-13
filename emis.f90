@@ -703,7 +703,9 @@
          type (emis), intent(inout) :: e
          real, dimension(:), intent(in) :: mu
 ! This is constant Ti/Te electron model
-         e%tcgs=e%tcgs*mu
+! UPDATE 3/13/2017 don't want this here since e- temp can depend on other parameters
+! for now only uses things in e, but could e.g. use polar angle or who knows what else.
+!         e%tcgs=e%tcgs*mu
          end subroutine emis_model_synchth
 
          subroutine emis_model_lambda(e)

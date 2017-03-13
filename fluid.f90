@@ -590,6 +590,30 @@
         bcgs=bcgs*sqrt(4.*pi)
         end subroutine scale_sim_units
 
+        subroutine monika_e(rho,p,b,beta_trans,rlow,rhigh,trat)
+          real(kind=4), intent(in), dimension(:) :: rho,p,b
+          real(kind=8), intent(in) :: rlow,rhigh,beta_trans
+          real(kind=8), intent(inout), dimension(size(rho)) :: trat
+          real(kind=8), dimension(size(rho)) :: beta,b2
+          beta=p/(b*b)/0.5
+!          beta_trans=1.d0
+          b2=beta*beta
+! defaults to 100, for now gmin even though should just be its own source param
+!          rhigh=sp%gminval
+!          rlow=1d0
+!        Nhigh=1d0
+!        Nlow=1d0
+          where(b.gt.0d0)
+             trat=rhigh*b2/(1d0+b2)+rlow/(1d0+b2)
+!           nrat=Nhigh*b2/(1d0+b2)+Nlow/(1d0+b2)
+          elsewhere
+             trat=rhigh
+!           nrat=Nhigh
+          endwhere
+! changed to add 1+trat to have maximum T_e = T_tot / 2
+!          tempcgs=(p/rho)*mp*c*c/k/(1d0+trat)
+      end subroutine monika_e
+
 ! non-thermal e- where jet energy density is high (e.g. Broderick & McKinney 2010, Dexter+2012)
         subroutine nonthermale_b2(alpha,gmin,p1,p2,bmagrho,bcgs,ncgsnth)
           real(kind=8), intent(in) :: alpha,gmin,p1,p2
@@ -606,23 +630,30 @@
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
-        real(kind=8) :: lcgs,tcgs,mdot
-        mdot=0.0013
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: mdot,beta_trans
+        mdot=0.0013; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
-        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2,f%bmag**2d0/f%rho,bcgs,ncgsnth)
+        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),trat)
+        tempcgs = tempcgs/(1d0+trat)
+        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
+             f%bmag**2d0/f%rho,bcgs,ncgsnth)
         end subroutine convert_fluidvars_thickdisk
 
         subroutine convert_fluidvars_mb09(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
-        real(kind=8) :: lcgs,tcgs,mdot
-        mdot=.0013
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: mdot,beta_trans
+        mdot=.0013; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
+        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),trat)
+        tempcgs = tempcgs/(1d0+trat)
 ! non-thermal e- by hand
         ncgsnth=ncgs
         end subroutine convert_fluidvars_mb09
@@ -631,11 +662,16 @@
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
-        real(kind=8) :: lcgs,tcgs,mdot
-        mdot=.003
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: mdot,beta_trans
+        mdot=.003; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
+! Moscibrodzka+2016 e- model with rlow = T_p / T_e from muval, rhigh = gmin*rlow
+! reduces to T_p / T_e = const when gmin = 1 (should change input used for this)
+        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),trat)
+        tempcgs = tempcgs/(1d0+trat)
         ncgsnth=ncgs
         end subroutine convert_fluidvars_harm
 
@@ -643,37 +679,16 @@
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        real(kind=8), dimension(size(f%rho)) :: rhocgs,pcgs
-        real(kind=8) :: lcgs,tcgs,mdot
-        real(kind=8) :: MPoME
-        real(kind=8), dimension(size(f%rho)) :: beta
-        real(kind=8), dimension(size(f%rho)) :: beta_trans
-        real(kind=8), dimension(size(f%rho)) :: b2
-        real(kind=8) :: Rhigh,Rlow,gam,m_u,Nhigh,Nlow
-        real(kind=8), dimension(size(f%rho)) :: trat,nrat
-        real(kind=8), dimension(size(f%rho)) :: two_temp_gam
-        real(kind=8), dimension(size(f%rho)) :: Thetae_unit
-        mdot=.003
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: mdot,beta_trans
+        mdot=.003; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
-             bcgs,tempcgs)        
-        beta=f%p/(f%bmag*f%bmag)/0.5
-        beta_trans=1.d0
-        b2=beta*beta
-! defaults to 100, for now gmin even though should just be its own source param
-        Rhigh=sp%gminval
-        Rlow=1d0
-        Nhigh=1d0
-        Nlow=1d0
-        where(f%bmag.gt.0d0)
-           trat=Rhigh*b2/(1d0+b2)+Rlow/(1d0+b2)
-           nrat=Nhigh*b2/(1d0+b2)+Nlow/(1d0+b2)
-        elsewhere
-           trat=Rhigh
-           nrat=Nhigh
-        endwhere
-! changed to add 1+trat to have maximum T_e = T_tot / 2
-        tempcgs=(f%p/f%rho)*mp*c*c/k/(1d0+trat)
-        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2,f%bmag**2d0/f%rho,bcgs,ncgsnth)
+             bcgs,tempcgs)
+        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),trat)
+        tempcgs = tempcgs/(1d0+trat)
+        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
+             f%bmag**2d0/f%rho,bcgs,ncgsnth)
         end subroutine convert_fluidvars_harm3d
 
         subroutine convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
@@ -1185,14 +1200,18 @@
 
         subroutine convert_fluidvars_powerlaw(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f
-        real(kind=8) :: n0, beta
+        real(kind=8) :: n0, beta, beta_trans
         real(kind=8), dimension(size(f%rho)), &
              intent(out) :: ncgs,ncgsnth,bcgs,tcgs
+        real(kind=8), dimension(size(f%rho)) :: trat
         type (source_params), intent(in) :: sp
+        beta_trans = 1d0
         ncgs = f%rho
         bcgs = f%bmag
         ncgsnth= f%rho2
-        tcgs= f%p
+        call monika_e(f%rho,f%rho,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),trat)
+        tcgs= f%p/(1d0+trat)
         end subroutine convert_fluidvars_powerlaw
 
 ! source param routines
