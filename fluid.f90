@@ -669,9 +669,10 @@
              bcgs,tempcgs)
 ! Moscibrodzka+2016 e- model with rlow = T_p / T_e from muval, rhigh = gmin*rlow
 ! reduces to T_p / T_e = const when gmin = 1 (should change input used for this)
-        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
-             sp%gminval*(1d0/sp%muval-1d0),trat)
-        tempcgs = tempcgs/(1d0+trat)
+! CHANGED TO USE MU INSTEAD OF TRAT to allow mu > 1/2 models to make sense 3/21/2017
+        call monika_e(f%rho,f%p,f%bmag,beta_trans,sp%muval, &
+             sp%muval/sp%gminval,trat)
+        tempcgs = tempcgs*trat
         ncgsnth=ncgs
         end subroutine convert_fluidvars_harm
 
