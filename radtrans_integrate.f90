@@ -9,19 +9,20 @@
     ! global data to avoid needing to pass arguments through external integration routines (e.g., lsoda)
     integer :: lindx=25,nequations,nptstot,npts,nptsout,iflag
     real(kind=8), dimension(:,:), allocatable :: KK,jj,intensity,PP
-    real(kind=8), dimension(:), allocatable :: s,ss,s0,tau,stokesq,stokesu,stokesv
+    real(kind=8), dimension(:), allocatable :: s,ss,s0,tau,tauv,stokesq,stokesu,stokesv
     real(kind=8), dimension(:,:,:), allocatable :: QQ,imm,OO
 
     integer :: IS_LINEAR_STOKES = 1
     integer(kind=4) :: maxsteps = 100000
     integer, dimension(4) :: stats
-    real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2, sphtolfac=1d0
+    real(kind=8) :: ortol = 1d-6, oatol = 1d-8, hmax = 10, MAX_TAU, MAX_TAU_DEFAULT = 10d0, thin = 1d-2, sphtolfac=1d0, tauc = 1d1
 
 !$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats,stokesq,stokesu,stokesv)
 !$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO,IS_LINEAR_STOKES,sphtolfac)
 
     interface integrate
        module procedure integrate
+       module procedure integrate_v
     end interface
 
     interface calc_delo_Q
@@ -100,6 +101,7 @@
            maxsteps = 100000
         endif
         allocate(tau(npts))
+        allocate(tauv(npts))
         allocate(s0(npts))
         allocate(jj(npts,nequations))
         allocate(KK(npts,1+(nequations)*(nequations-1)/2))
@@ -127,36 +129,42 @@
       end subroutine init_radtrans_integrate_data
 
       subroutine integrate(sinput,ej,eK,tauin,rnpts)
+! old interface that i want to keep when adding tauv version
+        integer, intent(inout) :: rnpts
+        real(kind=8), dimension(:,:), intent(in) :: ej,eK
+        real(kind=8), dimension(:), intent(in) :: sinput
+        real(kind=8), dimension(:), intent(in) :: tauin
+        real(kind=8), dimension(size(tauin)) :: tauvin
+! dummy input to use for updated integrate routine
+! should also let I0 be an input in one of these?
+        tauvin=0d0
+        call integrate_v(sinput,ej,eK,tauin,tauvin,rnpts)
+      end subroutine integrate
+
+      subroutine integrate_v(sinput,ej,eK,tauin,tauvin,rnpts)
 ! these array sizes are really all known in terms of npts, nequations...
         integer, intent(inout) :: rnpts
 !        real(kind=8), dimension(:,:), intent(inout) :: rI
         real(kind=8), dimension(:,:), intent(in) :: ej,eK
         real(kind=8), dimension(:), intent(in) :: sinput
-        real(kind=8), dimension(:), intent(in) :: tauin
+        real(kind=8), dimension(:), intent(in) :: tauin,tauvin
 !        real(kind=8), dimension(:), intent(inout) :: I0
 !        real(kind=8), intent(in), optional :: maxt
     ! Subroutine to call integration routine for RT equation
     ! JAD 2/28/2011 moved from grtrans_driver 8/7/2014
         s0=sinput; s=sinput; ss=sinput; intensity=0d0
         tau = tauin
+        tauv = tauvin
         jj=ej; KK=eK
         if(any(isnan(jj))) then
            write(6,*) 'nan in radtrans_integrate j'
-!           write(6,*) 'radtrans_integrate j1: ',jj(:,1)
-!           write(6,*) 'radtrans_integrate j2: ',jj(:,2)
         endif
         if(any(isnan(KK))) then
            write(6,*) 'nan in radtrans_integrate K'
-!           write(6,*) 'radtrans_integrate K1: ',KK(:,1)
-!           write(6,*) 'radtrans_integrate K2: ',KK(:,2)
-!           write(6,*) 'radtrans_integrate K4: ',KK(:,4)
-!           write(6,*) 'radtrans_integrate K5: ',KK(:,5)
-!           write(6,*) 'radtrans_integrate K7: ',KK(:,7)
         endif
 ! spherical stokes case
         if (iflag==0) then
-           IS_LINEAR_STOKES=1
-           
+           IS_LINEAR_STOKES=1           
            call radtrans_integrate_lsoda()
         elseif (iflag==3) then
            IS_LINEAR_STOKES=0
@@ -174,24 +182,19 @@
               call radtrans_integrate_quadrature(s,jj(:,1),KK(:,1))
            endif
         endif
-!        write(6,*) 'assign intensity', size(rI,1), size(rI,2), size(intensity,1), size(intensity,2), nptsout
-!        rI(1:nequations,1:nptsout) = intensity(1:nequations,1:nptsout);
         rnpts = nptsout
-!        write(6,*) 'intensity: ', rnpts, rI(rnpts,1)
         if(isnan(intensity(1,rnpts))) then
            write(6,*) 'NaN in integrate ej: '!,ej
-!           write(6,*) 'NaN in integrate jj 2: ',jj
-!           write(6,*) 'NaN in integrate eK: ',eK
         endif
         return
-      end subroutine integrate
-  
+      end subroutine integrate_v
+
       subroutine radtrans_integrate_lsoda()
         real(kind=8), dimension(4) :: I0
         real(kind=8), dimension(npts) :: dummy
-        real(kind=8), dimension(:,:), allocatable :: tau_arr
-        real(kind=8), dimension(:), allocatable :: tau_temp,intvals,q,u,v
-        integer, dimension(:), allocatable :: inds
+!        real(kind=8), dimension(:,:), allocatable :: tau_arr
+!        real(kind=8), dimension(:), allocatable :: tau_temp,intvals,q,u,v
+!        integer, dimension(:), allocatable :: inds
         real(kind=8) :: weight
         integer :: lamdex,i,ii,i1,i2,taudex
         i1=1; i2=nptstot
@@ -201,15 +204,6 @@
         else
            call locate(tau,MAX_TAU,lamdex)
            lamdex=lamdex+1
-         !           write(6,*) 'locate', lamdex
-!           if(lamdex==2) then
-!              call get_weight(tau,MAX_TAU,lamdex,weight)
-! need to re-work this. just trying to interpolate between s0(1) and s0(2).
-!             write(6,*) 'weight: ',lamdex,weight,s(lamdex),s(lamdex+1)
-!              s=(/(s(1)-s(2))*(1d0-weight),0d0/)
-!              lamdex=lamdex+1
-!             write(6,*) 'radtrans integrate s: ',s(1:lamdex),lamdex
-!           endif
         endif
 ! Only use parts of ray where emissivity is non-zero:
         if (jj(1,1).eq.0d0) then
@@ -237,13 +231,8 @@
         endif
 !         write(6,*) 'i1i2: ',i1,i2,npts, jj(i2,1), jj(i2-1,1)
         nptsout=i2
-!         write(6,*) 's: ',s(lamdex),neq,npts,tau(lamdex),lamdex
-   !      write(6,*) 'I0: ',s(npts), tau(npts)
- !        write(6,*) 'lam: ',s0
-! try to figure out hmax:
         ss(1:npts)=s0(npts:1:-1)
         s(i1:i2)=s(i2:i1:-1)
-!        write(6,*) 'integrate s: ',minval(s), maxval(s), i1, i2, lamdex
 ! should make this the start of grtrans_integrate_lsoda and put everything else in general integrate subroutine since it's generic to all methods
         if(nequations==4) then
            if(IS_LINEAR_STOKES==1) then
@@ -257,17 +246,12 @@
 !              I0(1)=1d-64; I0(2)=1d-64
               I0(1)=1d-8; I0(2)=1d-8
               I0(3)=0.1; I0(4)=-0.1
-!              I0=0d0
-! testing higher error tolerance for sph stokes to converge on difficult problems
+! new testing w/ monika idea: if \Delta \tauv is high use the analytic solution with no absorption to allow for bigger steps
               call lsoda_basic(radtrans_lsoda_calc_rhs_sph,I0(1:nequations), &
                    s(i1:i2),oatol*sphtolfac, &
                    ortol*sphtolfac,radtrans_lsoda_calc_jac_sph,intensity(:,i1:i2), &
                    1,maxsteps,stats,hmax=hmax)
-! convert to linear stokes parameters
-!              allocate(q(npts));allocate(u(npts))
-!              allocate(v(npts))
-!              write(6,*) 'sph stokes intensity: ',maxval(intensity(1,i1:i2)), &
-!                   maxval(intensity(2,i1:i2))
+! convert to stokes iquv
               stokesq(i1:i2)=intensity(2,i1:i2)*sin(intensity(4,i1:i2)) &
                    *cos(intensity(3,i1:i2))
               stokesu(i1:i2)=intensity(2,i1:i2)*sin(intensity(4,i1:i2)) &
@@ -802,6 +786,17 @@
 !        write(6,*) 'delo intensity P: ',P(:,1)
       end subroutine radtrans_integrate_delo
 
+! NEED TO UPDATE try rotating into frame where rhou=0 calculate new ifar then rotate back
+      subroutine analytic_faraday(rhoarr,jarr,s,ifar)
+        real(kind=8), dimension(3), intent(in) :: rhoarr
+        real(kind=8), dimension(4), intent(in) :: jarr
+        real(kind=8), intent(in) :: s
+        real(kind=8), dimension(4), intent(inout) :: ifar
+        real(kind=8) :: i,q,u,v
+!        i=jarr(1)*s
+!        jrho=jarr(2)*rhoarr(2)+
+      end subroutine analytic_faraday
+
       subroutine radtrans_integrate_formal(x,j,a,rho,O)
         real(kind=8), dimension(:), intent(in) :: x
         real(kind=8), dimension(size(x),4), intent(in) :: j,a
@@ -817,12 +812,19 @@
         dx = x(1:npts-1) - x(2:npts)
         intensity(:,1) = I0; iprev = I0
         do k=npts-1,1,-1
-           call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
-           intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
-           call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
-           intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
-           iprev = intensity(:,npts-k+1)
-           O(:,:,k)=Ot
+           if (rho(k,:)*dx(k).gt.tauc) then
+              ! analytic solution for high Faraday depth
+              call analytic_faraday(rho(k,:),j(k,:),dx(k),ifar)
+              intensity(:,npts-k+1)=ifar+iprev
+              iprev=intensity(:,npts-k+1)
+           else
+              call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
+              intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
+              call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
+              intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
+              iprev = intensity(:,npts-k+1)
+              O(:,:,k)=Ot
+           endif
         end do
         return
       end subroutine radtrans_integrate_formal
@@ -835,7 +837,8 @@
 
       subroutine del_radtrans_integrate_data()
         deallocate(jj); deallocate(KK)
-        deallocate(s); deallocate(ss); deallocate(s0); deallocate(tau)
+        deallocate(s); deallocate(ss); deallocate(s0)
+        deallocate(tau); deallocate(tauv)
         deallocate(intensity)
         if(iflag==1) then
            deallocate(PP); deallocate(QQ); deallocate(imm)

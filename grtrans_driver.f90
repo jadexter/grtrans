@@ -201,15 +201,13 @@
 !                        fac=sum(e%j(:,1))/g%npts
 ! scale emission close to 1 so that LSODA integrates accurately and put anu in cgs units
                         e%j=e%j/fac; e%K=e%K*LBH
-!                        write(6,*) 'i: ',i
                         call calc_opt_depth(g%lambda(1:g%npts),e,tau,1)
                         tau = -tau
-!                        call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
-!                        write(6,*) 'maxtau: ',maxval(e%K(:,1)),maxval(abs(sqrt(e%K(:,5)**2.+e%K(:,6)**2.))),maxval(abs(tau))
-                        call integrate(g%lambda(1:g%npts),e%j,e%K,tau,r%npts)
+! faraday depth
+                        call calc_opt_depth(g%lambda(1:g%npts),e,tauv,7)
+                        tauv = -tauv
+                        call integrate(g%lambda(1:g%npts),e%j,e%K,tau,tauv,r%npts)
                         r%I(1:r%neq,1:r%npts) = intensity(1:r%neq,1:r%npts)
-!                        call del_radtrans_integrate_data()
-!                        write(6,*) 'integrate: ',g%npts,r%neq,r%npts,r%I(1,r%npts)
 ! added factor of LBH for cgs intensity units ergs / cm^2 / s / Hz / ster
                         r%I=r%I*fac*LBH
 !                        write(6,*) 'grtrans driver extra quants: ',EXTRA_QUANTS,r%npts
