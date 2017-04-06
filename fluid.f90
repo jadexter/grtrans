@@ -177,7 +177,7 @@
     !      write(6,*) 'load'
           call initialize_ffjet_model(a,ifile,fargs%dfile)
         elseif(fname=='THINDISK') then
-          call init_thindisk(real(a),ifile,real(fargs%mdot),real(fargs%mbh))
+          call init_thindisk(real(a),ifile,real(fargs%mdot),real(fargs%mbh),real(fargs%rin),real(fargs%rout))
         elseif(fname=='PHATDISK') then
           call init_phatdisk(real(a),ifile,fargs%nw,real(fargs%wmin), &
                real(fargs%wmax),fargs%nfreq_tab,real(fargs%fmin), &
