@@ -14,12 +14,12 @@ def synch_jarho(nu,n,B,T,theta):
     j = e[:,:4]; a = e[:,4:8]; rho = e[:,8:]
     return j,a,rho
 
-def run(x,jarr,aarr,rhoarr,sphstokes=-1,atol=1e-8,rtol=1e-6):
+def run(x,jarr,aarr,rhoarr,sphstokes=-1,atol=1e-8,rtol=1e-6,max_tau=10):
     if sphstokes==-1:
         method=0
     else:
         method=3
-    radtrans_integrate.init_radtrans_integrate_data(method,4,len(x),len(x),10.,0.1,atol,rtol,1e-2,100000)
+    radtrans_integrate.init_radtrans_integrate_data(method,4,len(x),len(x),max_tau,0.1,atol,rtol,1e-2,100000)
     Karr = (np.append(aarr,rhoarr,axis=1))
     tau = np.append(0.,scipy.integrate.cumtrapz(Karr[:,0],x))
     radtrans_integrate.integrate(x[::-1],jarr[:,:],Karr[:,:],tau,4)

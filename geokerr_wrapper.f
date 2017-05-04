@@ -416,6 +416,8 @@ C Reset nup value in case it's changed.
 !      KEXT=0
       FIRSTPT=.FALSE.
       UPLUS=ONE/(ONE+SQRT(ONE-A*A))
+! temporary debugging from f2py needs output file
+!      OPEN(UNIT=12,FILE='geokerr_offset_debug.txt')
       IF(USEGEOR) THEN
         K=1
 c Solve for uf at equal steps between mu0, muf by calling geor assuming no mu turning points are present:
@@ -462,7 +464,7 @@ c Modify input parameters if necessary, get appropriate case and roots.
 !      write(6,*) 'geokerr'
         CALL GEOMU(U0,UF,MU0,MUF,A,L,L2,Q2,IU,TPM,TPR,SU,SM,NCASE,H1,
      &            U1,U2,U3,U4,RFFU0,RFFU1,RFFMU1,RFFMU2,RFFMU3,IU0,I1MU,I3MU,PHIT,.TRUE.)
-!      write(6,*) 'geomu',u0,uf,mu0,muf,a,l,tpm,tpr,su,sm
+!      write(6,*) 'first geomu',u0,uf,mu0,muf,a,l,tpm,tpr,su,sm
         IF(NCASE.GT.2.AND.NCASE.LT.7.OR.(NCASE.EQ.1.AND.SU.LT.0.D0).OR.(NCASE.EQ.7.AND.SU.LT.0.D0).OR.
      &    (NCASE.EQ.2.AND.SU.GT.0.D0).OR.(NCASE.EQ.8.AND.SU.GT.0.D0)) TPR=0
 !        write(6,*) 'geomu ',ncase,tpr,uf,muf
@@ -487,14 +489,14 @@ c Modify input parameters if necessary, get appropriate case and roots.
         DU=DU/DBLE(NUP)
         KMAX=MIN(INT((UB-UOUT)/DU+OFFSET),NUP)
         IF(DU.EQ.0.D0) KMAX=0
-!        write(6,*) 'du: ',du,ub,ncase,kmax,uout,ub,tpr,su,uf
+!        write(12,*) 'du: ',du,ub,ncase,kmax,uout,ub,tpr,su,uf
         IF(SIGN(1.D0,UOUT-UB).NE.SIGN(1.D0,UOUT-U0).OR.(UOUT.EQ.U0)) THEN
 !          write(6,*) 'before kmax'
           IF(KMAX.NE.0) THEN
 C Do the first point separately to compute once per geodesic integrals in GEOPHITIME:
             K=1
             UN=UOUT+(K-OFFSET)*DU
-!            write(6,*) 'geomu', un
+!            write(12,*) 'geomu', un
             CALL GEOMU(U0,UN,MU0,MUN,A,L,L2,Q2,IU,TPM,TPR1,SU,SM,NCASE,H1,
      &             U1,U2,U3,U4,RFFU0,RFFU1,RFFMU1,RFFMU2,RFFMU3,IU0,I1MU,I3MU,
      &             PHIT,.FALSE.)
@@ -554,7 +556,7 @@ C                WRITE(6,*) 'SM: ',SM
                 CALL GEOR(U0,UN,MU0,MUN,A,L,L2,Q2,IU,TPM,TPR,SU,SM,NCASE,H1,
      &              U1,U2,U3,U4,RFFU0,RFFU1,RFFMU1,RFFMU2,RFFMU3,IU0,I1MU,I3MU,PHIT,.FALSE.)
 c                write(6,*) 'mun: ',mun,tpm,k+kmax-kext
-                CALL GEOPHITIME(U0,UN,MU0,MUN,A,L,L2,Q2,TPM,TPR,SU,SM,IU,H1,
+                IF (PHIT) CALL GEOPHITIME(U0,UN,MU0,MUN,A,L,L2,Q2,TPM,TPR,SU,SM,IU,H1,
      &              PHIMU,TMU,NCASE,U1,U2,U3,U4,PHIU,TU,LAMBDA,RFFU0,RFFU1,RFFMU1,RFFMU2,RFFMU3,
      &              RDC,RJC,TU01,TU02,TU03,TU04,TMU1,TMU3,PHIMU1,PHIMU3,.FALSE.)
                 UFI(K+KMAX-KEXT)=UN
@@ -572,13 +574,13 @@ C Now, we'll trace from the turning point, if present, back to uf:
 !            write(6,*) 'kmax: ',kmax,kext,nup
             DO 2000 K=KMAX+1+KEXT,NUP
               UN=TWO*UB-(UOUT+(K-OFFSET)*DU)
-        !      write(6,*) 'un after: ',K,un
+!              write(12,*) 'un after: ',K,FIRSTPT,TPR,TPM,UF,UN,MU0
               CALL GEOMU(UF,UN,MU0,MUN,A,L,L2,Q2,IU,TPM,TPR,SU,SM,NCASE,H1,
-     &              U1,U2,U3,U4,RFFU0,RFFU1,RFFMU1,RFFMU2,RFFMU3,IU0,I1MU,I3MU,PHIT,FIRSTPT)
+     &              U1,U2,U3,U4,RFFU0,RFFU1,RFFMU1,RFFMU2,RFFMU3,IU0,I1MU,I3MU,PHIT,.FALSE.)
               IF(PHIT) CALL GEOPHITIME(UF,UN,MU0,MUN,A,L,L2,Q2,TPM,TPR,SU,SM,IU,H1,
      &              PHIMU,TMU,NCASE,U1,U2,U3,U4,PHIU,TU,LAMBDA,RFFU0,RFFU1,RFFMU1,RFFMU2,RFFMU3,
      &              RDC,RJC,TU01,TU02,TU03,TU04,TMU1,TMU3,PHIMU1,PHIMU3,FIRSTPT)
-        !      write(6,*) 'in loop', npts,un,mun,lambda,tpr
+!              write(12,*) 'in loop', phimu, phiu
               UFI(K+NPTS)=UN
               MUFI(K+NPTS)=MUN
               DTI(K+NPTS)=TMU+TU
@@ -595,6 +597,8 @@ C Now, we'll trace from the turning point, if present, back to uf:
           NUP=0
         ENDIF
       ENDIF 
+! close geokerr offset debug file
+!      CLOSE(UNIT=12)
 !      write(6,*) 'geokerr arrays: ',tpmi
       RETURN
       END
@@ -1176,6 +1180,8 @@ c Eq. (39)
           if(pht) call calcimuasymf(a,mneg,mpos,muf,muplus,i2mu,i3mu,rffmu2)
         endif                
       endif
+c      write(6,*) 'geomu debug: ',firstpt,muminus,muplus,mneg,mpos
+c      write(6,*) 'geomu debug: ',iu0,iu1,muf
       return
       end
 
