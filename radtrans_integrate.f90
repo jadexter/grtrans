@@ -608,7 +608,7 @@
         real(kind=8), dimension(4,4), intent(out) :: M1,M2,M3,M4,O
         real(kind=8) :: lam1,lam2,ap,theta,sig,a2,p2
         real(kind=8) :: aq,au,av,rhoq,rhou,rhov
-        real(kind=8) :: dx
+        real(kind=8) :: dx,coshlam1,coslam2,sinhlam1,sinlam2
         onopol = exp(-a(1)*dx)
         aq = a(2); au = a(3); av = a(4)
         rhoq = rho(1); rhou = rho(2); rhov = rho(3)
@@ -638,8 +638,12 @@
            M4(:,3) = (/aq*rhov-av*rhoq,aq*au+rhoq*rhou,au*au+rhou*rhou-(a2+p2)/2d0,au*av+rhou*rhov/)
            M4(:,4) = (/au*rhoq-aq*rhou,av*aq+rhov*rhoq,au*av+rhou*rhov,av*av+rhov*rhov-(a2+p2)/2d0/)
            M4=2d0/theta*M4
-           O = onopol*(1d0/2d0*(cosh(lam1*dx)+cos(lam2*dx))*M1 - sin(lam2*dx)*M2-sinh(lam1*dx)*M3+1d0/2d0 &
-                *(cosh(lam1*dx)-cos(lam2*dx))*M4)
+           coshlam1=cosh(lam1*dx)
+           coslam2=cos(lam2*dx)
+           sinhlam1=sinh(lam1*dx)
+           sinlam2=sin(lam2*dx)
+           O = onopol*(1d0/2d0*(coshlam1+coslam2)*M1 - sinlam2*M2-sinhlam1*M3+1d0/2d0 &
+                *(coshlam1-coslam2)*M4)
         endif
       end subroutine calc_O
 

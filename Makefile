@@ -5,13 +5,13 @@ FC=ifort
 AR=xiar
 ARFLAGS=rcv
 PHIFLAGS=-mmic
-OMP = -openmp
+OMP = -openmp #-mkl
 OMPLIB = -liomp5 -lpthread
 FCNAME=intelem
 ifeq ($(DEBUG),1)
 OTHERFLAGS = -g -extend-source 132 -heap-arrays -fp-model strict
 else
-OTHERFLAGS = $(OMP) -extend-source 132 -fast -fp-model source
+OTHERFLAGS = $(OMP) -extend-source 132 -fast -fp-model source #-mkl
 endif
 endif
 
@@ -40,6 +40,10 @@ LINKFLAGS=$(OMP) $(PHIFLAGS)
 else
 LINKFLAGS=$(OMP)
 LIBS=-L$(CFITSIODIR) -lcfitsio
+endif
+ifeq ($(PROFILE),1)
+OTHERFLAGS += -pg
+LINKFLAGS += -pg
 endif
 
 .DEFAULT:

@@ -240,6 +240,13 @@ class grtrans_inputs:
             namesthick=['thickdisk']
             valsthick=["'"+self.tgfile+"'","'"+self.tdfile+"'",self.tnt,self.tnfiles,self.tindf,self.tjonfix,self.toff,"'"+self.tsim+"'",self.tdindf,self.tmagcrit]
             nargsthick=[len(argsthick)]
+        if self.fname=='HARM3D':
+#             harm fluid arguments
+            self.fdfile = self.hdfile
+            self.fhfile = self.hhfile
+            self.fnt = self.hnt
+            self.findf = self.hindf
+            self.fgfile = self.hgfile
         if self.fname=='THINDISK':
             namest=['thindisk']
             valst=[self.tmdot,self.mbh]

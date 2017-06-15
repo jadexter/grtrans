@@ -30,14 +30,16 @@
        real(kind=8), intent(in), dimension(:) :: x
        real(kind=8), intent(in), dimension(:) :: y
        integer :: n
-       real(kind=8), dimension(size(x)) :: tsum
+       real(kind=8), dimension(size(x)) :: tsum,tsumint
        real(kind=8), dimension(size(x)-1) :: xdif, yavg
        n=size(x)
        xdif=x(2:n)-x(1:n-1)
        yavg=(y(1:n-1)+y(2:n))/2d0
+       tsumint(1)=0d0
+       tsumint(2:n)=xdif*yavg
 !       write(6,*) 'y: ',y
 !       write(6,*) 'xdif yavg: ',xdif(size(x)-1), yavg(size(x)-1)
-       tsum=sum((/0d0,xdif*yavg/),1)
+       tsum=sum(tsumint,1)
        end function tsum
 
        function cum_sum(x,cumu)
