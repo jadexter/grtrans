@@ -262,8 +262,6 @@
         ri=reshape(r_arr(indx),(/npts,2**(ndim+1)/))
         thi=reshape(th_arr(indx),(/npts,2**(ndim+1)/))
         phii=reshape(ph_arr(indx),(/npts,2**(ndim+1)/))
-                                                                                               !        write(6,*) 'after reshape', minval(ttd), maxval(ttd)
-!        rttd=ttd
         rttd=0.
         rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
         p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac

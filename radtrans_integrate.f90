@@ -821,8 +821,8 @@
         dx = x(1:npts-1) - x(2:npts)
         intensity(:,1) = I0; iprev = I0
         do k=npts-1,1,-1
-           call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
-           intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
+!           call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
+!           intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
            call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
            intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
            iprev = intensity(:,npts-k+1)
