@@ -20,6 +20,8 @@
            advance_harm_timestep
       use fluid_model_harm3d, only: initialize_harm3d_model, del_harm3d_data, harm3d_vals, &
           advance_harm3d_timestep
+      use fluid_model_harmpi, only: initialize_harmpi_model, del_harmpi_data, harmpi_vals, &
+          advance_harmpi_timestep
       use fluid_model_thickdisk, only: initialize_thickdisk_model, del_thickdisk_data, thickdisk_vals, &
            advance_thickdisk_timestep
       use fluid_model_mb09, only: initialize_mb09_model, del_mb09_data, mb09_vals, &
@@ -30,7 +32,7 @@
       integer, parameter :: CONST=0,TAIL=1
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6
       integer, parameter :: COSMOS=10,MB=11,HARM=12,FFJET=13,NUMDISK=14,THICKDISK=15,MB09=16
-      integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19
+      integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19,HARMPI=20
 
       type fluid
         integer :: model, nfreq
@@ -171,6 +173,8 @@
           call initialize_harm_model(a,ifile,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf)
         elseif(fname=='HARM3D') then
             call initialize_harm3d_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
+        elseif(fname=='HARMPI') then
+            call initialize_harmpi_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
         elseif(fname=='SPHACC') then
            call init_sphacc()
         elseif(fname=='FFJET') then
@@ -206,6 +210,8 @@
            call advance_harm_timestep(dt)
         elseif(fname=='HARM3D') then
            call advance_harm3d_timestep(dt)
+        elseif(fname=='HARMPI') then
+           call advance_harmpi_timestep(dt)
         elseif(fname=='THICKDISK') then 
            call advance_thickdisk_timestep(dt)
         elseif(fname=='MB09') then 
@@ -249,6 +255,8 @@
                  f%model=HARM
               elseif(fname=='HARM3D') then
                  f%model=HARM3D
+              elseif(fname=='HARMPI') then
+                 f%model=HARMPI
               elseif(fname=='THICKDISK') then
                  f%model=THICKDISK
               elseif(fname=='MB09') then
@@ -290,6 +298,8 @@
            call del_harm_data()
         elseif(fname=='HARM3D') then
            call del_harm3d_data()
+        elseif(fname=='HARMPI') then
+           call del_harmpi_data()
         elseif(fname=='THICKDISK') then
            call del_thickdisk_data()
         elseif(fname=='MB09') then
@@ -373,6 +383,8 @@
              call get_harm_fluidvars(x0,real(a),f)
           CASE (HARM3D)
              call get_harm3d_fluidvars(x0,real(a),f)
+          CASE (HARMPI)
+             call get_harmpi_fluidvars(x0,real(a),f)
           CASE (THICKDISK)
              call get_thickdisk_fluidvars(x0,real(a),f)
           CASE (MB09)
@@ -411,6 +423,8 @@
              call convert_fluidvars_harm(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (HARM3D)
              call convert_fluidvars_harm3d(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+          CASE (HARMPI)
+             call convert_fluidvars_harmpi(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (THICKDISK)
              call convert_fluidvars_thickdisk(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (MB09)
@@ -546,6 +560,16 @@
         call harm3d_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
         end subroutine get_harm3d_fluidvars
+
+        subroutine get_harmpi_fluidvars(x0,a,f)
+        type (four_Vector), intent(in), dimension(:) :: x0
+        real, intent(in) :: a
+        type (fluid), intent(inout) :: f
+        ! Computes properties of jet solution from Broderick & Loeb (2009)
+        ! JAD 4/23/2010, fortran 3/30/2011
+        call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
+!        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
+        end subroutine get_harmpi_fluidvars
 
         subroutine get_thickdisk_fluidvars(x0,a,f)
         type (four_Vector), intent(in), dimension(:) :: x0
@@ -691,6 +715,22 @@
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
         end subroutine convert_fluidvars_harm3d
+        
+        subroutine convert_fluidvars_harmpi(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
+        type (fluid), intent(in) :: f
+        type (source_params), intent(in) :: sp
+        real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: mdot,beta_trans
+        mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
+        call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
+             bcgs,tempcgs)
+        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),trat)
+        tempcgs = tempcgs/(1d0+trat)
+        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
+             f%bmag**2d0/f%rho,bcgs,ncgsnth)
+        end subroutine convert_fluidvars_harmpi
 
         subroutine convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f

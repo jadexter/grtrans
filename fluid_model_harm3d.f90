@@ -549,7 +549,7 @@
 !        write(6,*) 'init harm'
         call read_harm3d_data_header(nhead)
         if (abs(asim-a).gt.1e-4) then 
-           write(6,*) 'ERROR -- Different simulation and grtrans spin values!'
+           write(6,*) 'ERROR -- Different simulation and grtrans spin values!', asim, a
            return
         endif
 !        write(6,*) 'read header', nx1, nx2
