@@ -494,17 +494,23 @@ class grtrans:
         imgplot = plt.imshow(np.transpose(self.ivals[stokes,:,idex].reshape((self.nx,self.ny))),origin='lower')
         plt.show()
 
-    def get_pol_vectors(self,idex=0,pgrtrans=1,nsamp=8):
-        if (np.mod(self.nx,nsamp)) != 0:
+    def get_pol_vectors(self,idex=0,pgrtrans=1,nsamp=8,trim=-1):
+        if trim < 0:
+            nx=self.nx
+            ny=self.ny
+        else:
+            nx=trim
+            ny=trim
+        if (np.mod(nx,nsamp)) != 0:
             for i in range(nsamp):
                 nsamptry = nsamp-(i+1)
-                print 'nsamp change: ',i,nsamp-(i+1),np.mod(self.nx,nsamptry)
-                if np.mod(self.nx,nsamptry)==0:
+                print 'nsamp change: ',i,nsamp-(i+1),np.mod(nx,nsamptry)
+                if np.mod(nx,nsamptry)==0:
                     nsamp = nsamptry
                     break
             print 'warning: nx/nsamp not an integer, changing nsamp = ',nsamp
-        X = np.arange(self.nx/nsamp,dtype=int)*nsamp+nsamp/2
-        Y = np.arange(self.ny/nsamp,dtype=int)*nsamp+nsamp/2
+        X = np.arange(nx/nsamp,dtype=int)*nsamp+nsamp/2
+        Y = np.arange(ny/nsamp,dtype=int)*nsamp+nsamp/2
         U,V = np.meshgrid(X,Y)
         if pgrtrans==1:
             evpa = 0.5*np.arctan2(self.ivals[2,:,idex],self.ivals[1,:,idex])
@@ -517,19 +523,58 @@ class grtrans:
         scale=np.max(m)*10.
         mx = (np.transpose(np.resize(m * np.cos(evpa),(self.ny,self.nx))))
         my = (np.transpose(np.resize(m * np.sin(evpa),(self.ny,self.nx))))
+        mx=mx[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
+        my=my[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
+        img=img.reshape((self.ny,self.nx)).transpose()
+        img=img[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
+        print 'img shape: ',np.shape(img),nx,self.nx
         my=my[nsamp/2::nsamp,nsamp/2::nsamp]; mx=mx[nsamp/2::nsamp,nsamp/2::nsamp]
         return U,V,mx,my,img,scale
 
-    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8):
+    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1):
         ###----------------------------------------------
-        U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp)
 #        i=img/np.max(img)/sat
-        fig = plt.figure()
-        plt.xlabel('alpha', fontsize=16)
-        plt.ylabel('beta', fontsize=16)
-        plt.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
-        plt.imshow(np.transpose(img.reshape((self.nx,self.ny))),origin='lower')
+        fig,ax = plt.subplots()
+        ax.set_xlabel('alpha', fontsize=16)
+        ax.set_ylabel('beta', fontsize=16)
+        ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
+        self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim)
 
+    def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1):
+        if trim < 0:
+            trim=self.nx
+        U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
+        ax.imshow(img,origin='lower')
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
                          width=8e-3, headwidth=1,headaxislength=0) # common options
-        plt.quiver(U,V,mx,my,**quiveropts)
+        ax.quiver(U,V,mx,my,**quiveropts)
+
+    def junhan_pol_diagnostics(self,ii=0,idex=0,pgrtrans=-1,nsamp=8,trim=128,fov=30.,jyunit=60.):
+        plt.clf()
+        fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(16, 8))
+        if pgrtrans==-1:
+            self.calc_spec(self.nx)
+            flux_tmp=[self.spec[0,idex]*jyunit,np.sqrt(self.spec[1,idex]**2.+self.spec[2,idex]**2.)/self.spec[0,idex]*100.,self.spec[3,idex]/self.spec[0,idex]*100.,0.5*np.arctan2(self.spec[2,idex],self.spec[1,idex])*180./np.pi]
+        else:
+            self.calc_spec_pgrtrans(self.nx)
+            flux_tmp=[self.spec[0,idex]*jyunit,np.sqrt(self.spec[1,idex]**2.+self.spec[2,idex]**2.)/self.spec[0,idex]*100.,self.spec[3,idex]/self.spec[0,idex]*100.,0.5*np.arctan2(self.spec[2,idex],self.spec[1,idex])*180./np.pi]
+        
+        print len(flux_tmp)
+        plt.suptitle('Frame: #{0}\nFlux: {1:.1f} Jy,  '
+                 'LP: {2:.1f} \%,  '
+                 'CP: {3:.1f} \%, '
+                 'EVPA: {4:.1f} deg'.
+                 format(ii, flux_tmp[0], flux_tmp[1], flux_tmp[2], flux_tmp[3]))
+        fov=fov*trim/self.nx*5.
+        pol=['I','Q','U','V','P','LP','CP','EVPA']
+        for k in range(4):
+            ax = axes.flat[k]; ax.imshow(self.ivals[:,k,idex].reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+            ax.set_title(pol[k])
+        ax = axes.flat[6]; ax.imshow((np.abs(self.ivals[:,3,idex])).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+        ax.set_title(pol[6])
+        ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+        ax.set_title(pol[5])
+        ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=6,trim=trim)
+        ax.set_title(pol[4])
+        ax = axes.flat[7]; ax.imshow((np.arctan2(self.ivals[:,2,idex],self.ivals[:,1,idex])).reshape((self.nx,self.nx)).transpose(),extent=[-fov/2,fov/2,-fov/2,fov/2],origin='lower')
+        ax.set_title(pol[7])
