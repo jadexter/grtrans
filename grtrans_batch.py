@@ -447,6 +447,11 @@ class grtrans:
             da=self.ab[self.nx,0]-self.ab[0,0]
             db=self.ab[1,1]-self.ab[0,1]
             spec=np.sum(self.ivals,0)*da*db
+            if self.nvals==4:
+                self.lp=np.sqrt(spec[1,:]**2.+spec[2,:]**2.)/spec[0,:]
+                self.cp=spec[3,:]/spec[0,:]
+                self.lpf=np.sum(np.sqrt(self.ivals[:,1,:]**2.+self.ivals[:,2,:]**2.),0)*da*db/spec[0,:]
+                self.cpf=np.sum(np.abs(self.ivals[:,3,:]),0)*da*db/spec[0,:]
         else:
             da=self.ab[1,0]-self.ab[0,0]
             db=0.
@@ -464,6 +469,11 @@ class grtrans:
             da=self.ab[0,self.nx]-self.ab[0,0]
             db=self.ab[1,1]-self.ab[1,0]
             spec=np.sum(self.ivals,1)*da*db
+            if self.nvals==4:
+                self.lp=np.sqrt(self.spec[1,:]**2.+self.spec[2,:]**2.)/self.spec[0,:]
+                self.cp=self.spec[3,:]/self.spec[0,:]
+                self.lpf=np.sum(np.sqrt(self.ivals[1]**2.+self.ivals[2]**2.),1)*da*db/spec[0,:]
+                self.cpf=np.sum(np.abs(self.ivals[3]),1)*da*db/spec[0,:]
         else:
             da=self.ab[0,1]-self.ab[0,0]
             db=0.
@@ -481,7 +491,7 @@ class grtrans:
         da =self.ab[self.nx,0]-self.ab[0,0]
         db=self.ab[1,1]-self.ab[0,1]
         self.ivals *= fac*da*db
-        self.spec *= fac
+        self.spec *= fac            
 
     def disp_grtrans_image(self,idex=0,stokes=0):
         if self.ivals.ndim < 3:
