@@ -366,6 +366,7 @@ class grtrans:
         self.nu = pgrtrans.freqs.copy()
         self.nx = self.inputs.nn[0]
         self.ny = self.inputs.nn[1]
+        self.nvals = self.inputs.nvals
         self.del_pgrtrans_data()
 
     def del_pgrtrans_data(self):
@@ -470,8 +471,8 @@ class grtrans:
             db=self.ab[1,1]-self.ab[1,0]
             spec=np.sum(self.ivals,1)*da*db
             if self.nvals==4:
-                self.lp=np.sqrt(self.spec[1,:]**2.+self.spec[2,:]**2.)/self.spec[0,:]
-                self.cp=self.spec[3,:]/self.spec[0,:]
+                self.lp=np.sqrt(spec[1,:]**2.+spec[2,:]**2.)/spec[0,:]
+                self.cp=spec[3,:]/spec[0,:]
                 self.lpf=np.sum(np.sqrt(self.ivals[1]**2.+self.ivals[2]**2.),1)*da*db/spec[0,:]
                 self.cpf=np.sum(np.abs(self.ivals[3]),1)*da*db/spec[0,:]
         else:
@@ -560,6 +561,8 @@ class grtrans:
         ax.quiver(U,V,mx,my,**quiveropts)
 
     def junhan_pol_diagnostics(self,ii=0,idex=0,pgrtrans=-1,nsamp=8,trim=128,fov=30.,jyunit=60.):
+        if trim==-1:
+            trim=self.nx
         plt.clf()
         fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(16, 8))
         if pgrtrans==-1:
@@ -577,14 +580,26 @@ class grtrans:
                  format(ii, flux_tmp[0], flux_tmp[1], flux_tmp[2], flux_tmp[3]))
         fov=fov*trim/self.nx*5.
         pol=['I','Q','U','V','P','LP','CP','EVPA']
-        for k in range(4):
-            ax = axes.flat[k]; ax.imshow(self.ivals[:,k,idex].reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+        if pgrtrans==-1:
+            for k in range(4):
+                ax = axes.flat[k]; ax.imshow(self.ivals[:,k,idex].reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
             ax.set_title(pol[k])
-        ax = axes.flat[6]; ax.imshow((np.abs(self.ivals[:,3,idex])).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
-        ax.set_title(pol[6])
-        ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
-        ax.set_title(pol[5])
-        ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=6,trim=trim)
-        ax.set_title(pol[4])
-        ax = axes.flat[7]; ax.imshow((np.arctan2(self.ivals[:,2,idex],self.ivals[:,1,idex])).reshape((self.nx,self.nx)).transpose(),extent=[-fov/2,fov/2,-fov/2,fov/2],origin='lower')
-        ax.set_title(pol[7])
+            ax = axes.flat[6]; ax.imshow((np.abs(self.ivals[:,3,idex])).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+            ax.set_title(pol[6])
+            ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+            ax.set_title(pol[5])
+            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=6,trim=trim)
+            ax.set_title(pol[4])
+            ax = axes.flat[7]; ax.imshow((np.arctan2(self.ivals[:,2,idex],self.ivals[:,1,idex])).reshape((self.nx,self.nx)).transpose(),extent=[-fov/2,fov/2,-fov/2,fov/2],origin='lower')
+            ax.set_title(pol[7])
+        else:
+            for k in range(4):
+                ax = axes.flat[k]; ax.imshow(self.ivals[k,:,idex].reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+            ax = axes.flat[6]; ax.imshow((np.abs(self.ivals[3,:,idex])).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+            ax.set_title(pol[6])
+            ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[1,:,idex]**2.+self.ivals[2,:,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+            ax.set_title(pol[5])
+            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=6,trim=trim)
+            ax.set_title(pol[4])
+            ax = axes.flat[7]; ax.imshow((np.arctan2(self.ivals[2,:,idex],self.ivals[1,:,idex])).reshape((self.nx,self.nx)).transpose(),extent=[-fov/2,fov/2,-fov/2,fov/2],origin='lower')
+            ax.set_title(pol[7])
