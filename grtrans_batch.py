@@ -462,6 +462,7 @@ class grtrans:
                     spec[i,j]=np.sum(self.ivals[:,j,i]*self.ab[:,0],0)*da*2.*3.14
     
         self.spec=spec
+        self.da=da; self.db=db
 #        self.convert_to_lum()
 
     def calc_spec_pgrtrans(self,n):
@@ -583,7 +584,7 @@ class grtrans:
         if pgrtrans==-1:
             for k in range(4):
                 ax = axes.flat[k]; ax.imshow(self.ivals[:,k,idex].reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
-            ax.set_title(pol[k])
+                ax.set_title(pol[k])
             ax = axes.flat[6]; ax.imshow((np.abs(self.ivals[:,3,idex])).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
             ax.set_title(pol[6])
             ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
