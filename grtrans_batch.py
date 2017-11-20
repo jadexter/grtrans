@@ -364,9 +364,9 @@ class grtrans:
         self.ivals = pgrtrans.ivals.copy()
         self.ab = pgrtrans.ab.copy()
         self.nu = pgrtrans.freqs.copy()
-        self.nx = self.inputs.nn[0]
-        self.ny = self.inputs.nn[1]
-        self.nvals = self.inputs.nvals
+        self.nx = int(self.inputs.nn[0])
+        self.ny = int(self.inputs.nn[1])
+        self.nvals = int(self.inputs.nvals)
         self.del_pgrtrans_data()
 
     def del_pgrtrans_data(self):
@@ -390,7 +390,7 @@ class grtrans:
                 nu[i]=hdu[i+1].header.get(8)
 
 # assume each image has same nx, ny
-            nx=nx[0]; ny=ny[0]
+            nx=int(nx[0]); ny=int(ny[0])
 #            nx=int(np.sqrt(len(hdu[0].data)/2))
 #            ny=int(nx)
             nvals=len(hdu[1].data)/nx/ny
