@@ -24,7 +24,7 @@
       real(kind=8) :: mumax,mumin,spin,rcut,a1,a2,b1,b2,mbh,uout,uin, & 
            fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2, &
            jetalpha, delta
-      character(len=100) :: ename,fname,iname,stype
+      character(len=200) :: ename,fname,iname,stype
       real(kind=8), dimension(:), allocatable :: freqs,mdots,mu0
       real(kind=8), dimension(4) :: gridvals
       integer, dimension(3) :: nn

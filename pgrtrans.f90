@@ -38,7 +38,7 @@
             real(kind=8), intent(in) :: mumax,mumin,rcut,mbh,uout,uin, & 
                  fmin,fmax,dt,mdotmin,mdotmax,phi0,muval,gmin,gmax,p1,p2,jetalpha
             real(kind=8) :: a1,a2,b1,b2
-            character(len=100), intent(in) :: ename,fname,iname,stype,outfile
+            character(len=200), intent(in) :: ename,fname,iname,stype,outfile
             real(kind=8), dimension(:), allocatable :: mdots,mu0
 !            real(kind=8), dimension(nfreq), intent(out) :: freqs
             real(kind=8), dimension(4),intent(in) :: gridvals

@@ -3,7 +3,7 @@
 
        namelist /files/ ifile, ofile
 
-       character(len=100) :: ifile, ofile
+       character(len=200) :: ifile, ofile
        character(len=40) :: readfile
        readfile='files.in'
        open(unit=8,file=readfile)

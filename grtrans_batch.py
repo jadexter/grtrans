@@ -1,13 +1,13 @@
 import os
 import namelist as nm
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 #import matplotlib.image as mpimg
 import pyfits
 # f2py grtrans module
 from pgrtrans import pgrtrans
 from time import time
-plt.ion()
+#plt.ion()
 
 pcG = 6.6726e-8
 pcc2 = 8.9874e20
