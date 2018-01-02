@@ -66,13 +66,58 @@
         x1=log(r)
         x3=phi
 !        x2=th/pi
-        hval=1d0
+! THIS MUST BE WRONG -- HERE UNLIKE HARM3D ISNT HSLOPE = 0.3? (Used to be = 1 based on HARM3D. changing and trying more images on hydra.)
+! SHOULDN'T THIS TRIGGER NANS OR UDOTU != -1? maybe not a big enough transform to make a huge difference? not sure but try
+!        hval=1d0
+        hval=h
         args=(/th(1),hval/)
         do i=1,size(r)
            args(1)=th(i)
            x2(i)=zbrent(findx2harmpi,-1d0,1d0,dble(args),1d-6)
         enddo
         end subroutine transformbl2mksh
+
+        subroutine  transformbl2mksbl3(r,th,ph,x1,x2,x3)
+        ! transform Boyer-Lindquist coordinates to modified Kerr-Schild coordinates used by thickdisk
+        real, intent(in), dimension(:) :: r,th,ph
+        real, intent(out), dimension(size(r)) :: x1,x2,x3
+        real, dimension(2) :: args
+        integer :: i
+        do i=1,size(r)
+           args(1)=r(i); args(2)=xbr
+           x1(i)=zbrent(findx1mks,0d0,10d0,dble(args),1d-6)
+           args(2)=th(i)
+           x2(i)=zbrent(findx2mksbl3,0d0,1d0,dble(args),1d-6)
+        enddo
+        x3=ph
+        end subroutine transformbl2mksbl3
+
+        function umks2uksbl3(fum,x1,x2,xbr) result(uks)
+          real(kind=8), intent(in), dimension(:) :: x1,x2
+          type (four_vector), dimension(:), intent(in) :: fum
+          real(kind=8), intent(in) :: xbr
+          type (four_vector), dimension(size(fum)) :: uks
+          real(kind=8), dimension(size(x1)) :: r,dr,dx2,dx1,drdx1,dthdrnum,dthdx2num
+          ! Convert four-vectors from MKS to KS numerically using central differences.
+          ! JAD 5/24/2010 for harmpi Sasha BL=3 grid 12/30/2017
+          ! These parameters are from comparing numerical and analytical values 
+          ! using the jetcoords3 grid of Jon's but now using for harmpi.
+          r=calcrmks(x1,xbr)
+          dr=1d-4*r; dx2=1d-6*x2; dx1=1d-4*x1
+          ! r numerically:
+          drdx1=(calcrmksbl3(x1+.5d0*dx1,xbr)-calcrmksbl3(x1-.5d0*dx1,xbr))/dx1
+          uks%data(2)=drdx1*fum%data(2)
+          ! Now do \theta numerically:
+          dthdrnum=(calcthmksbl3(x2,r+.5d0*dr)-calcthmksbl3(x2,r-.5d0*dr))/dr
+          dthdx2num=(calcthmksbl3(x2+.5d0*dx2,r)-calcthmksbl3(x2-.5d0*dx2,r))/dx2
+          uks%data(3)=fum%data(3)*dthdx2num+uks%data(2)*dthdrnum
+          ! phi doesn't change
+          uks%data(4)=fum%data(4)
+          ! time component doesn't change
+          uks%data(1)=fum%data(1)
+        end function umks2uksbl3
+
+
 
         function umksh2uks(fum,r,x2,hin) result(uks)
           ! Converts a Kerr-Schild spherical 4-velocity to a Boyer-Lindquist one.
@@ -389,7 +434,7 @@
           allocate(uks(nx1*nx2*nx3)); allocate(bks(nx1*nx2*nx3))
           pmin=1e-18
           write(6,*) 'data file: ',data_file
-          if(BINARY.ne.1) then
+          if(BINARY.eq.0) then
              open(unit=8,file=data_file,form='formatted',status='old',action='read')
              allocate(data(dlen,nx3)); nelem=nx3
              write(6,*) 'read harm sizes', dlen, nx2, size(data)
@@ -427,7 +472,7 @@
 !          write(6,*) 'after read loop'
              close(unit=8)
              deallocate(data)
-          else
+          elseif(binary.eq.1) then 
              write(6,*) 'harmpi data size: ',dlen,nx1,nx2,nx3
              write(6,*) 'harmpi data file: ',data_file
              allocate(data(dlen,nx1*nx2*nx3))
@@ -466,6 +511,7 @@
              
 !             r_arr=exp(x1_arr); th_arr=x2_arr*pi; ph_arr=x3_arr
           endif
+          
           p=merge(p,pmin,p.gt.pmin)
           write(6,*) "min vals rho", minval(rho)
           write(6,*) "min vals p", minval(p)
