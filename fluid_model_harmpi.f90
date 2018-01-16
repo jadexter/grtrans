@@ -984,13 +984,14 @@
           deallocate(header)
           if(SDUMP.eq.1) then
              if(eCOND.eq.1.or.eHEAT.eq.1) then
-                dlen=22
+                dlen=NPR+3
              else
-                dlen=9
+                dlen=NPR
              endif
           else
+! these are untested so be careful...
              if(eCOND.eq.1.or.eHEAT.eq.1) then
-                dlen=58
+                dlen=58-19+NPR
              else
                 dlen=42
              end if
@@ -1076,7 +1077,7 @@
              read(8) header_byte
              nheader_bytes=nheader_bytes+1
           end do
-          write(6,*) 'read header: ',nheader_bytes
+          write(6,*) 'read header: ',nheader_bytes,dlen,SDUMP
           read(8) data
           close(8)
           write(6,*) 'harmpi read done with data'
@@ -1270,8 +1271,8 @@
         write(6,*) 'grid: ',SDUMP,nt
 ! now loop over and load data files
         do k=1,nt
-           write(append, fmt='(I4.4)') indf-(k-1)
-           data_file = trim(dfile) // append
+           write(append, fmt='(I4)') indf-(k-1)
+           data_file = trim(dfile) // trim(adjustl(append))
            write(6,*) 'data_file: ',indf-(k-1),append,data_file
            call read_harmpi_data_file(data_file,tcur,rho,p,u,b,ugel)
            t(k)=tcur

@@ -544,6 +544,7 @@ class grtrans:
         return U,V,mx,my,img,scale
 
     def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1):
+        import matplotlib.pyplot as plt; plt.ion()
         ###----------------------------------------------
 #        i=img/np.max(img)/sat
         fig,ax = plt.subplots()
