@@ -37,7 +37,7 @@
       type fluid
         integer :: model, nfreq
         real :: rin
-        real, dimension(:), allocatable :: rho,p,bmag,rho2,ugel
+        real, dimension(:), allocatable :: rho,p,bmag,rho2,kel
         real, dimension(:,:), allocatable :: fnu
         type (four_vector), dimension(:), allocatable :: u,b
       end type
@@ -257,7 +257,7 @@
                  f%model=HARM3D
               elseif(fname=='HARMPI') then
                  f%model=HARMPI
-                 allocate(f%ugel(nup))
+                 allocate(f%kel(nup))
               elseif(fname=='THICKDISK') then
                  f%model=THICKDISK
               elseif(fname=='MB09') then
@@ -334,7 +334,7 @@
               deallocate(f%bmag)
            endif
            if(f%model==SARIAF.or.f%model==POWERLAW) deallocate(f%rho2)
-           if(f%model==HARMPI) deallocate(f%ugel)
+           if(f%model==HARMPI) deallocate(f%kel)
         endif
         f%model=-1
         end subroutine del_fluid_model
@@ -569,7 +569,7 @@
         type (fluid), intent(inout) :: f
         ! Computes properties of jet solution from Broderick & Loeb (2009)
         ! JAD 4/23/2010, fortran 3/30/2011
-        call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%ugel)
+        call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%kel)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
         end subroutine get_harmpi_fluidvars
 
@@ -639,6 +639,18 @@
 ! changed to add 1+trat to have maximum T_e = T_tot / 2
 !          tempcgs=(p/rho)*mp*c*c/k/(1d0+trat)
       end subroutine monika_e
+
+      subroutine ressler_e(rho,kel,tcgs)
+          real(kind=4), intent(in), dimension(:) :: kel,rho
+          real(kind=8), intent(inout), dimension(size(rho)) :: tcgs
+          real(kind=8), dimension(size(rho)) :: thetae
+          real(kind=8) :: gamma
+!          ugel = (gamma-1.)*kel*rho**gamma
+          gamma=4d0/3d0
+          thetae = mp/m*kel*rho**(gamma-1.)
+          tcgs = thetae*m*c2/k
+          write(6,*) 'ressler e: ',minval(thetae), maxval(thetae)
+        end subroutine ressler_e
 
 ! non-thermal e- where jet energy density is high (e.g. Broderick & McKinney 2010, Dexter+2012)
         subroutine nonthermale_b2(alpha,gmin,p1,p2,bmagrho,bcgs,ncgsnth)
@@ -727,9 +739,17 @@
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
-        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+! to use ressler_e call grtrans with gmin = -1
+        write(6,*) 'harmpi convert: ',sp%gminval,allocated(f%kel)
+        if(sp%gminval.ge.1d0) then
+           call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
-        tempcgs = tempcgs/(1d0+trat)
+           tempcgs = tempcgs/(1d0+trat)
+        else
+           write(6,*) 'call ressler e: ',allocated(f%kel)
+           call ressler_e(f%rho,f%kel,tempcgs)
+           write(6,*) 'after ressler e: ',minval(tempcgs),maxval(tempcgs)
+        end if
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
         end subroutine convert_fluidvars_harmpi
