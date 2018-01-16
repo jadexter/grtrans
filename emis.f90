@@ -316,7 +316,7 @@
          real(kind=8), dimension(e%npts,11) :: K, Kth, Kpl
 
          integer :: i
-         select  case(e%type)
+         select case(e%type)
            case(emaxjutt)
               call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,ep%otherargs,K)
            case(emaxcomp)

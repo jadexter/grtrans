@@ -14,6 +14,7 @@
 
        interface zbrent
           module procedure zbrent
+          module procedure zbrent_array
        end interface
 
        contains
@@ -132,5 +133,100 @@
          write(*,"(A)")'zbrent: exceeded maximum iterations'
          zbrent=b
        end function zbrent
+
+       function zbrent_array(func,x1,x2,args,tol) result(zbrent)
+         implicit none
+         interface
+            function func(x,args)
+              implicit none
+              real(8), intent(in), dimension(:) :: x
+              real(8), intent(in), dimension(:,:) :: args
+              real(8), dimension(size(x))       :: func
+            end function func
+         end interface
+         real(8), intent(in), dimension(:,:) :: args
+         real(8), intent(in), dimension(:) :: x1,x2
+         real(8), intent(in) :: tol
+         real(8), dimension(size(x1)) :: zbrent
+         integer, parameter  :: itmax=100
+         real(8), parameter  :: eps=epsilon(x1)
+         integer             :: iter
+         real(8), dimension(size(x1)) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,xm,tol1
+         logical, dimension(size(x1)) :: converge
+!         real(8) :: tol1
+         a=x1       ; b=x2
+         fa=func(a,args) ; fb=func(b,args)
+!         if ((fa > 0.0 .AND. fb > 0.0) .OR. (fa < 0.0 .AND. fb < 0.0))then
+!            write(*,"(A)")'ROOT MUST BE BRACKETED FOR ZBRENT'
+!            write(*,*) x1,x2,fa,fb
+!            stop
+!         endif
+         c=b ; fc=fb
+         do iter=1,itmax
+            where((fb > 0.0 .AND. fc > 0.0) .OR. (fb < 0.0 .AND. fc < 0.0))
+               c=a
+               fc=fa
+               d=b-a
+               e=d
+            endwhere
+            where(abs(fc) < abs(fb))
+               a=b
+               b=c
+               c=a
+               fa=fb
+               fb=fc
+               fc=fa
+            end where
+            tol1=2.0d0*eps*abs(b)+0.5d0*tol
+            xm=0.5d0*(c-b)
+!            converge=(abs(xm).le.tol1.or.fb.eq.0d0)
+!            if(count(converge).eq.size(xm)) return
+!            where(converge) zbrent=b
+            converge=(abs(xm) <= tol1 .or. fb == 0.0)
+!            write(6,*) 'converge: ',converge,abs(xm)
+! converged everywhere just return
+! weird because you re-assign the converged results every iteration
+! the python and IDL versions do this by indexing to keep track of absolute vs. new parts of arrays but don't know how to do that in fortran
+! can probably do this without indexing separately by just recalculating nconverge each time and only assigning to zbrent for nconverge and not for converge
+! TRY THAT
+            where(converge)
+               zbrent=b
+            elsewhere
+               where(abs(e) >= tol1 .AND. abs(fa) > abs(fb))
+                  s=fb/fa
+                  where(a == c)
+                     p=2.0d0*xm*s
+                     q=1.0d0-s
+                  elsewhere
+                     q=fa/fc
+                     r=fb/fc
+                     p=s*(2.0d0*xm*q*(q-r)-(b-a)*(r-1.0d0))
+                     q=(q-1.0d0)*(r-1.0d0)*(s-1.0d0)
+                  endwhere
+                  where(p > 0.0) 
+                     q=-q
+                  end where
+                  p=abs(p)
+                  where(2.0d0*p  <  min(3.0d0*xm*q-abs(tol1*q),abs(e*q)))
+                     e=d
+                     d=p/q
+                  elsewhere
+                     d=xm
+                     e=d
+                  endwhere
+               elsewhere
+                  d=xm
+                  e=d
+               end where
+               a=b
+               fa=fb
+               b=b+merge(d,sign(tol1,xm), abs(d) > tol1 )
+               fb=func(b,args)
+            end where
+            if (count(converge).eq.size(xm)) return
+         end do
+         write(*,"(A)")'zbrent: exceeded maximum iterations'
+         zbrent=b
+       end function zbrent_array
 
        end module math

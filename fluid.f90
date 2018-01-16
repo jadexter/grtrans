@@ -37,7 +37,7 @@
       type fluid
         integer :: model, nfreq
         real :: rin
-        real, dimension(:), allocatable :: rho,p,bmag,rho2
+        real, dimension(:), allocatable :: rho,p,bmag,rho2,ugel
         real, dimension(:,:), allocatable :: fnu
         type (four_vector), dimension(:), allocatable :: u,b
       end type
@@ -257,6 +257,7 @@
                  f%model=HARM3D
               elseif(fname=='HARMPI') then
                  f%model=HARMPI
+                 allocate(f%ugel(nup))
               elseif(fname=='THICKDISK') then
                  f%model=THICKDISK
               elseif(fname=='MB09') then
@@ -333,6 +334,7 @@
               deallocate(f%bmag)
            endif
            if(f%model==SARIAF.or.f%model==POWERLAW) deallocate(f%rho2)
+           if(f%model==HARMPI) deallocate(f%ugel)
         endif
         f%model=-1
         end subroutine del_fluid_model
@@ -567,7 +569,7 @@
         type (fluid), intent(inout) :: f
         ! Computes properties of jet solution from Broderick & Loeb (2009)
         ! JAD 4/23/2010, fortran 3/30/2011
-        call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
+        call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%ugel)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
         end subroutine get_harmpi_fluidvars
 
