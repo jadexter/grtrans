@@ -565,7 +565,7 @@
           uks%data(1)=fum%data(1)
         end function umks2uksbl3
 
-        function umksh2uks(fum,r,x2,hin) result(uks)
+        function umksh2uks(fum,r,x2) result(uks)
           ! Converts a Kerr-Schild spherical 4-velocity to a Boyer-Lindquist one.
           ! JAD 11/10/2008
           ! Do simple transformation first:
@@ -573,22 +573,22 @@
           real, dimension(:), intent(in) :: r, x2
           type (four_vector), dimension(:), intent(in) :: fum
           type (four_vector), dimension(size(r)) :: uks
-          real, intent(in), optional :: hin
-          real :: hval
+!          real, intent(in), optional :: hin
+!          real :: hval
           real(kind=8), dimension(size(r)) :: ur, uth, uph
           real, dimension(size(r)) :: dthdx2
           write(6,*) 'read harm umksh2uks present h'
-          if (present(hin)) then
-             hval=hin
-          else
-             hval=0.3
-          endif
-          write(6,*) 'hval: ',present(hin), hval
+!          if (present(hin)) then
+!             hval=hin
+!          else
+!             hval=0.3
+!          endif
+          write(6,*) 'hslope: ',hslope
           ur=dble(r)*fum%data(2)
           ! Compute partial derivatives:
 !          dthdx2=pi
 !          dthdx2=pi*(1.+(1.-hval)*cos(2.*pi*x2))
-          dthdx2=pi/2.*(1.+(1.-hval)*cos(pi*(1.+x2)))
+          dthdx2=pi/2.*(1.+(1.-hslope)*cos(pi*(1.+x2)))
           uth=fum%data(3)*dble(dthdx2)
           uph=fum%data(4)
           uks=fum
@@ -629,7 +629,7 @@
         uniqx2=x2_arr(1:nx3*(nx2-1)+1:nx3)
         uniqx1=x1_arr(1:nx3*(nx2-1)*nx1+1:nx3*nx2)
         uniqr=exp(uniqx1)
-!        uniqth=pi*uniqx2
+        if(BL.eq.1) uniqth=pi*uniqx2+(1.-hslope)/2.*sin(2.*pi*uniqx2)
         uniqph=uniqx3
 !        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
 !        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
@@ -676,11 +676,19 @@
 !       write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2), minval(lx3), maxval(ux3)
 ! Deal with poles
 !        write(6,*) 'poles'
-        where(ux2.ne.lx2)
-           dth=calcthmksbl3(dble(uniqx2(ux2)),dble(zr))-calcthmksbl3(dble(uniqx2(lx2)),dble(zr))
-        elsewhere
-            dth=calcthmksbl3(dble(uniqx2(1))+0d0*dble(zr),dble(zr))
-        endwhere
+        if(BL.eq.1) then
+           where(ux2.ne.lx2)
+              dth=uniqth(ux2)-uniqth(lx2)
+           elsewhere
+              dth=uniqth(1)
+           endwhere
+        else
+           where(ux2.ne.lx2)
+              dth=calcthmksbl3(dble(uniqx2(ux2)),dble(zr))-calcthmksbl3(dble(uniqx2(lx2)),dble(zr))
+           elsewhere
+              dth=calcthmksbl3(dble(uniqx2(1))+0d0*dble(zr),dble(zr))
+           endwhere
+        end if
 ! periodic in phi
         minph=uniqph(lx3)
         where(ux3.gt.nx3)
@@ -693,7 +701,11 @@
 !        write(6,*) 'uniform phi'
 ! uniform in phi
         pd=(zphi-minph)/(uniqph(2)-uniqph(1))
-        td=abs(theta-calcthmksbl3(dble(uniqx2(lx2)),dble(zr)))/dth
+        if(BL.eq.3) then
+           td=abs(theta-calcthmksbl3(dble(uniqx2(lx2)),dble(zr)))/dth
+        else
+           td=abs(theta-uniqth(lx2))/dth
+        end if
         rd=(zr-uniqr(lx1))/(uniqr(ux1)-uniqr(lx1))
 ! for now just do nearest neighbor
         rd(:)=1.; td(:)=1.; pd(:)=1.
@@ -1223,14 +1235,19 @@
           write(6,*) 'read harm transform coords phi',minval(x3_arr), maxval(x3_arr)
           write(6,*) 'read harm transform coords u ',minval(u%data(1)),minval(u%data(2))
           write(6,*) 'read harm transform coords u size ',size(u),hslope
-          uks = umks2uksbl3(u,dble(x1_arr),dble(x2_arr))
+          if(BL.eq.3) then
+             uks = umks2uksbl3(u,dble(x1_arr),dble(x2_arr))
+             bks = umks2uksbl3(b,dble(x1_arr),dble(x2_arr))
+          else
+             uks = umksh2uks(u,x1_arr,x2_arr)
+             bks = umksh2uks(b,x1_arr,x2_arr)
+          end if
           write(6,*) 'after uks ',minval(uks%data(1))
           u = uks2ubl(uks,dble(r_arr),dble(asim))
           write(6,*) 'read harm transform coords b', minval(u%data(3)),maxval(u%data(2)),&
                minval(b%data(1)),maxval(b%data(4))
           write(6,*) "min vals u", minval(u%data(1)), minval(u%data(2)), minval(u%data(3)), minval(u%data(4))
           write(6,*) "max vals u", maxval(u%data(1)), maxval(u%data(2)), maxval(u%data(3)), maxval(u%data(4))
-          bks = umks2uksbl3(b,dble(x1_arr),dble(x2_arr))
           b   = uks2ubl(bks,dble(r_arr),dble(asim))
 ! test code...
           allocate(bdotu(n)); allocate(udotu(n)); allocate(bdotb(n))
