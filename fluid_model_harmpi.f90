@@ -650,7 +650,11 @@
             zphi=zphi+2.*pi
         endwhere
 !        write(6,*) 'harmpi vals transform'
-        call transformbl2mksbl3(zr,theta,zphi,x1,x2,x3)
+        if(BL.eq.3) then
+           call transformbl2mksbl3(zr,theta,zphi,x1,x2,x3)
+        else
+           call transformbl2mksh(zr,theta,zphi,x1,x2,x3)
+        end if
 
 !        write(6,*) 'transform r: ',maxval(zr), minval(zr), maxval(x1), minval(x1)
 !        write(6,*) 'transform th: ',maxval(theta), minval(theta), minval(x2), maxval(x2)
