@@ -71,6 +71,11 @@
          module procedure findx1mks_array
       end interface
 
+      interface findx2harmpi
+         module procedure findx2harmpi
+         module procedure findx2harmpi_array
+      end interface
+
       interface mins
          module procedure mins
          module procedure mins_single
@@ -91,24 +96,34 @@
         diff=theta-(pi/2.*(1.+x2)+((1.-h)/2.)*sin(pi*(1.+x2)))
         end function findx2harmpi
 
-        subroutine transformbl2mksh(r,th,phi,x1,x2,x3,h)
+        function findx2harmpi_array(x2,args) result(diff)
+        real(kind=8), intent(in), dimension(:) :: x2
+        real(kind=8), intent(in), dimension(:,:) :: args
+        real(kind=8) :: h
+        real(kind=8), dimension(size(x2)) :: theta, diff
+        h=args(1,2); theta=args(:,1)
+        diff=theta-(pi/2d0*(1.+x2)+((1d0-h)/2d0)*sin(pi*(1d0+x2)))
+        end function findx2harmpi_array
+
+        subroutine transformbl2mksh(r,th,phi,x1,x2,x3)
         ! to 3D on 19/11/15 JD
         ! transform Boyer-Lindquist coordinates to modified Kerr-Schild coordinates used by HARM
         real, intent(in), dimension(:) :: r,th,phi
         real, intent(out), dimension(size(r)) :: x1,x2,x3
-        real(kind=8), intent(in) :: h
+!        real(kind=8), intent(in) :: hslope
         real(kind=8) :: hval
         real(kind=8), dimension(2) :: args
         integer :: i
+! temporary cheat like i used to do assuming all r < rbr
         x1=log(r)
         x3=phi
 !        x2=th/pi
-! THIS MUST BE WRONG -- HERE UNLIKE HARM3D ISNT HSLOPE = 0.3? (Used to be = 1 based on HARM3D. changing and trying more images on hydra.)
-! SHOULDN'T THIS TRIGGER NANS OR UDOTU != -1? maybe not a big enough transform to make a huge difference? not sure but try
+! CHECK THAT THIS WORKS WITH HSLOPE
 !        hval=1d0
         hval=hslope
         args=(/th(1),real(hval)/)
         do i=1,size(r)
+! put r part here           
            args(1)=th(i)
            x2(i)=zbrent(findx2harmpi,-1d0,1d0,dble(args),1d-6)
         enddo
@@ -501,10 +516,16 @@
 !           args(2)=th(i)
 !           x2(i)=zbrent(findx2mksbl3,0d0,1d0,dble(args),1d-6)
         enddo
+! test call to zbrent_array so that i don't have to write *_single versions of every sasha BL3 routine
+!        if(BL==3) then
         thargs(:,1)=dble(r)
         thargs(:,2)=dble(th)
-! test call to zbrent_array so that i don't have to write *_single versions of every sasha BL3 routine
-        x2=zbrent(findx2mksbl3,mone,one,thargs,1d-6)
+!           x2=zbrent(findx2mksbl3,mone,one,thargs,1d-6)
+!        else
+!           thargs(:,1)=dble(hval)
+!           thargs(:,2)=dble(th)
+!           x2=zbrent(findx2harmpi,mone,one,thargs,1d-6)
+!        end if
         x3=ph
         end subroutine transformbl2mksbl3
 
