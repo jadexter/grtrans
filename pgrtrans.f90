@@ -76,8 +76,7 @@
             nro=nn(1)
             nphi=nn(2)
             nup=nn(3)
-       !          write(6,*) 'read inputs nup: ',spin
-            ! Compute frequencies w/ log spacing between and including fmin, fmax:
+            ! Compute frequencies w/ log spacing between and including fmin, fmax: ADD OPTION FOR DOING LIST OF DISCRETE FREQS
             allocate(freqs(nfreq)); allocate(mu0(nmu)); allocate(mdots(nmdot))
             if(nfreq==1) then
                freqs=(/fmin/)
@@ -105,14 +104,17 @@
                endif
             endif
             ! these can later be added to a loop over emis parameter structures
-            !       eparams%gmin=gmin; 
+            !       eparams%gmin=gmin;
             eparams%gmax=gmax; eparams%p1=p1
             eparams%p2=p2;
             allocate(eparams%otherargs(nepotherargs))
             eparams%otherargs = epotherargs
             eparams%coefindx = epcoefindx
-            !alwinnote 2015/04/05
 
+! to add multiple e- models or other parameters will need to change this
+! advantage for speed in 3D runs where loading / manipulating data is slow
+! what parameter should be an array in general to trigger multiple e- models? muval probably? runs you could imagine: many different constant tp/te, many different gmin w/ constant tp/te,jet, combination of ressler_e (gmin=-1) and other models
+! maybe demand that muval is an array and if gmin is then use that too
             nparams=size(mdots)
             allocate(sparams(nparams))
             do iii=1,nparams

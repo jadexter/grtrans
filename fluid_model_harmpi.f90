@@ -891,96 +891,115 @@
           Rout=dble(header(n)); n=n+1
           hslope=dble(header(n)); n=n+1
           R0=dble(header(n)); n=n+1
-          if (n<nhead) then
+! up until here we are compatible with both public / private harmpi but then we split
+! now we separate for public version (nhead=46)
+          if (nhead==46) then
              NPR=int(header(n)); n=n+1
              DOKTOT=int(header(n)); n=n+1
-             eHEAT=int(header(n)); n=n+1
-             eCOND=int(header(n)); n=n+1
-             DONUCLEAR=int(header(n)); n=n+1
-!             nheader = 42
-          else
-             NPR=-1
-             DOKTOT=-1
-             eHEAT=-1
-             eCOND=-1
-             DONUCLEAR=0
-             DOFLR = 0
-          end if
-          if (n<nhead) then
-             DOFLR=int(header(n)); n=n+1
-!             nheader = 43
-          else
-             DOFLR = 0
-          endif
-          if (n<nhead) then
-!             nheader = 60
-             DOCYLINDRIFYCOORDS = dble(header(n)); n=n+1
              fractheta = dble(header(n)); n=n+1
              fracphi   = dble(header(n)); n=n+1
              rbr       = dble(header(n)); n=n+1
              xbr = log(rbr-R0)
              npow2     = dble(header(n)); n=n+1
              cpow2     = dble(header(n)); n=n+1
-             global_x10 = dble(header(n)); n=n+1
-             global_x20 = dble(header(n)); n=n+1
-             global_fracdisk   = dble(header(n)); n=n+1
-             global_fracjet    = dble(header(n)); n=n+1
-             global_r0disk     = dble(header(n)); n=n+1
-             global_rdiskend   = dble(header(n)); n=n+1
-             global_r0jet      = dble(header(n)); n=n+1
-             global_rjetend    = dble(header(n)); n=n+1
-             global_jetnu2      = dble(header(n)); n=n+1
-             global_rsjet      = dble(header(n)); n=n+1
-             global_r0grid     = dble(header(n)); n=n+1
-          endif
-          if (n<nhead) then
-!             nheader = 61
              BL = dble(header(n)); n=n+1
-          endif
-          if (n<nhead) then
+             eHEAT=-1
+             eCOND=-1
+             DONUCLEAR=0
+             DOFLR = 0
+             DOCYLINDRIFYCOORDS = 0
+          else
+             if (n<nhead) then
+                NPR=int(header(n)); n=n+1
+                DOKTOT=int(header(n)); n=n+1
+                eHEAT=int(header(n)); n=n+1
+                eCOND=int(header(n)); n=n+1
+                DONUCLEAR=int(header(n)); n=n+1
+!             nheader = 42
+             else
+                NPR=-1
+                DOKTOT=-1
+                eHEAT=-1
+                eCOND=-1
+                DONUCLEAR=0
+                DOFLR = 0
+             end if
+             if (n<nhead) then
+                DOFLR=int(header(n)); n=n+1
+                !             nheader = 43
+             else
+                DOFLR = 0
+             endif
+             if (n<nhead) then
+                !             nheader = 60
+                DOCYLINDRIFYCOORDS = dble(header(n)); n=n+1
+                fractheta = dble(header(n)); n=n+1
+                fracphi   = dble(header(n)); n=n+1
+                rbr       = dble(header(n)); n=n+1
+                xbr = log(rbr-R0)
+                npow2     = dble(header(n)); n=n+1
+                cpow2     = dble(header(n)); n=n+1
+                global_x10 = dble(header(n)); n=n+1
+                global_x20 = dble(header(n)); n=n+1
+                global_fracdisk   = dble(header(n)); n=n+1
+                global_fracjet    = dble(header(n)); n=n+1
+                global_r0disk     = dble(header(n)); n=n+1
+                global_rdiskend   = dble(header(n)); n=n+1
+                global_r0jet      = dble(header(n)); n=n+1
+                global_rjetend    = dble(header(n)); n=n+1
+                global_jetnu2      = dble(header(n)); n=n+1
+                global_rsjet      = dble(header(n)); n=n+1
+                global_r0grid     = dble(header(n)); n=n+1
+             endif
+             if (n<nhead) then
+!             nheader = 61
+                BL = dble(header(n)); n=n+1
+             endif
+             if (n<nhead) then
 !             nheader = 62
-             EVOLVEVPOT = int(header(n)); n=n+1
-          else
-             EVOLVEVPOT = 0
+                EVOLVEVPOT = int(header(n)); n=n+1
+             else
+                EVOLVEVPOT = 0
+             endif
+             if (n<nhead) then
+                !             nheader = 63
+                global_jetnu1 = dble(header(n)); n=n+1
+             else
+                global_jetnu1 = 0
+             end if
+             if (n<nhead) then
+                !             nheader = 64
+                global_disknu1 = dble(header(n)); n=n+1
+             else
+                global_disknu1 = 0
+             end if
+             if (n<nhead) then
+                !             nheader = 65
+                global_disknu2 = dble(header(n)); n=n+1
+             else
+                global_disknu2 = 0
+             end if
+             if (n<nhead) then
+                myNp = int(header(n)); n=n+1
+                NPTOT = int(header(n)); n=n+1
+                DOPARTICLES = 1
+                !            nheader = 67
+             end if
+             if (n<nhead) then
+                SDUMP = int(header(n)); n=n+1
+                !            nheader = 68
+             else
+                SDUMP = 0
+             end if
+             if (n<nhead) then
+                DOQDOTAVG = int(header(n)); n=n+1
+                tavgstart = dble(header(n)); n=n+1
+                !            nheader = 70
+             else
+                DOQDOTAVG = 0
+                tavgstart = -1d0
+             end if
           endif
-          if (n<nhead) then
-!             nheader = 63
-             global_jetnu1 = dble(header(n)); n=n+1
-          else
-             global_jetnu1 = 0
-          end if
-          if (n<nhead) then
-!             nheader = 64
-             global_disknu1 = dble(header(n)); n=n+1
-          else
-             global_disknu1 = 0
-          end if
-          if (n<nhead) then
-!             nheader = 65
-             global_disknu2 = dble(header(n)); n=n+1
-          else
-             global_disknu2 = 0
-          end if
-          if (n<nhead) then
-             myNp = int(header(n)); n=n+1
-             NPTOT = int(header(n)); n=n+1
-             DOPARTICLES = 1
-!            nheader = 67
-          end if
-          if (n<nhead) then
-             SDUMP = int(header(n)); n=n+1
-!            nheader = 68
-          else
-             SDUMP = 0
-          end if
-          if (n<nhead) then
-             DOQDOTAVG = int(header(n)); n=n+1
-             tavgstart = dble(header(n)); n=n+1
-!            nheader = 70
-          else
-             DOQDOTAVG = 0
-             tavgstart = -1d0
-          end if
           deallocate(header)
           if(SDUMP.eq.1) then
              if(eCOND.eq.1.or.eHEAT.eq.1) then
@@ -989,7 +1008,7 @@
                 dlen=NPR
              endif
           else
-! these are untested so be careful...
+! these are untested so be careful
              if(eCOND.eq.1.or.eHEAT.eq.1) then
                 dlen=58-19+NPR
              else
