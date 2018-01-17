@@ -473,8 +473,8 @@ class grtrans:
             if self.nvals==4:
                 self.lp=np.sqrt(spec[1,:]**2.+spec[2,:]**2.)/spec[0,:]
                 self.cp=spec[3,:]/spec[0,:]
-                self.lpf=np.sum(np.sqrt(self.ivals[1]**2.+self.ivals[2]**2.),1)*da*db/spec[0,:]
-                self.cpf=np.sum(np.abs(self.ivals[3]),1)*da*db/spec[0,:]
+                self.lpf=np.sum(np.sqrt(self.ivals[1]**2.+self.ivals[2]**2.),0)*da*db/spec[0,:]
+                self.cpf=np.sum(np.abs(self.ivals[3]),0)*da*db/spec[0,:]
         else:
             da=self.ab[0,1]-self.ab[0,0]
             db=0.

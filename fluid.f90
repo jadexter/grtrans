@@ -649,7 +649,7 @@
           gamma=4d0/3d0
           thetae = mp/m*kel*rho**(gamma-1.)
           tcgs = thetae*m*c2/k
-          write(6,*) 'ressler e: ',minval(thetae), maxval(thetae)
+!          write(6,*) 'ressler e: ',minval(thetae), maxval(thetae)
         end subroutine ressler_e
 
 ! non-thermal e- where jet energy density is high (e.g. Broderick & McKinney 2010, Dexter+2012)
@@ -740,15 +740,15 @@
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
 ! to use ressler_e call grtrans with gmin = -1
-        write(6,*) 'harmpi convert: ',sp%gminval,allocated(f%kel)
+!        write(6,*) 'harmpi convert: ',sp%gminval,allocated(f%kel)
         if(sp%gminval.ge.1d0) then
            call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
            tempcgs = tempcgs/(1d0+trat)
         else
-           write(6,*) 'call ressler e: ',allocated(f%kel)
+!           write(6,*) 'call ressler e: ',allocated(f%kel)
            call ressler_e(f%rho,f%kel,tempcgs)
-           write(6,*) 'after ressler e: ',minval(tempcgs),maxval(tempcgs)
+!           write(6,*) 'after ressler e: ',minval(tempcgs),maxval(tempcgs)
         end if
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
