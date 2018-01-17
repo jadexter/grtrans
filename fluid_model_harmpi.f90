@@ -1080,7 +1080,7 @@
           write(6,*) 'in read harmpi data file: ',SDUMP,data_file,dlen, &
                nx1*nx2*nx3
           if(SDUMP.eq.0) then
-             rhopos=9; ppos=10; kelpos=rhopos+8; vpos=20; bpos=28
+             rhopos=9; ppos=10; kelpos=rhopos+8; vpos=18+DOKTOT; bpos=vpos+8
           else
              rhopos=0; ppos=1; vpos=2; bpos=5; kelpos=rhopos+10
 ! this should be kel4a but can check in your new ones with no conduction
