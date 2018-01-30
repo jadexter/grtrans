@@ -163,7 +163,7 @@
 !         endif
          c=b ; fc=fb
          do iter=1,itmax
-            where((fb > 0.0 .AND. fc > 0.0) .OR. (fb < 0.0 .AND. fc < 0.0))
+            where((fb > 0d0 .AND. fc > 0d0) .OR. (fb < 0d0 .AND. fc < 0d0))
                c=a
                fc=fa
                d=b-a
@@ -182,7 +182,7 @@
 !            converge=(abs(xm).le.tol1.or.fb.eq.0d0)
 !            if(count(converge).eq.size(xm)) return
 !            where(converge) zbrent=b
-            converge=(abs(xm) <= tol1 .or. fb == 0.0)
+            converge=(abs(xm) <= tol1 .or. fb == 0d0)
 !            write(6,*) 'converge: ',converge,abs(xm)
 ! converged everywhere just return
 ! weird because you re-assign the converged results every iteration
@@ -203,7 +203,7 @@
                      p=s*(2.0d0*xm*q*(q-r)-(b-a)*(r-1.0d0))
                      q=(q-1.0d0)*(r-1.0d0)*(s-1.0d0)
                   endwhere
-                  where(p > 0.0) 
+                  where(p > 0d0) 
                      q=-q
                   end where
                   p=abs(p)

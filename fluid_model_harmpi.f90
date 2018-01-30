@@ -326,7 +326,7 @@
 !          res = theta+theta2+theta3
         end function thetaofx2
 
-        function calcth_cylindrified(rin,x2in) result(theta)
+        function calcth_cylindrified(x2in,rin) result(theta)
           real(kind=8), intent(in), dimension(:) :: rin,x2in
 !          real(kind=8), dimension(size(rin)) :: theta
           real(kind=8), dimension(size(rin)) :: theta,x2mirror,thmirror, &
@@ -428,12 +428,15 @@
           real(kind=8), intent(in), dimension(:) :: x2
           real(kind=8), intent(in), dimension(:,:) :: args
           real(kind=8), dimension(size(x2)) :: r,th,diff,theta
-          real(kind=8) :: r0r,r1jet,njet,r0jet,rsjet,qjet, &
-               rs,r0,r0jet3,rsjet3,h0,ntheta,htheta,rsjet2,r0jet2,myhslope,th2, &
-               th0,switch0,switch2,theta1,theta2,arctan2
+!          real(kind=8) :: r0r,r1jet,njet,r0jet,rsjet,qjet, &
+!               rs,r0,r0jet3,rsjet3,h0,ntheta,htheta,rsjet2,r0jet2,myhslope,th2, &
+!               th0,switch0,switch2,theta1,theta2,arctan2
           th=args(:,2); r=args(:,1)
+!          theta=calcth_cylindrified(x2,r)
           theta=calcthmksbl3(x2,r)
           diff=th-theta
+!          write(6,*) 'findx2mksbl3: ',th(1),theta(1),x2(1),r(1)
+!          write(6,*) 'findx2 diff: ',diff
         end function findx2mksbl3
 
         function calcrmks(x1) result(r)
@@ -520,7 +523,7 @@
 !        if(BL==3) then
         thargs(:,1)=dble(r)
         thargs(:,2)=dble(th)
-!           x2=zbrent(findx2mksbl3,mone,one,thargs,1d-6)
+        x2=zbrent(findx2mksbl3,mone,one,thargs,1d-6)
 !        else
 !           thargs(:,1)=dble(hval)
 !           thargs(:,2)=dble(th)
@@ -551,9 +554,13 @@
              dr=1d-4*r; dx2=1d-6*x2; dx1=1d-4*x1
              drdx1=(calcrmks(x1+.5*dx1)-calcrmks(x1-.5d0*dx1))/dx1
 !             dthdr=(calcthmksbl3(x2,r+.5d0*dr)-calcthmksbl3(x2,r-.5d0*dr))/dr
-             dthdx1=(calcthmksbl3(x2,calcrmks(x1+.5*dx1))- &
-                  calcthmksbl3(x2,calcrmks(x1-.5*dx1)))/dx1
-             dthdx2=(calcthmksbl3(x2+.5d0*dx2,r)-calcthmksbl3(x2-.5d0*dx2,r))/dx2
+             dthdx1=(calcth_cylindrified(x2,calcrmks(x1+.5*dx1))- &
+                  calcth_cylindrified(x2,calcrmks(x1-.5*dx1)))/dx1
+             dthdx2=(calcth_cylindrified(x2+.5d0*dx2,r)-calcth_cylindrified(x2-.5d0*dx2,r))/dx2
+!             dthdr=(calcthmksbl3(x2,r+.5d0*dr)-calcthmksbl3(x2,r-.5d0*dr))/dr
+!             dthdx1=(calcthmksbl3(x2,calcrmks(x1+.5*dx1))- &
+!                  calcthmksbl3(x2,calcrmks(x1-.5*dx1)))/dx1
+!             dthdx2=(calcthmksbl3(x2+.5d0*dx2,r)-calcthmksbl3(x2-.5d0*dx2,r))/dx2
           end if
           r=calcrmks(x1)!,xbr)
           uks%data(2)=drdx1*fum%data(2)
@@ -629,7 +636,7 @@
         uniqx2=x2_arr(1:nx3*(nx2-1)+1:nx3)
         uniqx1=x1_arr(1:nx3*(nx2-1)*nx1+1:nx3*nx2)
         uniqr=exp(uniqx1)
-        if(BL.eq.1) uniqth=pi*uniqx2+(1.-hslope)/2.*sin(2.*pi*uniqx2)
+        if(BL.eq.1) uniqth=pi/2.*(1.+uniqx2)+((1.-hslope)/2.)*sin(pi*(1.+uniqx2))
         uniqph=uniqx3
 !        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
 !        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
@@ -683,6 +690,11 @@
               dth=uniqth(1)
            endwhere
         else
+!           where(ux2.ne.lx2)
+!              dth=calcth_cylindrified(dble(uniqx2(ux2)),dble(zr))-calcth_cylindrified(dble(uniqx2(lx2)),dble(zr))
+!           elsewhere
+!              dth=calcth_cylindrified(dble(uniqx2(1))+0d0*dble(zr),dble(zr))
+!           endwhere
            where(ux2.ne.lx2)
               dth=calcthmksbl3(dble(uniqx2(ux2)),dble(zr))-calcthmksbl3(dble(uniqx2(lx2)),dble(zr))
            elsewhere
@@ -702,6 +714,7 @@
 ! uniform in phi
         pd=(zphi-minph)/(uniqph(2)-uniqph(1))
         if(BL.eq.3) then
+!           td=abs(theta-calcth_cylindrified(dble(uniqx2(lx2)),dble(zr)))/dth
            td=abs(theta-calcthmksbl3(dble(uniqx2(lx2)),dble(zr)))/dth
         else
            td=abs(theta-uniqth(lx2))/dth
