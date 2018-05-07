@@ -305,7 +305,8 @@
         integer, intent(in), optional :: mdot
         real(8), intent(out) :: tcur
         real(8), dimension(:), allocatable, intent(out) :: p,rho
-        real(8), dimension(:), allocatable :: gdet, header, udotu, bdotu
+        real(8), dimension(:), allocatable :: gdet, header, udotu, &
+             bdotu,mdotarr
         type (four_vector), dimension(:), allocatable, intent(out) :: u,b
         type (four_vector), dimension(:), allocatable :: uks,bks
         real(8), dimension(:,:), allocatable :: grid, data, tmetric
@@ -360,12 +361,15 @@
           x1_arr=grid(:,1); x2_arr=grid(:,2); r_arr=grid(:,3); th_arr=grid(:,4)
           write(6,*) 'read harm assign grid'
           deallocate(grid)
-          if (present(mdot)) then
+!          if (present(mdot)) then
              ! Calculate accretion rate in code units:
-             !  nx1=n_elements(uniqx1) ; nx2=n_elements(uniqx2) ; nz=n_elements(uniqx3) 
+!               nx1=n_elements(uniqx1) ; nx2=n_elements(uniqx2) ; nz=n_elements(uniqx3) 
 !             dx2=uniqx2(2)-uniqx2(1) ; dx3=uniqx3(2)-uniqx3(1)
-!             mdotarr=-1.*sum(sum(reform(gdet*rho*v(:,1),nx1,nx2,nz),3),2)*dx2*dx3
-          endif
+          allocate(mdotarr(nx1))
+          mdotarr=-2.*3.14*sum(reshape(gdet*rho*u%data(2),(/nx1,nx2/)),2)*dx2
+          write(6,*) 'mdot: ',mdotarr
+          deallocate(mdotarr)
+!          endif
           ! Transform velocities, magnetic fields from MKS to KS and then BL:
           write(6,*) 'read harm transform coords u ', minval(r_arr), maxval(r_arr), asim
           write(6,*) 'read harm transform coords u ',minval(x2_arr), maxval(x2_arr), h

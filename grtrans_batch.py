@@ -448,10 +448,13 @@ class grtrans:
             db=self.ab[1,1]-self.ab[0,1]
             spec=np.sum(self.ivals,0)*da*db
             if self.nvals==4:
-                self.lp=np.sqrt(spec[1,:]**2.+spec[2,:]**2.)/spec[0,:]
-                self.cp=spec[3,:]/spec[0,:]
+                self.lp=np.sqrt(spec[1]**2.+spec[2]**2.)/spec[0]
+                self.cp=spec[3]/spec[0]
                 self.lpf=np.sum(np.sqrt(self.ivals[:,1,:]**2.+self.ivals[:,2,:]**2.),0)*da*db/spec[0,:]
-                self.cpf=np.sum(np.abs(self.ivals[:,3,:]),0)*da*db/spec[0,:]
+                self.cpf=np.sum(np.abs(self.ivals[:,3,:]),0)*da*db/spec[0]
+                self.evpa=0.5*np.arctan2(spec[2],spec[1])
+# wavelength in m
+                self.lam=3e8/self.nu
         else:
             da=self.ab[1,0]-self.ab[0,0]
             db=0.
