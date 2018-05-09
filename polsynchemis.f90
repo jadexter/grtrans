@@ -694,6 +694,7 @@
 
       subroutine polsynchth(nu,n,b,t,theta,e)
       use phys_constants, ec=>e
+      use bessel, only: besselk0,besselk1,besselk
       implicit none
       ! Calculate polarized synchrotron emission/absorption
       ! coefficients in ultrarel limit using formulas from Huang et al
@@ -740,18 +741,18 @@
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1d3*omega0/2d0/pi/nu))
 ! my slightly modified versions
-      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
-      sin(theta)**2
-      eps12=wp2*omega0/(2d0*pi*nu)**3* &
-      (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
-! testing updated bessel functions
-!      tempfac=besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae
 !      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-!     (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
+!     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
 !      sin(theta)**2
 !      eps12=wp2*omega0/(2d0*pi*nu)**3* &
-!      (besselk0(1d0/thetae)-shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+!      (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
+! testing updated bessel functions
+!      tempfac=besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae
+      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+     (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
+      sin(theta)**2
+      eps12=wp2*omega0/(2d0*pi*nu)**3* &
+      (besselk0(1d0/thetae)-shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
 ! s08 versions
 !      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
 !     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
