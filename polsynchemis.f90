@@ -752,7 +752,7 @@
      (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
       sin(theta)**2
       eps12=wp2*omega0/(2d0*pi*nu)**3* &
-      (besselk0(1d0/thetae)-shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+      (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
 ! s08 versions
 !      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
 !     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
