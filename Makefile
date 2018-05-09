@@ -173,6 +173,9 @@ pgrtrans: grtrans.o libgrtrans
 radtrans_integrate:
 	f2py -c radtrans_integrate.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m radtrans_integrate $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
 
+bessel:
+	f2py -c bessel.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m bessel $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
+
 polsynchemis:
 	f2py -c polsynchemis.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m polsynchemis $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
 

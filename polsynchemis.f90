@@ -745,6 +745,13 @@
       sin(theta)**2
       eps12=wp2*omega0/(2d0*pi*nu)**3* &
       (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
+! testing updated bessel functions
+!      tempfac=besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae
+!      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+!     (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
+!      sin(theta)**2
+!      eps12=wp2*omega0/(2d0*pi*nu)**3* &
+!      (besselk0(1d0/thetae)-shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
 ! s08 versions
 !      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
 !     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
@@ -840,7 +847,7 @@
         real(kind=8), intent(in), dimension(:) :: x
         real(kind=8), dimension(size(x)) :: beselk
         integer, intent(in) :: n
-        if(n.eq.0) then 
+        if(n.eq.0) then
           beselk=-log(x/2d0)-.5772d0 
         else if(n.eq.1) then
           beselk=1d0/x
