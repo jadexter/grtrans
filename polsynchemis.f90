@@ -740,19 +740,18 @@
       wp2=4d0*pi*n*ec**2/m
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1d3*omega0/2d0/pi/nu))
-! my slightly modified versions
-!      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-!     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
-!      sin(theta)**2
-!      eps12=wp2*omega0/(2d0*pi*nu)**3* &
-!      (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
-! testing updated bessel functions
-!      tempfac=besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae
-      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-     (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
+! UPDATING to fix NaNs for small temperatures thetae <~ 10^-2 by setting bessel ratios there = 1
+      where(thetae.gt.1d-2)
+         eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+              (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
       sin(theta)**2
-      eps12=wp2*omega0/(2d0*pi*nu)**3* &
-      (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+         eps12=wp2*omega0/(2d0*pi*nu)**3* &
+              (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+      elsewhere
+         eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+              (1d0+6d0*thetae)*sin(theta)**2
+         eps12=wp2*omega0/(2d0*pi*nu)**3*cos(theta)
+      end where
 ! s08 versions
 !      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
 !     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
