@@ -616,6 +616,8 @@
         bcgs=bcgs*sqrt(4.*pi)
         end subroutine scale_sim_units
 
+!        subroutine 
+
         subroutine monika_e(rho,p,b,beta_trans,rlow,rhigh,trat)
           real(kind=4), intent(in), dimension(:) :: rho,p,b
           real(kind=8), intent(in) :: rlow,rhigh,beta_trans

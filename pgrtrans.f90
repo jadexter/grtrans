@@ -61,7 +61,7 @@
             type (geokerr_args) :: gargs
             type (fluid_args) :: fargs
             type (source_params), dimension(:), allocatable :: sparams
-            type (emis_params) :: eparams
+            type (emis_params), dimension(:), allocatable :: eparams
             character(len=20), dimension(3) :: knames,kdescs
             !FITS output relevant information
             knames(1)='nx'; knames(2)='ny'; kdescs(1)='# x pixels'
@@ -105,10 +105,15 @@
                endif
             endif
             ! these can later be added to a loop over emis parameter structures
-            !       eparams%gmin=gmin; 
-            eparams%gmax=gmax; eparams%p1=p1
-            eparams%p2=p2;
-            allocate(eparams%otherargs(nepotherargs))
+            !       eparams%gmin=gmin;
+! conceptual thing here: do we want this is n emis x m mdot or simply a list of each of them?
+! the grid over mdot and frequency was done with namelist input files in mind but now could have a separate pgrtrans only mode where those are all flexible lists
+! then it would be just n emis/mdot and f frequencies each from supplied lists or if not there calculated from nmdot, nfreq? that sounds better
+            neparams=size(gmin)
+            do iii=1,neparams
+               eparams(iii)%gmax=gmax; eparams(iii)%p1=p1
+               eparams(iii)%p2=p2;
+               allocate(eparams%otherargs(nepotherargs))
             eparams%otherargs = epotherargs
             eparams%coefindx = epcoefindx
             !alwinnote 2015/04/05
