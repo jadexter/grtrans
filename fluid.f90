@@ -652,6 +652,13 @@
 !          write(6,*) 'ressler e: ',minval(thetae), maxval(thetae)
         end subroutine ressler_e
 
+        subroutine werner_e(rho,bmag,deltae)
+          real(kind=4), intent(in), dimension(:) :: rho,bmag
+          real(kind=8), intent(inout), dimension(size(rho)) :: deltae
+! formula from figure 20 of Werner+2018 with sigma_i = b^2 / rho
+          deltae=1./4.+1./4.*sqrt(bmag**2./rho/5./(2.+bmag**2./rho/5.))
+        end subroutine werner_e
+
 ! non-thermal e- where jet energy density is high (e.g. Broderick & McKinney 2010, Dexter+2012)
         subroutine nonthermale_b2(alpha,gmin,p1,p2,bmagrho,bcgs,ncgsnth)
           real(kind=8), intent(in) :: alpha,gmin,p1,p2
@@ -745,9 +752,14 @@
            call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
            tempcgs = tempcgs/(1d0+trat)
-        else
+        else if(sp%gminval.eq.-1d0) then
 !           write(6,*) 'call ressler e: ',allocated(f%kel)
            call ressler_e(f%rho,f%kel,tempcgs)
+        else
+! this is the Werner+2018 heating model with an additional muval scaling
+! if you want *just* Werner+ alone then use muval=1
+           call werner_e(f%rho,f%bmag,trat)
+           tempcgs = sp%muval*trat*tempcgs
 !           write(6,*) 'after ressler e: ',minval(tempcgs),maxval(tempcgs)
         end if
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
