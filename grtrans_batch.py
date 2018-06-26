@@ -552,7 +552,7 @@ class grtrans:
         fig,ax = plt.subplots()
         ax.set_xlabel('alpha', fontsize=16)
         ax.set_ylabel('beta', fontsize=16)
-        ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
+#        ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
         self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim)
 
     def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1):
