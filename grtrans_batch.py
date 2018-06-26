@@ -559,6 +559,7 @@ class grtrans:
         if trim < 0:
             trim=self.nx
         U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
+        img[img > sat*np.max(img)]=sat*np.max(img)
         ax.imshow(img,origin='lower')
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
                          width=8e-3, headwidth=1,headaxislength=0) # common options
