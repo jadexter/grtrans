@@ -546,9 +546,6 @@ class grtrans:
         return U,V,mx,my,img,scale
 
     def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1):
-#        import matplotlib.pyplot as plt; plt.ion()
-        ###----------------------------------------------
-#        i=img/np.max(img)/sat
         fig,ax = plt.subplots()
         ax.set_xlabel('alpha', fontsize=16)
         ax.set_ylabel('beta', fontsize=16)
@@ -559,8 +556,9 @@ class grtrans:
         if trim < 0:
             trim=self.nx
         U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
-        img[img > sat*np.max(img)]=sat*np.max(img)
-        ax.imshow(img,origin='lower')
+#        sclimg=img.copy()
+#        sclimg[img > sat*np.max(img)]=sat*np.max(img)
+        ax.imshow(img,origin='lower',vmax=np.max(img)*sat)
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
                          width=8e-3, headwidth=1,headaxislength=0) # common options
         ax.quiver(U,V,mx,my,**quiveropts)
