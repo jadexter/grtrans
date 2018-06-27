@@ -2,6 +2,7 @@ import os
 import namelist as nm
 import numpy as np
 import matplotlib.pyplot as plt
+#import matplotlib.image as mpimg
 import pyfits
 # f2py grtrans module
 from pgrtrans import pgrtrans
@@ -450,10 +451,10 @@ class grtrans:
             if self.nvals==4:
                 self.lp=np.sqrt(spec[1]**2.+spec[2]**2.)/spec[0]
                 self.cp=spec[3]/spec[0]
-                self.lpf=np.sum(np.sqrt(self.ivals[:,1,:]**2.+self.ivals[:,2,:]**2.),0)*da*db/spec[0,:]
+                self.lpf=np.sum(np.sqrt(self.ivals[:,1,:]**2.+self.ivals[:,2,:]**2.),0)*da*db/spec[0]
                 self.cpf=np.sum(np.abs(self.ivals[:,3,:]),0)*da*db/spec[0]
                 self.evpa=0.5*np.arctan2(spec[2],spec[1])
-# wavelength in m
+#wavelength in m
                 self.lam=3e8/self.nu
         else:
             da=self.ab[1,0]-self.ab[0,0]
@@ -474,10 +475,13 @@ class grtrans:
             db=self.ab[1,1]-self.ab[1,0]
             spec=np.sum(self.ivals,1)*da*db
             if self.nvals==4:
-                self.lp=np.sqrt(spec[1,:]**2.+spec[2,:]**2.)/spec[0,:]
-                self.cp=spec[3,:]/spec[0,:]
-                self.lpf=np.sum(np.sqrt(self.ivals[1]**2.+self.ivals[2]**2.),0)*da*db/spec[0,:]
-                self.cpf=np.sum(np.abs(self.ivals[3]),0)*da*db/spec[0,:]
+                self.lp=np.sqrt(spec[1]**2.+spec[2]**2.)/spec[0]
+                self.cp=spec[3]/spec[0]
+                self.lpf=np.sum(np.sqrt(self.ivals[1]**2.+self.ivals[2]**2.),0)*da*db/spec[0]
+                self.cpf=np.sum(np.abs(self.ivals[3]),0)*da*db/spec[0]
+                self.evpa=0.5*np.arctan2(spec[2],spec[1])
+# wavelength in m
+                self.lam=3e8/self.nu
         else:
             da=self.ab[0,1]-self.ab[0,0]
             db=0.
@@ -529,11 +533,11 @@ class grtrans:
         if pgrtrans==1:
             evpa = 0.5*np.arctan2(self.ivals[2,:,idex],self.ivals[1,:,idex])
             m = np.sqrt(self.ivals[1,:,idex]**2.+self.ivals[2,:,idex]**2.)
-            img = self.ivals[0,:,idex]
+            img = self.ivals[0,:,idex].copy()
         else:
             evpa = 0.5*np.arctan2(self.ivals[:,2,idex],self.ivals[:,1,idex])
             m = np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)
-            img = self.ivals[:,0,idex]
+            img = self.ivals[:,0,idex].copy()
         scale=np.max(m)*10.
         mx = (np.transpose(np.resize(m * np.cos(evpa),(self.ny,self.nx))))
         my = (np.transpose(np.resize(m * np.sin(evpa),(self.ny,self.nx))))
@@ -545,23 +549,38 @@ class grtrans:
         my=my[nsamp/2::nsamp,nsamp/2::nsamp]; mx=mx[nsamp/2::nsamp,nsamp/2::nsamp]
         return U,V,mx,my,img,scale
 
-    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1):
+    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,xlim=[-1.],ylim=[-1.]):
+        ###----------------------------------------------
+#        i=img/np.max(img)/sat
         fig,ax = plt.subplots()
-        ax.set_xlabel('alpha', fontsize=16)
-        ax.set_ylabel('beta', fontsize=16)
-#        ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
-        self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim)
+        left=0.16; bottom=0.16; right=0.95; top=0.96
+        fig.subplots_adjust(left=left,bottom=bottom,right=right,top=top)
+        if np.sum(xlim)==-1.:
+            ax.set_xlabel('alpha', fontsize=16)
+            ax.set_ylabel('beta', fontsize=16)
+            extent=[0,self.nx,0,self.nx]
+        else:
+            ax.set_xlabel('x (microarcseconds)',fontsize=14)
+            ax.set_ylabel('y (microarcseconds)',fontsize=14)
+            ax.set_xlim(xlim)
+            ax.set_ylim(ylim)
+            extent=[xlim[0],xlim[1],ylim[0],ylim[1]]
+        ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
+        self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim,extent=extent)
 
-    def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1):
+    def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,extent=[-1]):
         if trim < 0:
             trim=self.nx
+        if np.sum(extent)==-1:
+            extent=[0,self.nx,0,self.nx]
         U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
-#        sclimg=img.copy()
-#        sclimg[img > sat*np.max(img)]=sat*np.max(img)
-        ax.imshow(img,origin='lower',vmax=np.max(img)*sat)
+#        img[img > sat*np.max(img)]=sat*np.max(img)
+        ax.imshow(img,origin='lower',extent=extent,vmax=sat*np.max(img))
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
                          width=8e-3, headwidth=1,headaxislength=0) # common options
-        ax.quiver(U,V,mx,my,**quiveropts)
+        Uscl = (U-np.min(U))*1./(np.max(U)-np.min(U))*(extent[1]-extent[0])+extent[0]
+        Vscl = (V-np.min(V))*1./(np.max(V)-np.min(V))*(extent[3]-extent[2])+extent[2]
+        ax.quiver(Uscl,Vscl,mx,my,**quiveropts)
 
     def junhan_pol_diagnostics(self,ii=0,idex=0,pgrtrans=-1,nsamp=8,trim=128,fov=30.,jyunit=60.):
         if trim==-1:
