@@ -3,7 +3,10 @@ import namelist as nm
 import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.image as mpimg
-import pyfits
+try:
+    import pyfits
+except:
+    from astropy.io import fits
 # f2py grtrans module
 from pgrtrans import pgrtrans
 from time import time
@@ -378,7 +381,7 @@ class grtrans:
     def read_grtrans_output(self,bin=0):
         if bin==0:
             # fits read
-            hdu=pyfits.open(self.ofile)
+            hdu=fits.open(self.ofile)
             n=len(hdu)
             print len(hdu[0].data)
             ab=np.reshape(hdu[0].data,(len(hdu[0].data)/2,2))
