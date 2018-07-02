@@ -894,6 +894,7 @@
           allocate(header(nheadmax)); header(:)=-1d20
           open(unit=8,file=hfile)
           read(8,*,iostat=status) header
+          close(unit=8)
 !          write(6,*) 'header: ',header
           n = 1
 !          nhead=70
@@ -1085,6 +1086,7 @@
              nheader_bytes=nheader_bytes+1
           end do
           read(8) data
+          close(unit=8)
 ! first read grid
           allocate(grid(nx1*nx2*nx3,6))
           grid=transpose(data(4:9,:))
@@ -1346,7 +1348,7 @@
         write(6,*) 'grid: ',SDUMP,nt
 ! now loop over and load data files
         do k=1,nt
-           write(append, fmt='(I4)') indf-(k-1)
+           write(append, fmt='(I4.3)') indf-(k-1)
            data_file = trim(dfile) // trim(adjustl(append))
            write(6,*) 'data_file: ',indf-(k-1),append,data_file
            call read_harmpi_data_file(data_file,tcur,rho,p,u,b,kel)
