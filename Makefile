@@ -5,13 +5,13 @@ FC=ifort
 AR=xiar
 ARFLAGS=rcv
 PHIFLAGS=-mmic
-OMP = -openmp #-mkl
+OMP = -qopenmp #-mkl
 OMPLIB = -liomp5 -lpthread
 FCNAME=intelem
 ifeq ($(DEBUG),1)
-OTHERFLAGS = -g -extend-source 132 -heap-arrays -fp-model strict
+OTHERFLAGS = -g -extend-source 132 -heap-arrays -fp-model strict -fPIC
 else
-OTHERFLAGS = $(OMP) -extend-source 132 -fast -fp-model source #-mkl
+OTHERFLAGS = $(OMP) -extend-source 132 -fast -fp-model source -fPIC #-mkl
 endif
 endif
 
