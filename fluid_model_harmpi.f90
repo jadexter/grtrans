@@ -28,7 +28,7 @@
       real, dimension(:), allocatable :: t
       real, dimension(:), allocatable :: x1_arr, x2_arr, x3_arr, r_arr, th_arr, ph_arr
       real, dimension(:), allocatable :: rho_arr, p_arr, u0_arr, vrl_arr, &
-        vpl_arr, vtl_arr, temp_arr, kel_arr
+        vpl_arr, vtl_arr, temp_arr, kela_arr, kelb_arr, kelc_arr, keld_arr
 ! global variables for BL3 but should have these read in from header files rather than hard-coded
       real, dimension(:), allocatable :: b0_arr, br_arr, bth_arr, bph_arr, gdet
       real, dimension(:,:), allocatable :: drdx,metric_cov,metric_con
@@ -604,7 +604,8 @@
           uks%data(4)=uph
         end function umksh2uks
 
-        subroutine harmpi_vals(x0,a,rho,p,b,u,bmag,kel)
+        subroutine harmpi_vals(x0,a,rho,p,b,u,bmag,kela,kelb, &
+             kelc,keld)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         real(kind=8), dimension(size(x0)) :: done,pfac,nfac
@@ -615,14 +616,15 @@
         real, dimension(nx2) :: uniqx2,uniqth
         real, dimension(nx3) :: uniqx3,uniqph
         real, dimension(size(x0),2**(ndim+1)) :: ppi,rhoi,vrli,vtli, &
-         vpli,bri,bthi,bphi,b0i,u0i,ri,thi,phii,keli
+         vpli,bri,bthi,bphi,b0i,u0i,ri,thi,phii,kelai,kelbi,kelci,keldi
 !        integer, dimension(size(x0)*(2**ndim)) :: sindx
         real, dimension(size(x0)) :: dth, minph
         integer, dimension(size(x0)*2*(2**ndim)) :: indx
         integer, dimension(size(x0)) :: lx1,lx2, lx3, ux1,ux2,ux3,x1l,x1u,x2l,x2u,x3l,x3u, &
          umax,one,tindx
         integer :: npts,i,maxtindx
-        real, dimension(size(x0)), intent(out) :: rho,p,bmag,kel
+        real, dimension(size(x0)), intent(out) :: rho,p,bmag,kela,kelb, &
+             kelc,keld
         type (four_Vector), intent(out), dimension(size(x0)) :: u,b
         ! Interpolates HARM data to input coordinates
         ! JAD 3/20/2009, fortran 11/12/2012
@@ -785,7 +787,12 @@
         bphi=reshape(bph_arr(indx),(/npts,2**(ndim+1)/))
         u0i=reshape(u0_arr(indx),(/npts,2**(ndim+1)/))
 !        write(6,*) 'before keli', eCOND,eHEAT,allocated(kel_arr)
-        if(eCOND.eq.1.or.eHEAT.eq.1) keli=reshape(kel_arr(indx),(/npts,2**(ndim+1)/))
+        if(eCOND.eq.1.or.eHEAT.eq.1) then
+           kelai=reshape(kela_arr(indx),(/npts,2**(ndim+1)/))
+           kelbi=reshape(kelb_arr(indx),(/npts,2**(ndim+1)/))
+           kelci=reshape(kelc_arr(indx),(/npts,2**(ndim+1)/))
+           keldi=reshape(keld_arr(indx),(/npts,2**(ndim+1)/))
+        endif
 ! coordinates for debugging
         ri=reshape(r_arr(indx),(/npts,2**(ndim+1)/))
         thi=reshape(th_arr(indx),(/npts,2**(ndim+1)/))
@@ -794,9 +801,12 @@
         rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
         p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
         if(eCOND.eq.1.or.eHEAT.eq.1) then
-           kel=merge(interp(keli,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
+           kela=merge(interp(kelai,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
+           kelb=merge(interp(kelbi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
+           kelc=merge(interp(kelci,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
+           keld=merge(interp(keldi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
         else
-           kel=0d0
+           kela=0d0; kelb=0d0; kelc=0d0; keld=0d0
         end if
 !        write(6,*) 'rho: ', rho, p
         vrl0=merge(interp(vrli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
@@ -1106,17 +1116,20 @@
           deallocate(data)
         end subroutine read_harmpi_grid_file
 
-        subroutine read_harmpi_data_file(data_file,tcur,rho,p,u,b,kel,mdot)
+        subroutine read_harmpi_data_file(data_file,tcur,rho,p,u,b,kela, &
+             kelb,kelc,keld,mdot)
           character(len=100), intent(in) :: data_file
 !          character(len=100) :: data_file_app
           character :: header_byte
           integer :: nhead,nheader_bytes
-          integer :: rhopos,ppos,vpos,bpos,gdetpos,kelpos
+          integer :: rhopos,ppos,vpos,bpos,gdetpos,kelapos, &
+               kelbpos,kelcpos,keldpos
 !          logical, intent(in), optional :: gridonly
           integer, intent(in), optional :: mdot
 !          logical :: gridread
           real(8), intent(out) :: tcur
-          real(8), dimension(:), allocatable, intent(out) :: p,rho,kel
+          real(8), dimension(:), allocatable, intent(out) :: p,rho,kela, &
+               kelb,kelc,keld
           real(8), dimension(:), allocatable :: udotu,bdotu,bdotb,pmin
           real(8), dimension(:), allocatable :: alpha,gamma,zero
           type (four_vector), dimension(:), allocatable, intent(out) :: u,b
@@ -1132,12 +1145,15 @@
           write(6,*) 'in read harmpi data file: ',SDUMP,data_file,dlen, &
                nx1*nx2*nx3
           if(SDUMP.eq.0) then
-             rhopos=9; ppos=10; kelpos=rhopos+8; vpos=18+DOKTOT; bpos=vpos+8
+             rhopos=9; ppos=10; kelapos=rhopos+8; kelbpos=kelapos+1
+             kelcpos=kelapos+2; keldpos=kelapos+3
+             vpos=18+DOKTOT; bpos=vpos+8
           else
-             rhopos=0; ppos=1; vpos=2; bpos=5; kelpos=rhopos+10
+             rhopos=0; ppos=1; vpos=2; bpos=5; kelapos=rhopos+10
+             kelbpos=kelapos+1; kelcpos=kelapos+2; keldpos=kelapos+3
 ! this should be kel4a but can check in your new ones with no conduction
           end if
-          write(6,*) 'rhopos: ',rhopos,ppos,vpos,bpos,kelpos
+          write(6,*) 'rhopos: ',rhopos,ppos,vpos,bpos,kelapos
           write(6,*) 'data file: ',data_file
           write(6,*) 'harmpi data size: ',dlen,nx1,nx2,nx3
 !          write(6,*) 'harmpi data file: ',data_file
@@ -1173,8 +1189,14 @@
           rho=data(rhopos+1,:)
           p=data(ppos+1,:)
           if(eCOND.eq.1.or.eHEAT.eq.1) then
-             allocate(kel(nx1*nx2*nx3))
-             kel=data(kelpos+1,:)
+             allocate(kela(nx1*nx2*nx3))
+             allocate(kelb(nx1*nx2*nx3))
+             allocate(kelc(nx1*nx2*nx3))
+             allocate(keld(nx1*nx2*nx3))
+             kela=data(kelapos+1,:)
+             kelb=data(kelbpos+1,:)
+             kelc=data(kelcpos+1,:)
+             keld=data(keldpos+1,:)
           end if
           if(SDUMP.eq.0) then
              b%data(1)=data(bpos+1,:)
@@ -1235,7 +1257,7 @@
           p=merge(p,pmin,p.gt.pmin)
           write(6,*) "min vals rho", minval(rho)
           write(6,*) "min vals p", minval(p)
-          if(allocated(kel)) write(6,*) 'min vals kel: ',minval(kel)
+          if(allocated(kela)) write(6,*) 'min vals kel: ',minval(kela)
           write(6,*) "min vals u", minval(u%data(1)), minval(u%data(2)), minval(u%data(3)), minval(u%data(4))
           write(6,*) "max vals u", maxval(u%data(1)), maxval(u%data(2)), maxval(u%data(3)), maxval(u%data(4))
 !          if (present(mdot)) then
@@ -1327,7 +1349,8 @@
         end subroutine initialize_harmpi_model
 
         subroutine load_harmpi_data(nt)
-        real(8), dimension(:), allocatable :: rho,p,kel
+        real(8), dimension(:), allocatable :: rho,p,kela, &
+             kelb,kelc,keld
         real, dimension(:), allocatable :: vrl, vtl, vpl
         type (four_vector), dimension(:), allocatable :: u, b
         integer, intent(in) :: nt
@@ -1338,9 +1361,12 @@
         allocate(rho(n)); allocate(p(n))
         allocate(vrl(n)); allocate(vtl(n)); allocate(vpl(n))
         allocate(u(n)); allocate(b(n))
-        if(eCOND.eq.1.or.eHEAT.eq.1) allocate(kel(n))
+        if(eCOND.eq.1.or.eHEAT.eq.1) then
+           allocate(kela(n)); allocate(kelb(n))
+           allocate(kelc(n)); allocate(keld(n))
+        endif
 ! if we're using small dumps then get grid and metric from a regular dump file
-        write(6,*) 'eHEAT: ',eHEAT,allocated(kel)
+        write(6,*) 'eHEAT: ',eHEAT,allocated(kela)
         if(SDUMP.eq.1) then
            call init_harmpi_grid_data(nx1*nx2*nx3)
            call read_harmpi_grid_file(gfile)
@@ -1351,9 +1377,10 @@
            write(append, fmt='(I4.3)') indf-(k-1)
            data_file = trim(dfile) // trim(adjustl(append))
            write(6,*) 'data_file: ',indf-(k-1),append,data_file
-           call read_harmpi_data_file(data_file,tcur,rho,p,u,b,kel)
+           call read_harmpi_data_file(data_file,tcur,rho,p,u,b,kela, &
+                kelb,kelc,keld)
            t(k)=tcur
-           write(6,*) 'after harmpi data: ',tcur,allocated(kel)
+           write(6,*) 'after harmpi data: ',tcur,allocated(kela)
            call lnrf_frame(real(u%data(2)/u%data(1)),real(u%data(3)/u%data(1)), & 
                 real(u%data(4)/u%data(1)),r_arr,asim,th_arr,vrl,vtl,vpl)
 !           write(6,*) 'lnrf transform', size(b0_arr), size(b%data(1)), size(b0_arr((k-1)*n+1:k*n))
@@ -1374,7 +1401,10 @@
            vpl_arr((k-1)*n+1:k*n)=real(vpl)
 !           write(6,*) 'after vpl', vtl(1), vtl(n), vtl
            vtl_arr((k-1)*n+1:k*n)=real(vtl)
-           kel_arr((k-1)*n+1:k*n)=kel
+           kela_arr((k-1)*n+1:k*n)=kela
+           kelb_arr((k-1)*n+1:k*n)=kelb
+           kelc_arr((k-1)*n+1:k*n)=kelc
+           keld_arr((k-1)*n+1:k*n)=keld
 !           write(6,*) 'after vtl'
 !           write(6,*) 'assign'
         end do
@@ -1393,7 +1423,10 @@
         deallocate(rho); deallocate(p)
         deallocate(vrl); deallocate(vtl); deallocate(vpl)
         deallocate(u); deallocate(b)
-        if(eCOND.eq.1.or.eHEAT.eq.1) deallocate(kel)
+        if(eCOND.eq.1.or.eHEAT.eq.1) then
+           deallocate(kela); deallocate(kelb)
+           deallocate(kelc); deallocate(keld)
+        endif
 !        write(6,*) 'read data file', a
         write(6,*) maxval(vrl_arr**2.+vtl_arr**2.+vpl_arr**2.)
 !        write(6,*) 'maxmin temp: ',minval(p_arr/rho_arr*1.67e-24*9e20/1.38e-16), &
@@ -1433,9 +1466,14 @@
            vrl_arr(nshift:n*nt)=vrl_arr(1:n*nt-nshift)
            vtl_arr(nshift:n*nt)=vtl_arr(1:n*nt-nshift)
            vpl_arr(nshift:n*nt)=vpl_arr(1:n*nt-nshift)
-           if(eCOND.eq.1.or.eHEAT.eq.1) kel_arr(nshift:n*nt)=kel_arr(1:n*nt-nshift)
+           if(eCOND.eq.1.or.eHEAT.eq.1) then
+              kela_arr(nshift:n*nt)=kela_arr(1:n*nt-nshift)
+              kelb_arr(nshift:n*nt)=kelb_arr(1:n*nt-nshift)
+              kelc_arr(nshift:n*nt)=kelc_arr(1:n*nt-nshift)
+              keld_arr(nshift:n*nt)=keld_arr(1:n*nt-nshift)
+           endif
            call load_harmpi_data(nupdate)
-        end if
+        endif
         end subroutine update_harmpi_data
 
         subroutine init_harmpi_data(nx,n)
@@ -1448,7 +1486,10 @@
         allocate(th_arr(nx)); allocate(t(nt)); allocate(x3_arr(nx))
         allocate(ph_arr(nx))
         if(eCOND.eq.1.or.eHEAT.eq.1) then
-           allocate(kel_arr(n))
+           allocate(kela_arr(n))
+           allocate(kelb_arr(n))
+           allocate(kelc_arr(n))
+           allocate(keld_arr(n))
         endif
         end subroutine init_harmpi_data
 
@@ -1461,7 +1502,10 @@
         deallocate(x3_arr)
         deallocate(ph_arr)
         if(eCOND.eq.1.or.eHEAT.eq.1) then
-           deallocate(kel_arr)
+           deallocate(kela_arr)
+           deallocate(kelb_arr)
+           deallocate(kelc_arr)
+           deallocate(keld_arr)
         end if
         end subroutine del_harmpi_data
 

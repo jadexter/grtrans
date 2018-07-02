@@ -37,7 +37,8 @@
       type fluid
         integer :: model, nfreq
         real :: rin
-        real, dimension(:), allocatable :: rho,p,bmag,rho2,kel
+        real, dimension(:), allocatable :: rho,p,bmag,rho2, &
+             kela,kelb,kelc,keld
         real, dimension(:,:), allocatable :: fnu
         type (four_vector), dimension(:), allocatable :: u,b
       end type
@@ -257,7 +258,10 @@
                  f%model=HARM3D
               elseif(fname=='HARMPI') then
                  f%model=HARMPI
-                 allocate(f%kel(nup))
+                 allocate(f%kela(nup))
+                 allocate(f%kelb(nup))
+                 allocate(f%kelc(nup))
+                 allocate(f%keld(nup))
               elseif(fname=='THICKDISK') then
                  f%model=THICKDISK
               elseif(fname=='MB09') then
@@ -334,7 +338,10 @@
               deallocate(f%bmag)
            endif
            if(f%model==SARIAF.or.f%model==POWERLAW) deallocate(f%rho2)
-           if(f%model==HARMPI) deallocate(f%kel)
+           if(f%model==HARMPI) then
+              deallocate(f%kela); deallocate(f%kelb)
+              deallocate(f%kelc); deallocate(f%keld)
+           endif
         endif
         f%model=-1
         end subroutine del_fluid_model
@@ -569,7 +576,8 @@
         type (fluid), intent(inout) :: f
         ! Computes properties of jet solution from Broderick & Loeb (2009)
         ! JAD 4/23/2010, fortran 3/30/2011
-        call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%kel)
+        call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%kela, &
+             f%kelb,f%kelc,f%keld)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
         end subroutine get_harmpi_fluidvars
 
@@ -752,9 +760,18 @@
            call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
            tempcgs = tempcgs/(1d0+trat)
-        else if(sp%gminval.eq.-1d0) then
-!           write(6,*) 'call ressler e: ',allocated(f%kel)
-           call ressler_e(f%rho,f%kel,tempcgs)
+        else if(sp%gminval.lt.0d0) then
+!          gmin=-1,2,3,4 to use kel4abcd
+! not yet reading capability for ktot, kel4, kel4e, kel5, keldis
+           if(sp%gminval.eq.-1d0) then
+              call ressler_e(f%rho,f%kela,tempcgs)
+           else if(sp%gminval.eq.-2d0) then
+              call ressler_e(f%rho,f%kelb,tempcgs)
+           else if(sp%gminval.eq.-3d0) then
+              call ressler_e(f%rho,f%kelc,tempcgs)
+           else
+              call ressler_e(f%rho,f%keld,tempcgs)
+           endif
         else
 ! this is the Werner+2018 heating model with an additional muval scaling
 ! if you want *just* Werner+ alone then use muval=1
