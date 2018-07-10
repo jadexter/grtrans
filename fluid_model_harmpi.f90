@@ -640,18 +640,12 @@
         uniqr=exp(uniqx1)
         if(BL.eq.1) uniqth=pi/2.*(1.+uniqx2)+((1.-hslope)/2.)*sin(pi*(1.+uniqx2))
         uniqph=uniqx3
-!        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
-!        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
-!        write(6,*) 'uniqph: ',minval(uniqph), maxval(uniqph)
         npts=size(x0)
         theta=x0%data(3)
         zr=x0%data(2)
         zt=x0%data(1)
         tt=bl2ks(dble(zr),dble(zt),dble(a),1)-bl2ks(dble(zr(1)),0d0,dble(a),1)
         tt=-tt
-!        write(6,*) 'tt: ',minval(x0%data(1)),maxval(x0%data(1)),minval(tt),maxval(tt)
-!        ztt=-ztt
-!        tt=ztt-min(ztt)+tabs0
         zpp=x0%data(4)
         zphi=bl2ks(dble(zr),dble(zpp),dble(a))
         zphi=mod(zphi,(2.*pi))
@@ -683,28 +677,31 @@
 !        write(6,*) 'nx1 nx2 nx3: ',nx1,nx2,nx3,minval(zphi),maxval(zphi),minval(zr),maxval(zr),minval(theta), &
 !             maxval(theta)
 !       write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2), minval(lx3), maxval(ux3)
+
+! commenting out below while interpolation is off
 ! Deal with poles
 !        write(6,*) 'poles'
-        if(BL.eq.1) then
-           where(ux2.ne.lx2)
-              dth=uniqth(ux2)-uniqth(lx2)
-           elsewhere
-              dth=uniqth(1)
-           endwhere
-        else
+!        if(BL.eq.1) then
 !           where(ux2.ne.lx2)
-!              dth=calcth_cylindrified(dble(uniqx2(ux2)),dble(zr))-calcth_cylindrified(dble(uniqx2(lx2)),dble(zr))
+!              dth=uniqth(ux2)-uniqth(lx2)
 !           elsewhere
-!              dth=calcth_cylindrified(dble(uniqx2(1))+0d0*dble(zr),dble(zr))
+!              dth=uniqth(1)
 !           endwhere
-           where(ux2.ne.lx2)
-              dth=calcthmksbl3(dble(uniqx2(ux2)),dble(zr))-calcthmksbl3(dble(uniqx2(lx2)),dble(zr))
-           elsewhere
-              dth=calcthmksbl3(dble(uniqx2(1))+0d0*dble(zr),dble(zr))
-           endwhere
-        end if
+!        else
+!!           where(ux2.ne.lx2)
+!!              dth=calcth_cylindrified(dble(uniqx2(ux2)),dble(zr))-calcth_cylindrified(dble(uniqx2(lx2)),dble(zr))
+!!           elsewhere
+!!              dth=calcth_cylindrified(dble(uniqx2(1))+0d0*dble(zr),dble(zr))
+!!           endwhere
+!
+!           where(ux2.ne.lx2)
+!              dth=calcthmksbl3(dble(uniqx2(ux2)),dble(zr))-calcthmksbl3(dble(uniqx2(lx2)),dble(zr))
+!           elsewhere
+!              dth=calcthmksbl3(dble(uniqx2(1))+0d0*dble(zr),dble(zr))
+!           endwhere
+!        end if
 ! periodic in phi
-        minph=uniqph(lx3)
+!        minph=uniqph(lx3)
         where(ux3.gt.nx3)
             ux3=1
         endwhere
@@ -714,16 +711,14 @@
         endwhere
 !        write(6,*) 'uniform phi'
 ! uniform in phi
-        pd=(zphi-minph)/(uniqph(2)-uniqph(1))
-        if(BL.eq.3) then
-!           td=abs(theta-calcth_cylindrified(dble(uniqx2(lx2)),dble(zr)))/dth
-           td=abs(theta-calcthmksbl3(dble(uniqx2(lx2)),dble(zr)))/dth
-        else
-           td=abs(theta-uniqth(lx2))/dth
-        end if
-        rd=(zr-uniqr(lx1))/(uniqr(ux1)-uniqr(lx1))
-! for now just do nearest neighbor
-        rd(:)=1.; td(:)=1.; pd(:)=1.
+!        pd=(zphi-minph)/(uniqph(2)-uniqph(1))
+!        if(BL.eq.3) then
+!!           td=abs(theta-calcth_cylindrified(dble(uniqx2(lx2)),dble(zr)))/dth
+!           td=abs(theta-calcthmksbl3(dble(uniqx2(lx2)),dble(zr)))/dth
+!        else
+!           td=abs(theta-uniqth(lx2))/dth
+ !       end if
+ !       rd=(zr-uniqr(lx1))/(uniqr(ux1)-uniqr(lx1))
 ! When the geodesic is inside the innermost zone center located outside the horizon, 
 ! use nearest neighbor rather than interpolate
         where(uniqr(lx1).le.(1.+sqrt(1.-a**2.)))
@@ -734,6 +729,8 @@
            pfac=1.
            nfac=1.
         endwhere
+!  nearest neighbor
+        rd(:)=1.; td(:)=1.; pd(:)=1.
 !        write(6,*) 'coords: ',
 !        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
 !        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
@@ -1239,21 +1236,22 @@
              u%data(2) = u%data(2)-gamma*beta%data(2)/alpha
              u%data(3) = u%data(3)-gamma*beta%data(3)/alpha
              u%data(4) = u%data(4)-gamma*beta%data(4)/alpha
-! test code for these transformations
-             allocate(bdotu(n)); allocate(udotu(n)); allocate(bdotb(n))
-             udotu=abs(u*u+1.)
-             write(6,*) 'udotu: ',maxval(udotu),udotu(30*nx1*nx2+50)
+             deallocate(alpha); deallocate(beta); deallocate(gamma)
+             deallocate(zero)
              b%data(1) = u*b
              b%data(2) = (b%data(2)+b%data(1)*u%data(2))/u%data(1)
              b%data(3) = (b%data(3)+b%data(1)*u%data(3))/u%data(1)
              b%data(4) = (b%data(4)+b%data(1)*u%data(4))/u%data(1)
-             bdotb = b*b; bdotu = b*u
-             write(6,*) 'bdotu: ',maxval(abs(bdotu)),bdotu(30*nx1*nx2+50), &
-                  bdotb(30*nx1*nx2+50)
-             deallocate(bdotu); deallocate(udotu); deallocate(bdotb)
-             deallocate(alpha); deallocate(beta); deallocate(gamma); deallocate(zero)
           endif
           deallocate(data)
+! test code for these transformations
+!          allocate(bdotu(n)); allocate(udotu(n)); allocate(bdotb(n))
+!          udotu=abs(u*u+1.)
+!          write(6,*) 'udotu: ',maxval(udotu),udotu(30*nx1*nx2+50)
+!          bdotb = b*b; bdotu = b*u
+!          write(6,*) 'bdotu: ',maxval(abs(bdotu)),bdotu(30*nx1*nx2+50), &
+!               bdotb(30*nx1*nx2+50)
+!          deallocate(bdotu); deallocate(udotu); deallocate(bdotb)
           p=merge(p,pmin,p.gt.pmin)
           write(6,*) "min vals rho", minval(rho)
           write(6,*) "min vals p", minval(p)
