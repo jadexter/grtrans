@@ -10,7 +10,7 @@ except:
 # f2py grtrans module
 from pgrtrans import pgrtrans
 from time import time
-plt.ion()
+#plt.ion()
 
 pcG = 6.6726e-8
 pcc2 = 8.9874e20
@@ -585,46 +585,63 @@ class grtrans:
         Vscl = (V-np.min(V))*1./(np.max(V)-np.min(V))*(extent[3]-extent[2])+extent[2]
         ax.quiver(Uscl,Vscl,mx,my,**quiveropts)
 
-    def junhan_pol_diagnostics(self,ii=0,idex=0,pgrtrans=-1,nsamp=8,trim=128,fov=30.,jyunit=60.):
+    def junhan_pol_diagnostics(self,ii=0,idex=0,pgrtrans=-1,nsamp=6,trim=128,fov=-1.,jyunit=60.):
+# set field of view based on camera
+# CHECK pgrtrans ordering implementing this for grtrans
+        if fov==-1.:
+            if pgrtrans==-1:
+                fov=self.ab[-1,1]-self.ab[0,1]
+            else:
+                fov=self.ab[1,-1]-self.ab[1,0]
         if trim==-1:
             trim=self.nx
         plt.clf()
         fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(16, 8))
         if pgrtrans==-1:
-            self.calc_spec(self.nx)
+#            self.calc_spec(self.nx)
             flux_tmp=[self.spec[0,idex]*jyunit,np.sqrt(self.spec[1,idex]**2.+self.spec[2,idex]**2.)/self.spec[0,idex]*100.,self.spec[3,idex]/self.spec[0,idex]*100.,0.5*np.arctan2(self.spec[2,idex],self.spec[1,idex])*180./np.pi]
+            print 'flux: ',flux_tmp
         else:
             self.calc_spec_pgrtrans(self.nx)
             flux_tmp=[self.spec[0,idex]*jyunit,np.sqrt(self.spec[1,idex]**2.+self.spec[2,idex]**2.)/self.spec[0,idex]*100.,self.spec[3,idex]/self.spec[0,idex]*100.,0.5*np.arctan2(self.spec[2,idex],self.spec[1,idex])*180./np.pi]
         
         print len(flux_tmp)
-        plt.suptitle('Frame: #{0}\nFlux: {1:.1f} Jy,  '
-                 'LP: {2:.1f} \%,  '
-                 'CP: {3:.1f} \%, '
+        plt.suptitle('Frame: #{0}, Frequency: {5:.0f} GHz\nFlux: {1:.1f} Jy,  '
+                 'LP: {2:.1f}%,  '
+                 'CP: {3:.1f}%, '
                  'EVPA: {4:.1f} deg'.
-                 format(ii, flux_tmp[0], flux_tmp[1], flux_tmp[2], flux_tmp[3]))
+                     format(ii, flux_tmp[0], flux_tmp[1], flux_tmp[2], flux_tmp[3],self.nu[idex]/1e9))
         fov=fov*trim/self.nx*5.
         pol=['I','Q','U','V','P','LP','CP','EVPA']
+        xlabel='x (microarcseconds)'; ylabel='y (microarcseconds)'
         if pgrtrans==-1:
             for k in range(4):
                 ax = axes.flat[k]; ax.imshow(self.ivals[:,k,idex].reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
                 ax.set_title(pol[k])
+                ax.set_xlabel(xlabel)
+                if k==0:
+                    ax.set_ylabel(ylabel)
             ax = axes.flat[6]; ax.imshow((np.abs(self.ivals[:,3,idex])).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
             ax.set_title(pol[6])
+            ax.set_xlabel(xlabel)
+            #ax.set_ylabel(ylabel)
             ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
-            ax.set_title(pol[5])
-            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=6,trim=trim)
-            ax.set_title(pol[4])
+            ax.set_title(pol[5]); ax.set_xlabel(xlabel)#; ax.set_ylabel(ylabel)
+            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
+            ax.set_title(pol[4]); ax.set_xlabel(xlabel); ax.set_ylabel(ylabel)
             ax = axes.flat[7]; ax.imshow((np.arctan2(self.ivals[:,2,idex],self.ivals[:,1,idex])).reshape((self.nx,self.nx)).transpose(),extent=[-fov/2,fov/2,-fov/2,fov/2],origin='lower')
-            ax.set_title(pol[7])
+            ax.set_title(pol[7]); ax.set_xlabel(xlabel)#; ax.set_ylabel(ylabel)
         else:
             for k in range(4):
                 ax = axes.flat[k]; ax.imshow(self.ivals[k,:,idex].reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
+                ax.set_title(pol[k]); ax.set_xlabel(xlabel)
+                if k==0:
+                    ax.set_ylabel(ylabel)
             ax = axes.flat[6]; ax.imshow((np.abs(self.ivals[3,:,idex])).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
-            ax.set_title(pol[6])
+            ax.set_title(pol[6]); ax.set_xlabel(xlabel)#; ax.set_ylabel(ylabel)
             ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[1,:,idex]**2.+self.ivals[2,:,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
-            ax.set_title(pol[5])
-            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=6,trim=trim)
-            ax.set_title(pol[4])
+            ax.set_title(pol[5]); ax.set_xlabel(xlabel)#; ax.set_ylabel(ylabel)
+            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
+            ax.set_title(pol[4]); ax.set_xlabel(xlabel); ax.set_ylabel(ylabel)
             ax = axes.flat[7]; ax.imshow((np.arctan2(self.ivals[2,:,idex],self.ivals[1,:,idex])).reshape((self.nx,self.nx)).transpose(),extent=[-fov/2,fov/2,-fov/2,fov/2],origin='lower')
-            ax.set_title(pol[7])
+            ax.set_title(pol[7]); ax.set_xlabel(xlabel)#; ax.set_ylabel(ylabel)
