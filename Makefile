@@ -28,7 +28,7 @@ OTHERFLAGS = -ffixed-line-length-132 -g -pg -W -Wall -fPIC
 #OMP=
 #OMPLIB=
 else
-OTHERFLAGS = -ffixed-line-length-132 -fopenmp -O3 -W -Wall -fPIC
+OTHERFLAGS = -ffixed-line-length-132 -fopenmp -O3 -W -Wall -fPIC -fno-stack-arrays
 endif
 endif
 
