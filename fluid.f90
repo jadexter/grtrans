@@ -412,7 +412,7 @@
         real(kind=8), intent(out), dimension(size(f%rho)) :: ncgs,ncgsnth,bcgs,tcgs
         real(kind=8), intent(out), dimension(:), allocatable :: freqvals
         real(kind=8), intent(out), dimension(:,:), allocatable :: fnuvals
-!        write(6,*) 'fluid convert: ',f%model,size(bcgs)
+        ncgs=0d0; ncgsnth=0d0; bcgs=0d0; tcgs=0d0
         SELECT CASE(f%model)
           CASE (SPHACC)
             call convert_fluidvars_sphacc(f,ncgs,ncgsnth,bcgs,tcgs,sp)
@@ -804,7 +804,7 @@
         real(kind=8), dimension(size(f%rho)), &
           intent(out) :: ncgs,ncgsnth,bcgs,tcgs
         type (source_params), intent(in) :: sp
-        ncgs=f%rho; bcgs=f%bmag
+        ncgs=f%rho; bcgs=f%bmag; ncgsnth=f%rho
         end subroutine convert_fluidvars_hotspot
 
         subroutine convert_fluidvars_schnittman_hotspot(f,ncgs,ncgsnth,bcgs,tcgs,sp)
@@ -891,13 +891,13 @@
         real, intent(in) :: a
         type (four_vector), intent(in), dimension(:) :: x0
         type (four_Vector), dimension(size(x0)) :: x, xout
-        real, dimension(size(x0)) :: n
+        real(kind=8), dimension(size(x0)) :: n
         x=x0
 ! transform geodesic phi, t
         x%data(4) = -1*acos(0.) - x%data(4)
         x%data(1) = -1.*x%data(1)
 !        write(6,*) 't hotspot: ',x%data(1)
-        call hotspot_vals(x,a,n,f%b,f%u,xout)
+        call hotspot_vals(x,dble(a),n,f%b,f%u,xout)
         f%rho = dble(n)
         f%bmag = sqrt(f%b*f%b)
         end subroutine get_hotspot_fluidvars

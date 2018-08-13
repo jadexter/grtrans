@@ -345,6 +345,7 @@
                      write(9,*) e%incang
                      write(9,*) e%j(:,1)
                      write(9,*) e%K(:,1)
+                     write(9,*) e%ncgsnth
 ! Faraday rotation, conversion coefs
                      write(9,*) e%j(:,2)
                      write(9,*) e%j(:,4)
