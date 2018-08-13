@@ -1,7 +1,7 @@
 import os
 import namelist as nm
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 #import matplotlib.image as mpimg
 try:
     import pyfits
@@ -627,7 +627,7 @@ class grtrans:
             #ax.set_ylabel(ylabel)
             ax = axes.flat[5]; ax.imshow((np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)).reshape((self.nx,self.nx)).transpose()[self.nx/2-trim/2:self.nx/2+trim/2,self.nx/2-trim/2:self.nx/2+trim/2],origin='lower',extent=[-fov/2,fov/2,-fov/2,fov/2])
             ax.set_title(pol[5]); ax.set_xlabel(xlabel)#; ax.set_ylabel(ylabel)
-            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
+            ax = axes.flat[4]; self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim,extent=[-fov/2,fov/2,-fov/2,fov/2])
             ax.set_title(pol[4]); ax.set_xlabel(xlabel); ax.set_ylabel(ylabel)
             ax = axes.flat[7]; ax.imshow((np.arctan2(self.ivals[:,2,idex],self.ivals[:,1,idex])).reshape((self.nx,self.nx)).transpose(),extent=[-fov/2,fov/2,-fov/2,fov/2],origin='lower')
             ax.set_title(pol[7]); ax.set_xlabel(xlabel)#; ax.set_ylabel(ylabel)

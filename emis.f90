@@ -255,12 +255,12 @@
              allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
              allocate(e%bcgs(npts))
              allocate(e%ncgsnth(npts)); allocate(e%p(npts))
-             call initialize_polsynchpl(e%neq) !I guess this is right?
+             call initialize_polsynchpl(e%neq)
            CASE (EHYBRIDTH) !Thermal decomposition of the Hybrid Image
              allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
              allocate(e%bcgs(npts))
              allocate(e%ncgsnth(npts)); allocate(e%p(npts))
-             call initialize_polsynchpl(e%neq) !I guess this is right?
+             call initialize_polsynchpl(e%neq)
            CASE (EHYBRIDPL) !Power Law decomposition of the Hybrid Image
              allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
              allocate(e%bcgs(npts))
