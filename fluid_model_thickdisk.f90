@@ -398,13 +398,7 @@
         where(zphi.lt.0.)
            zphi=zphi+2.*pi
         endwhere
-!        where(zphi.gt.(2.*pi))
-!           zphi=zphi-2.*pi
-!        endwhere
-!        write(6,*) 'zphi: ',minval(zphi),maxval(zphi)
         call transformbl2mks(zr,theta,zphi,x1,x2,x3)
-!        write(6,*) 'transform: ',maxval(zr), minval(zr), maxval(x1), minval(x1)
-!        write(6,*) 'transform: ',maxval(theta), minval(theta), minval(x2), maxval(x2)
         lx1=floor((x1-uniqx1(1))/(uniqx1(nx1)-uniqx1(1))*(nx1-1))+1
         ux1=lx1+1
         lx2=floor((x2-uniqx2(1))/(uniqx2(nx2)-uniqx2(1))*(nx2-1))+1

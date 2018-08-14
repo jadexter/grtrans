@@ -80,44 +80,24 @@
       x=x0
       rms=calc_rms(real(a))
       d=x%data(2)*x%data(2)-2.*x%data(2)+a*a
-      lc=(rms*rms-2.*a*sqrt(rms)+a*a)/(rms**1.5-2.*sqrt(rms)+a)
+      lc=(rms*rms-2d0*a*sqrt(rms)+a*a)/(rms**1.5d0-2d0*sqrt(rms)+a)
       hc=(2.*x%data(2)-a*lc)/d
       ar=(x%data(2)*x%data(2)+a*a)**2.-a*a*d*sin(x%data(3))**2.
       om=2.*a*x%data(2)/ar
 ! calculate hotspot (constant) omega:
-!      where(r0spot.gt.rms)
-        omega=1./(r0spot**(3./2.)+a)
-!      elsewhere
-!        omega=max((lc+a*hc)/(r0spot*r0spot+2.*r0spot*(1.+hc)),om)
-!      endwhere
-!        write(6,*) 'fluid hotspot assign xspot', omega, tspot, r0spot
+      omega=1d0/(r0spot**(3d0/2d0)+a)
       xspot%data(1)=0d0!tspot
       xspot%data(2)=r0spot
-      xspot%data(3)=acos(0.)
+      xspot%data(3)=acos(0d0)
+! put spot at phi=0, geodesic -pi to pi  to avoid phi wrapping problems
+      xspot%data(4)=0d0
 ! phi of spot is at 0 so need to rotate to those coords
       x%data(4) = x%data(4) - (tspot+x%data(1))*omega(1)
-!      write(6,*) 'x1: ',x(1)%data(1),x(100)%data(1)
-! make sure spot phi is between -pi, pi
-      x%data(4)=atan2(sin(x%data(4)),cos(x%data(4)))
-!      write(6,*) 'ps: ',x(10)%data(2),x(10)%data(4)
-! put spot at phi=0
-!      xspot%data(4)=atan(sin(tspot*omega),cos(tspot*omega))
-      xspot%data(4)=0
-!      write(6,*) 'fluid hotspot metrics'
-!      metric=real(kerr_metric(dble(r),x%data(3),dble(a))); tmetric=transpose(metric)
-!      metrics=real(kerr_metric(xspot%data(2),xspot%data(3),dble(a))); tmetrics=transpose(metrics)
+      x%data(4) = atan2(sin(x%data(4)),cos(x%data(4)))
       metric=(kerr_metric(dble(r),x%data(3),dble(a))); tmetric=transpose(metric)
       metrics=(kerr_metric(xspot%data(2),xspot%data(3),dble(a))); tmetrics=transpose(metrics)
-!      write(6,*) 'fluid hotspot size x', size(x), size(xspot), size(u)
       call assign_metric(x,tmetric)
-!      write(6,*) 'fluid hotspot size x',size(x), size(xspot), size(u)
       call assign_metric(xspot,tmetrics)
-!      write(6,*) 'fluid hotspot u4'
-!      write(6,*) 'fluid hotspot dnorm'
-!      dterm1 = xspot(1)*xspot(1)
-!      dterm2 = x*x
-!      dterm3 = x*xspot(1)
-!      dterm4 = xspot(1)*x
       dx=xspot(1)-x
       dx%data(1)=0d0
       call assign_metric(dx,dble(tmetrics(:,1)))
@@ -125,25 +105,21 @@
          omega(1)*omega(1)))
       uspot%data(4)=omega(1)*uspot%data(1)
       uspot%data(2)=0d0; uspot%data(3)=0d0
-!      write(6,*) 'assign metric', size(u), size(tmetric,2)
       call assign_metric(uspot,dble(tmetrics))
       dnorm=dx*dx+(dx*uspot(1))**2d0
-!      write(6,*) 'dnorm: ',dnorm(1:3)
-!      write(6,*) 'fluid hotspot coords'
       u%data(1)=sqrt(-1d0/(metric(:,1)+2d0*metric(:,4)*omega(1)+metric(:,10)* &
          omega(1)*omega(1)))
       u%data(4)=omega(1)*u%data(1)
       u%data(2)=0d0; u%data(3)=0d0
-!      write(6,*) 'assign metric', size(u), size(tmetric,2)
       call assign_metric(uspot,dble(tmetrics))
       n=n0spot*exp(-dnorm/2d0/rspot**2.)
-      bmag=sqrt(0.1*8d0*acos(-1d0)*n*1.67d-24/2.*9d20/r)
+! this bmag is equipartition * some factor nspot / ntot = 100 for now
+      bmag=sqrt(0.1d0*8d0*acos(-1d0)*n*100d0*1.67d-24/2d0*9d20/r)
       where(x%data(2).gt.rms)
         omt=max(1d0/(x%data(2)**(3d0/2d0)+a),om)
       elsewhere
         omt=max((lc+a*hc)/(x%data(2)*x%data(2)+2d0*x%data(2)*(1d0+hc)),om)
       endwhere
-!        write(6,*) 'fluid hotspot assign xspot', omega, tspot, r0spot
       ut=sqrt(-1d0/(metric(:,1)+2d0*metric(:,4)*omt+metric(:,10)* &
          omt*omt))
       safe=metric(:,1)+2d0*metric(:,4)*omega(1)+metric(:,10)* &
@@ -156,7 +132,6 @@
 ! floor on bmag and zero n when far away from spot
       bmag=merge(bmag,one,dnorm/2d0/rspot**2d0.lt.dcrit)
       n=merge(n,zero,dnorm/2d0/rspot**2d0.lt.dcrit)
-!      bmag=bmag+bmin
       b%data(1)=bmag*gfac*abs(metric(:,10)*u%data(4)+metric(:,4)*u%data(1))
       b%data(4)=-bmag*sign(1d0,metric(:,10)*u%data(4)+metric(:,4)*u%data(1)) &
            *(u%data(1)*metric(:,1)+metric(:,4)*u%data(4))*gfac

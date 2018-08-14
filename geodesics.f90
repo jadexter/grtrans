@@ -331,26 +331,16 @@
          g%x%data(2)=1d0/UFI(i1:i2)
 !         write(6,*) 'geokerr wrapper: ',g%npts,mufi,tpmi
          g%x%data(3)=ACOS(MUFI(i1:i2))
-!         write(6,*) 'gx2: ',g%x%data(2)
-!         write(6,*) 'geo assign: ',g%x%data(3)
-!         g%x%data(1)=DTI(i1:i2)
          g%x%data(4)=g%gk%phi0-DPHI(i1:i2)
 ! fixes for pole-on viewing and strange turning point behaviors from IDL code
 ! if this is a pole on case then need to correct phi:
          if (abs(g%gk%mu0).eq.1d0) then
-!            write(6,*) 'pole fix'
             g%x%data(4)=g%x%data(4)+sign(1d0,g%gk%mu0)*atan2(g%gk%beta(1),g%gk%alpha(1))
-!            write(6,*) 'geo phi: ',dphi(i1:i2)
-!            write(6,*) 'geo phi: ',g%x%data(4),sign(1d0,g%gk%mu0),atan(g%gk%beta(1),g%gk%alpha(1))
-!            write(6,*) 'geo mu: ', MUFI(i1:i2)
          endif
 ! do differences forwards in time rather than backwards JAD 1/14/2013
          if (g%npts.ne.1) then 
            g%lambda=LAMBDAI(g%npts)-LAMBDAI(i1:i2)
-!           g%lambda=LAMBDAI(i1:i2)-LAMBDAI(1)
-!           g%x%data(1)=g%gk%t0(1)-DTI(i1:i2)
            g%x%data(1)=DTI(1)-DTI(i1:i2)-g%gk%t0(1)
-!           write(6,*) 't0: ',g%gk%t0(1)
            g%tpmarr=TPMI(i1:i2)
            g%tprarr=TPRI(i1:i2)
          else
