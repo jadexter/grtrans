@@ -608,8 +608,6 @@
              bpdotbb,aadotbp,sxi,cxi,eps,one,mone,angnorm,angmin,angmax, &
              cxitest,sxitest,xi,be1,be2
         real(kind=8), dimension(size(r),3) :: bbhat,bphat
-!        real(kind=8), dimension(size(r),3) :: aahat &
-!           ,bbhat
         real(kind=8), dimension(size(r),3), intent(out) :: aahat
         type (four_Vector), dimension(size(r)) :: &
              ekt,ekr,ekm,ekp,stb,srb,spb,smb,ahat
