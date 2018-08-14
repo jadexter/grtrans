@@ -87,7 +87,7 @@
             WRITE_GEO=0
          endif
          if (WRITE_GEO==1) then
-            nitems=18
+            nitems=19
 ! Dump geodesic information for debugging
             open(unit=9,file='geodebug.out',form='formatted')
               ! header with number of points, number of items, mdot, mbh, frequency
