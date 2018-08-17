@@ -242,10 +242,6 @@
                            else
                               dlp(:)=0.
                            endif
-!                           write(6,*) 'dlp: ',minval(dlp),maxval(dlp)
-!                           write(6,*) 'rtau', size(r%tau),size(r%tau(7:7))
-!                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex))
-!                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex)*g%x(1:taudex)%data(2))
                            intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(2))
 !                           write(6,*) 'intvals 1: ',intvals,tsum(g%lambda,dummy),tsum(g%lambda,dummy*g%x%data(2))
 !                           write(6,*) 'g lambda: ',g%lambda(1:g%npts),g%npts

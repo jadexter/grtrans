@@ -53,7 +53,7 @@
 
     subroutine advance_hotspot_timestep(dt)
     real, intent(in) :: dt
-    tspot=tspot+dt
+    tspot=tspot-dt
     end subroutine advance_hotspot_timestep
 
     subroutine hotspot_vals(x0,a,n,b,u,x)
@@ -111,7 +111,6 @@
          omega(1)*omega(1)))
       u%data(4)=omega(1)*u%data(1)
       u%data(2)=0d0; u%data(3)=0d0
-      call assign_metric(uspot,dble(tmetrics))
       n=n0spot*exp(-dnorm/2d0/rspot**2.)
 ! this bmag is equipartition * some factor nspot / ntot = 100 for now
       bmag=sqrt(0.1d0*8d0*acos(-1d0)*n*100d0*1.67d-24/2d0*9d20/r)

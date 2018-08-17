@@ -568,7 +568,7 @@ class grtrans:
             ax.set_xlim(xlim)
             ax.set_ylim(ylim)
             extent=[xlim[0],xlim[1],ylim[0],ylim[1]]
-        ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.)
+        leg = ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.,frameon=False)
         self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim,extent=extent)
 
     def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,extent=[-1]):
