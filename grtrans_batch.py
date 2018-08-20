@@ -511,7 +511,7 @@ class grtrans:
             imgplot = plt.imshow(np.transpose(self.ivals[:,stokes,idex].reshape((self.nx,self.ny))),origin='lower',vmax=sat*np.max(self.ivals[:,stokes,idex]))
         plt.show()
 
-    def disp_pgrtrans_image(self,idex=0,stokes=0):
+    def disp_pgrtrans_image(self,idex=0,stokes=0,sat=0.8):
         imgplot = plt.imshow(np.transpose(self.ivals[stokes,:,idex].reshape((self.nx,self.ny))),origin='lower',vmax=np.max(self.ivals[stokes,:,idex]))
         plt.show()
 
