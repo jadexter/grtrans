@@ -504,15 +504,15 @@ class grtrans:
         self.ivals *= fac*da*db
         self.spec *= fac            
 
-    def disp_grtrans_image(self,idex=0,stokes=0):
+    def disp_grtrans_image(self,idex=0,stokes=0,sat=0.8):
         if self.ivals.ndim < 3:
-            imgplot = plt.imshow(np.transpose(self.ivals[:,stokes].reshape((self.nx,self.ny))),origin='lower')
+            imgplot = plt.imshow(np.transpose(self.ivals[:,stokes].reshape((self.nx,self.ny))),origin='lower',vmax=sat*np.max(self.ivals[:,stokes]))
         else:
-            imgplot = plt.imshow(np.transpose(self.ivals[:,stokes,idex].reshape((self.nx,self.ny))),origin='lower')
+            imgplot = plt.imshow(np.transpose(self.ivals[:,stokes,idex].reshape((self.nx,self.ny))),origin='lower',vmax=sat*np.max(self.ivals[:,stokes,idex]))
         plt.show()
 
     def disp_pgrtrans_image(self,idex=0,stokes=0):
-        imgplot = plt.imshow(np.transpose(self.ivals[stokes,:,idex].reshape((self.nx,self.ny))),origin='lower')
+        imgplot = plt.imshow(np.transpose(self.ivals[stokes,:,idex].reshape((self.nx,self.ny))),origin='lower',vmax=np.max(self.ivals[stokes,:,idex]))
         plt.show()
 
     def get_pol_vectors(self,idex=0,pgrtrans=1,nsamp=8,trim=-1):
