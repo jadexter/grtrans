@@ -83,7 +83,7 @@ class grtrans_inputs:
         self.sbeta=10.
         self.snp=0.
         self.snt=0.
-        self.sbl06=0
+        self.sbl06=1
         self.srin=-1.
         self.srout=1e8
         self.sthin=-10.

@@ -7,9 +7,10 @@
 
   implicit none
 
-  namelist /hotspot/ rspot, r0spot, n0spot
+  namelist /hotspot/ rspot, r0spot, n0spot, bl06
   
   real :: rspot,r0spot,n0spot,tspot
+  integer :: bl06
 
   interface hotspot_vals
     module procedure hotspot_vals
@@ -33,14 +34,16 @@
 !    write(6,*) 'hotspot: ',r0spot,rspot,n0spot
     end subroutine read_hotspot_inputs
 
-    subroutine init_hotspot(ifile,rs,r0,n0)
+    subroutine init_hotspot(ifile,rs,r0,n0,bl)
     character(len=20), intent(in), optional :: ifile
     character(len=20) :: default_ifile='hotspot.in'
     real, intent(in), optional :: rs,r0,n0
+    integer, intent(in), optional :: bl
     if (present(rs)) then
        rspot = rs
        r0spot = r0
        n0spot = n0
+       bl06 = bl
     else
        if (present(ifile)) then
           call read_hotspot_inputs(ifile)
@@ -125,17 +128,27 @@
          omega(1)*omega(1)
       u%data(1)=merge(u%data(1),dble(ut),safe.lt.0d0)
       u%data(4)=merge(u%data(4),omt*u%data(1),safe.lt.0d0)
-      gfac=1d0/sqrt((metric(:,10)*metric(:,1)-metric(:,4)*metric(:,4))* & 
-           (metric(:,10)*u%data(4)*u%data(4)+u%data(1)* & 
-           (2d0*metric(:,4)*u%data(4)+metric(:,1)*u%data(1))))
 ! floor on bmag and zero n when far away from spot
       bmag=merge(bmag,one,dnorm/2d0/rspot**2d0.lt.dcrit)
       n=merge(n,zero,dnorm/2d0/rspot**2d0.lt.dcrit)
-      b%data(1)=bmag*gfac*abs(metric(:,10)*u%data(4)+metric(:,4)*u%data(1))
-      b%data(4)=-bmag*sign(1d0,metric(:,10)*u%data(4)+metric(:,4)*u%data(1)) &
+! toroidal field model
+      if(bl06.gt.0) then
+         gfac=1d0/sqrt((metric(:,10)*metric(:,1)-metric(:,4)*metric(:,4))* & 
+           (metric(:,10)*u%data(4)*u%data(4)+u%data(1)* & 
+           (2d0*metric(:,4)*u%data(4)+metric(:,1)*u%data(1))))
+         b%data(1)=bmag*gfac*abs(metric(:,10)*u%data(4)+metric(:,4)*u%data(1))
+         b%data(4)=-bmag*sign(1d0,metric(:,10)*u%data(4)+metric(:,4)*u%data(1)) &
            *(u%data(1)*metric(:,1)+metric(:,4)*u%data(4))*gfac
-      b%data(2)=0d0
-      b%data(3)=0d0
+         b%data(2)=0d0
+         b%data(3)=0d0
+      else
+! poloidal field model
+         b%data(1)=0d0
+         b%data(2)=0d0
+! bth = bmag/sqrt(gthth)
+         b%data(3)=bmag/sqrt(metric(:,8))
+         b%data(4)=0d0
+      endif
       call assign_metric(b,tmetric); call assign_metric(u,tmetric)
      end subroutine hotspot_vals
 

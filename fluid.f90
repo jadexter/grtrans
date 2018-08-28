@@ -193,7 +193,7 @@
                real(fargs%rscl))
         elseif(fname=='HOTSPOT') then
            call init_hotspot(ifile,real(fargs%rspot),real(fargs%r0spot), &
-                real(fargs%n0spot))
+                real(fargs%n0spot),fargs%bl06)
         elseif(fname=='SCHNITTMAN') then
            call init_schnittman_hotspot(ifile,real(fargs%rspot),real(fargs%r0spot) &
                 ,real(fargs%n0spot))
