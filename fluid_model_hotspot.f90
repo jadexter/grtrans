@@ -110,6 +110,8 @@
       uspot%data(2)=0d0; uspot%data(3)=0d0
       call assign_metric(uspot,dble(tmetrics))
       dnorm=dx*dx+(dx*uspot(1))**2d0
+! TEST CASE no velocity effects when bl06 < 0
+      if (bl06.lt.0) omega(1)=0d0
       u%data(1)=sqrt(-1d0/(metric(:,1)+2d0*metric(:,4)*omega(1)+metric(:,10)* &
          omega(1)*omega(1)))
       u%data(4)=omega(1)*u%data(1)
@@ -131,8 +133,11 @@
 ! floor on bmag and zero n when far away from spot
       bmag=merge(bmag,one,dnorm/2d0/rspot**2d0.lt.dcrit)
       n=merge(n,zero,dnorm/2d0/rspot**2d0.lt.dcrit)
-! toroidal field model
-      if(bl06.gt.0) then
+! change so that Omega = 0 is bl06 < 0 others are all > 0 with different values
+! toroidal field model bl06 = 1
+! poloidal field model bl06 = 0
+! vertical field model bl06 = 2
+      if(abs(bl06).eq.1) then
          gfac=1d0/sqrt((metric(:,10)*metric(:,1)-metric(:,4)*metric(:,4))* & 
            (metric(:,10)*u%data(4)*u%data(4)+u%data(1)* & 
            (2d0*metric(:,4)*u%data(4)+metric(:,1)*u%data(1))))
@@ -141,13 +146,22 @@
            *(u%data(1)*metric(:,1)+metric(:,4)*u%data(4))*gfac
          b%data(2)=0d0
          b%data(3)=0d0
-      else
+      else if(bl06.eq.0) then
 ! poloidal field model
          b%data(1)=0d0
          b%data(2)=0d0
 ! bth = bmag/sqrt(gthth)
          b%data(3)=bmag/sqrt(metric(:,8))
          b%data(4)=0d0
+      else if(abs(bl06).eq.2) then
+! vertical field model
+         b%data(1)=0d0
+         b%data(4)=0d0
+! using b^2 = bmag^2, bt = 0, sqrt(grr)br/sqrt(gthth)bth = -1/tan(theta)
+         b%data(3)=bmag/sqrt(metric(:,8))*sin(x0%data(3))
+         b%data(2)=-bmag/sqrt(metric(:,5))*cos(x0%data(3))
+      else
+         write(6,*) 'ERROR: unrecognized hotspot magnetic field model ',bl06
       endif
       call assign_metric(b,tmetric); call assign_metric(u,tmetric)
      end subroutine hotspot_vals
