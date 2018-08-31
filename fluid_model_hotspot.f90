@@ -2,7 +2,7 @@
 ! Hotspot model from Broderick & Loeb (2005, 2006)
 
   use class_four_vector
-  use kerr, only: calc_rms, ledd, kerr_metric
+  use kerr, only: calc_rms, ledd, kerr_metric, calc_polvec
   use phys_constants, only: G, c2, pi, sigb, msun
 
   implicit none
@@ -59,8 +59,8 @@
     tspot=tspot-dt
     end subroutine advance_hotspot_timestep
 
-    subroutine hotspot_vals(x0,a,n,b,u,x)
-      type (four_vector), intent(in), dimension(:) :: x0
+    subroutine hotspot_vals(x0,k0,a,n,b,u,x)
+      type (four_vector), intent(in), dimension(:) :: x0,k0
       real(kind=8), intent(in) :: a
       real(kind=8), intent(out), dimension(size(x0)) :: n
       type (four_vector), intent(out), dimension(size(x0)) :: b,u
@@ -160,6 +160,9 @@
 ! using b^2 = bmag^2, bt = 0, sqrt(grr)br/sqrt(gthth)bth = -1/tan(theta)
          b%data(3)=bmag/sqrt(metric(:,8))*sin(x0%data(3))
          b%data(2)=-bmag/sqrt(metric(:,5))*cos(x0%data(3))
+! calc_polvec case of vertical field in the comoving frame
+      else if(abs(bl06).eq.3) then
+         b=calc_polvec(x0%data(2),cos(x0%data(3)),k0,a,asin(1d0))
       else
          write(6,*) 'ERROR: unrecognized hotspot magnetic field model ',bl06
       endif

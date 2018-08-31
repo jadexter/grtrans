@@ -385,7 +385,7 @@
           CASE (NUMDISK)
             call get_numdisk_fluidvars(x0,k0,real(a),f)
           CASE (HOTSPOT)
-            call get_hotspot_fluidvars(x0,real(a),f)
+            call get_hotspot_fluidvars(x0,k0,real(a),f)
           CASE (SCHNITTMAN)
             call get_schnittman_hotspot_fluidvars(x0,real(a),f)
           CASE (HARM)
@@ -469,11 +469,13 @@
 !        call assign_metric(f%b,transpose(metric))
         call assign_metric(f%u,transpose(metric))
         call assign_metric(f%b,transpose(metric))
-        f%u%data(1)=sqrt(-1./(metric(:,1)+2.*metric(:,4)*omega+metric(:,10)* &
+! TEST SET OMEGA = 0 to look at pol
+!        omega(:)=0d0
+        f%u%data(1)=sqrt(-1./(metric(:,1)+2d0*metric(:,4)*omega+metric(:,10)* &
          omega*omega))
         f%u%data(4)=omega*f%u%data(1)
 ! Assign normal vector as magnetic field for comoving_ortho:
-         f%b = calc_polvec(x0%data(2),cos(x0%data(3)),k0,dble(a),asin(1d0))
+        f%b = calc_polvec(x0%data(2),cos(x0%data(3)),k0,dble(a),asin(1d0))
 !         f%b%data(1)=-f%b%data(1)
 !         f%b%data(2)=-f%b%data(2)
 !         f%b%data(3)=-f%b%data(3)
@@ -496,8 +498,8 @@
         call numdisk_vals(real(x0%data(2)),phi,a,T,omega)
         f%rho=T
 !        write(6,*) 'get fluidvars: ',size(f%rho), size(T)
-        f%u%data(2)=0.; f%u%data(3)=0.
-        f%b%data(1)=0.; f%b%data(2)=0.; f%b%data(3)=0.; f%b%data(4)=0.
+        f%u%data(2)=0d0; f%u%data(3)=0d0
+        f%b%data(1)=0d0; f%b%data(2)=0d0; f%b%data(3)=0d0; f%b%data(4)=0d0
 !        write(6,*) 't: ',T,f%u%data(4),om,1./(r**3./2.+a),a*(r*r+a*a-d)/ &
         !  ((r*r+a*a)**2.-d*a*a*sin(x0%data(3))**2.)
         metric=kerr_metric(real(x0%data(2)),real(x0%data(3)),a)
@@ -506,10 +508,10 @@
 !        call assign_metric(f%b,transpose(metric))
         call assign_metric(f%u,transpose(metric))
         call assign_metric(f%b,transpose(metric))
-        f%u%data(1)=sqrt(-1./(metric(:,1)+2.*metric(:,4)*omega+metric(:,10)* &
+        f%u%data(1)=sqrt(-1d0/(metric(:,1)+2d0*metric(:,4)*omega+metric(:,10)* &
          omega*omega))
         f%u%data(4)=omega*f%u%data(1)
-        f%b = calc_polvec(x0%data(2),cos(x0%data(3)),k0,dble(a),0.d0)
+        f%b = calc_polvec(x0%data(2),cos(x0%data(3)),k0,dble(a),0d0)
 !        write(6,*) 'udotu: ',f%u*f%u,omega,f%u%data(1),r,rms
  !       write(6,*) 'numdisk fluidvars: ',allocated(f%u), &
 !             allocated(f%b), allocated(f%rho)
@@ -533,7 +535,7 @@
         metric=kerr_metric(real(x0%data(2)),real(x0%data(3)),a)
 !        call assign_metric(f%b,transpose(metric))
         call assign_metric(f%u,transpose(metric))
-        f%u%data(1)=sqrt(-1./(metric(:,1)+2.*metric(:,4)*omega+metric(:,10)* &
+        f%u%data(1)=sqrt(-1d0/(metric(:,1)+2d0*metric(:,4)*omega+metric(:,10)* &
          omega*omega))
         f%u%data(4)=omega*f%u%data(1)
         f%b = calc_polvec(x0%data(2),cos(x0%data(3)),k0,dble(a),0.d0)
@@ -615,13 +617,13 @@
         lcgs=GC*mbh*msun/c**2; tcgs=lcgs/c
         rhocgs=mdotcgs/mdot/lcgs**3*tcgs*rho; ncgs=rhocgs/mp
         ! Use this to convert pressure:
-        pcgs=p*rhocgs/rho*c**2.
+        pcgs=p*rhocgs/rho*c**2d0
         ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
         tempcgs=pcgs/ncgs/k
         ! And finally, bfield conversion is just square root of this:
         bcgs=bmag*sqrt(rhocgs/rho)*c
         ! Convert HL units to cgs:
-        bcgs=bcgs*sqrt(4.*pi)
+        bcgs=bcgs*sqrt(4d0*pi)
         end subroutine scale_sim_units
 
         subroutine monika_e(rho,p,b,beta_trans,rlow,rhigh,trat)
@@ -629,7 +631,7 @@
           real(kind=8), intent(in) :: rlow,rhigh,beta_trans
           real(kind=8), intent(inout), dimension(size(rho)) :: trat
           real(kind=8), dimension(size(rho)) :: beta,b2
-          beta=p/(b*b)/0.5
+          beta=p/(b*b)/0.5d0
 !          beta_trans=1.d0
           b2=beta*beta
 ! defaults to 100, for now gmin even though should just be its own source param
@@ -886,18 +888,18 @@
 !        write(6,*) 'after convert'
         end subroutine convert_fluidvars_sphacc
 
-        subroutine get_hotspot_fluidvars(x0,a,f)
+        subroutine get_hotspot_fluidvars(x0,k0,a,f)
         type (fluid), intent(inout) :: f
         real, intent(in) :: a
-        type (four_vector), intent(in), dimension(:) :: x0
-        type (four_Vector), dimension(size(x0)) :: x, xout
+        type (four_vector), intent(in), dimension(:) :: x0,k0
+        type (four_Vector), dimension(size(x0)) :: x,kin,xout
         real(kind=8), dimension(size(x0)) :: n
-        x=x0
+        x=x0; kin=k0
 ! transform geodesic phi, t
         x%data(4) = -1*acos(0.) - x%data(4)
         x%data(1) = -1.*x%data(1)
 !        write(6,*) 't hotspot: ',x%data(1)
-        call hotspot_vals(x,dble(a),n,f%b,f%u,xout)
+        call hotspot_vals(x,kin,dble(a),n,f%b,f%u,xout)
         f%rho = dble(n)
         f%bmag = sqrt(f%b*f%b)
         end subroutine get_hotspot_fluidvars
@@ -914,27 +916,27 @@
         !write(6,*) 'schnittman hotspot vars: ',n
         omega=1./(x0%data(2)**(3./2.)+a)
         f%rho = dble(n)
-        f%u%data(2)=0.; f%u%data(3)=0.
-        f%b%data(1)=0.; f%b%data(2)=0.; f%b%data(3)=0.; f%b%data(4)=0.
+        f%u%data(2)=0d0; f%u%data(3)=0d0
+        f%b%data(1)=0d0; f%b%data(2)=0d0; f%b%data(3)=0d0; f%b%data(4)=0d0
         metric=kerr_metric(real(x0%data(2)),real(x0%data(3)),a)
-        f%u%data(1)=sqrt(-1./(metric(:,1)+2.*metric(:,4)*omega+metric(:,10)* &
+        f%u%data(1)=sqrt(-1d0/(metric(:,1)+2d0*metric(:,4)*omega+metric(:,10)* &
          omega*omega))
         f%u%data(4)=omega*f%u%data(1)
         rms=calc_rms(a)
-        d=x0%data(2)*x0%data(2)-2.*x0%data(2)+a*a
-        lc=(rms*rms-2.*a*sqrt(rms)+a*a)/(rms**1.5-2.*sqrt(rms)+a)
+        d=x0%data(2)*x0%data(2)-2d0*x0%data(2)+a*a
+        lc=(rms*rms-2.*a*sqrt(rms)+a*a)/(rms**1.5d0-2d0*sqrt(rms)+a)
         hc=(2.*x0%data(2)-a*lc)/d
-        ar=(x0%data(2)*x0%data(2)+a*a)**2.-a*a*d*sin(x0%data(3))**2.
+        ar=(x0%data(2)*x0%data(2)+a*a)**2d0-a*a*d*sin(x0%data(3))**2d0
         om=2.*a*x0%data(2)/ar
         where(x0%data(2).gt.rms)
-           omt=max(1./(x0%data(2)**(3./2.)+a),om)
+           omt=max(1d0/(x0%data(2)**(3d0/2d0)+a),om)
         elsewhere
-           omt=max((lc+a*hc)/(x0%data(2)*x0%data(2)+2.*x0%data(2)*(1.+hc)),om)
+           omt=max((lc+a*hc)/(x0%data(2)*x0%data(2)+2d0*x0%data(2)*(1d0+hc)),om)
         endwhere
 !        write(6,*) 'fluid hotspot assign xspot', omega, tspot, r0spot
         ut=sqrt(-1./(metric(:,1)+2.*metric(:,4)*omt+metric(:,10)* &
          omt*omt))
-        safe=metric(:,1)+2.*metric(:,4)*omega+metric(:,10)* &
+        safe=metric(:,1)+2d0*metric(:,4)*omega+metric(:,10)* &
              omega*omega
         f%u%data(1)=merge(f%u%data(1),dble(ut),safe.lt.0d0)
         f%u%data(4)=merge(f%u%data(4),omt*f%u%data(1),safe.lt.0d0)
