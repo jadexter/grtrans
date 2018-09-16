@@ -538,9 +538,13 @@ class grtrans:
             m = np.sqrt(self.ivals[1,:,idex]**2.+self.ivals[2,:,idex]**2.)
             img = self.ivals[0,:,idex].copy()
         else:
-            evpa = 0.5*np.arctan2(self.ivals[:,2,idex],self.ivals[:,1,idex])
-            m = np.sqrt(self.ivals[:,1,idex]**2.+self.ivals[:,2,idex]**2.)
-            img = self.ivals[:,0,idex].copy()
+            if len(np.shape(self.ivals))==2:
+                iv=self.ivals.copy()
+            else:
+                iv=self.ivals[:,:,idex].copy()
+            evpa = 0.5*np.arctan2(iv[:,2],iv[:,1])
+            m = np.sqrt(iv[:,1]**2.+iv[:,2]**2.)
+            img = iv[:,0].copy()
         scale=np.max(m)*10.
         mx = (np.transpose(np.resize(m * np.cos(evpa),(self.ny,self.nx))))
         my = (np.transpose(np.resize(m * np.sin(evpa),(self.ny,self.nx))))
