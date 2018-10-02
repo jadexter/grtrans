@@ -2,9 +2,8 @@ import os
 import namelist as nm
 import numpy as np
 import matplotlib.pyplot as plt
-#import matplotlib.image as mpimg
 try:
-    import pyfits
+    import pyfits as fits
 except:
     from astropy.io import fits
 # f2py grtrans module
