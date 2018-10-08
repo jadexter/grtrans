@@ -9,7 +9,7 @@ except:
 # f2py grtrans module
 from pgrtrans import pgrtrans
 from time import time
-plt.ion()
+#plt.ion()
 
 pcG = 6.6726e-8
 pcc2 = 8.9874e20
@@ -555,7 +555,7 @@ class grtrans:
         my=my[nsamp/2::nsamp,nsamp/2::nsamp]; mx=mx[nsamp/2::nsamp,nsamp/2::nsamp]
         return U,V,mx,my,img,scale
 
-    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,xlim=[-1.],ylim=[-1.]):
+    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,xlim=[-1.],ylim=[-1.],vmax=-1.,interp='bilinear'):
         ###----------------------------------------------
 #        i=img/np.max(img)/sat
         fig,ax = plt.subplots()
@@ -572,16 +572,18 @@ class grtrans:
             ax.set_ylim(ylim)
             extent=[xlim[0],xlim[1],ylim[0],ylim[1]]
         leg = ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.,frameon=False)
-        self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim,extent=extent)
+        self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim,extent=extent,vmax=vmax,interp=interp)
 
-    def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,extent=[-1]):
+    def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,extent=[-1],vmax=-1.,interp='bilinear'):
         if trim < 0:
             trim=self.nx
         if np.sum(extent)==-1:
             extent=[0,self.nx,0,self.nx]
         U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
+        if vmax < 0:
+            vmax=sat*np.max(img)
 #        img[img > sat*np.max(img)]=sat*np.max(img)
-        ax.imshow(img,origin='lower',extent=extent,vmax=sat*np.max(img))
+        ax.imshow(img,origin='lower',extent=extent,vmax=vmax,interpolation=interp)
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
                          width=8e-3, headwidth=1,headaxislength=0) # common options
         Uscl = (U-np.min(U))*1./(np.max(U)-np.min(U))*(extent[1]-extent[0])+extent[0]
