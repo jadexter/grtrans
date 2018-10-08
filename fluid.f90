@@ -6,6 +6,7 @@
       use kerr, only: kerr_metric, lnrf_frame, calc_rms, krolikc, calc_polvec, calc_u0, rms_vel
       use fluid_model_sphacc, only: sphacc_vals, init_sphacc, del_sphacc
       use fluid_model_sariaf, only: sariaf_vals, init_sariaf, del_sariaf
+      use fluid_model_toy, only: toy_vals, init_toy, del_toy
       use fluid_model_powerlaw, only: powerlaw_vals, init_powerlaw, del_powerlaw
       use fluid_model_ffjet, only: initialize_ffjet_model, del_ffjet_data, &
                                     ffjet_vals
@@ -32,7 +33,7 @@
       integer, parameter :: CONST=0,TAIL=1
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6
       integer, parameter :: COSMOS=10,MB=11,HARM=12,FFJET=13,NUMDISK=14,THICKDISK=15,MB09=16
-      integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19,HARMPI=20
+      integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19,HARMPI=20,TOY=21
 
       type fluid
         integer :: model, nfreq
@@ -161,6 +162,10 @@
                 real(fargs%rin),real(fargs%rout),real(fargs%thin),real(fargs%thout), &
                 real(fargs%phiin),real(fargs%phiout)) !alwinremark
 !           call init_powerlaw()
+! let's use n0=nscl, l0=tscl, h=beta
+        elseif(fname=='TOY') then
+           write(6,*) 'init toy: ',fargs%nscl,fargs%tscl,fargs%beta
+           call init_toy(fargs%nscl,fargs%tscl,fargs%beta,fargs%bl06)
         elseif(fname=='MB') then
 !          call intiialize_mb_model(a)
         elseif(fname=='THICKDISK') then
@@ -279,6 +284,8 @@
               elseif(fname=='SARIAF') then
                  allocate(f%rho2(nup))
                  f%model=SARIAF !alwinremark
+              elseif(fname=='TOY') then
+                 f%model=TOY
               elseif(fname=='POWERLAW') then
                  allocate(f%rho2(nup))
                  f%model=POWERLAW
@@ -320,6 +327,8 @@
            call del_sphacc()
         elseif(fname=='SARIAF') then
            call del_sariaf() !alwinremark does nothing so far
+        elseif(fname=='TOY') then
+           call del_toy()
         elseif(fname=='POWERLAW') then
            call del_powerlaw()
         endif
@@ -400,6 +409,8 @@
              call get_mb09_fluidvars(x0,real(a),f)
           CASE (SARIAF)
              call get_sariaf_fluidvars(x0,real(a),f) !alwinremark this exists below
+          CASE (TOY)
+             call get_toy_fluidvars(x0,a,f)
           CASE (POWERLAW)
              call get_powerlaw_fluidvars(x0,real(a),f)
           CASE (DUMMY)
@@ -439,14 +450,14 @@
           CASE (MB09)
              call convert_fluidvars_mb09(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (SARIAF)
-             call convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp) !alwinremark exists below
+             call convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+          CASE (TOY)
+             call convert_fluidvars_toy(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (POWERLAW)
              call convert_fluidvars_powerlaw(f,ncgs,ncgsnth,bcgs,tcgs,sp)
-!          CASE (DUMMY)
         END SELECT
         call assign_source_params(sp,ncgs,tcgs,ncgsnth)
 
-!        write(6,*) 'after convert'
         end subroutine convert_fluid_vars_arr
 
         subroutine get_thindisk_fluidvars(x0,k0,a,f)
@@ -999,34 +1010,8 @@
         stheta = sin(x0%data(3))
         rho2 = rr**2. + a**2. * (ctheta)**2.
         psi4 = 2.*rr/rho2
-!kerr metric values copied from kerr.f90 kmetric_cov
-!        gtt = -1.*(1.-psi4) !metric 1
-!        gphi = (stheta*stheta) * (rho2 + a*a*(1.+2.*rr/rho2)*stheta*stheta) !metric 10
-!        gtphi = -1.*psi4*a*stheta**2. !metric 4
+
         call sariaf_vals(a,ctheta,u,n,t,bmag,riaf_vr,riaf_vth,riaf_omega,nnth,bl06)
-!       ! b = riaf_B
-!        n = riaf_neth
-!        t = riaf_te
-!        u = riaf_u
-!       ! Equipartition B field
-!        write(6,*) 'sphacc: ',B,size(x0)
-        
-!        gtt= -(1.-2.*u)!alwinremark
-!        gphi = !alwinremark
-!        ub = gtt + riaf_omega*riaf_omega*gphi + 2.*riaf_omega*gtphi &
-!             + grr*riaf_vr*riaf_vr + gtheta*riaf_vth*riaf_vth
-!ub * u0**2. = -1
-!        where(rr.lt.rms)
-!           f%u%data(1) = game*(1.+2.*(1.+hhh)/rr)
-!           f%u%data(2) = -1.*sqrt(2./3./rms)*(rms/rr-1.)**(3./2.)
-!           f%u%data(3) = 0d0
-!           f%u%data(4) = game*(lambdae + a*hhh)/rr/rr
-!        elsewhere
-!           f%u%data(1) =  sqrt(-1./ub) !what sign?
-!           f%u%data(2) = 0d0 ! vr*f%u%data(1)
-!           f%u%data(3) = 0d0 ! vth*f%u%data(1)
-!           f%u%data(4) = riaf_omega * f%u%data(1)
-!        endwhere
 
 ! construct four-velocity from three-velocity
         metric=kerr_metric(real(rr),real(x0%data(3)),a)
@@ -1035,31 +1020,6 @@
         ar = (rr**2d0+a**2d0)**2d0-a**2d0*d*sin(x0%data(3))
         om = 2d0*a*rr/ar
         hc = (2d0*rr-a*lc)/d
-!        if(bl06.eq.1) then
-! stationary or free-fall inside ISCO, from bhimage.f
-!           where(rr.lt.rms)
-!              vr = zero
-!              vr = sqrt(2d0*rr*(a**2d0+rr**2d0))*d/ar
-!              vth = zero
-!              vphi = om
-!           elsewhere
-!              vr = riaf_vr
-!              vth = riaf_vth
-!              vphi = riaf_omega
-!           endwhere
-!        else
-!           where(rr.lt.rms)
-! conserved quantities
-!              vr = zero
-!              vth = zero
-!              omtest=(lc+a*hc)/(rr**2d0+2d0*rr*(1d0+hc))
-!              vphi=merge(omtest,om,omtest.ge.om)
-!           elsewhere
-!              vr = riaf_vr
-!              vth = riaf_vth
-!              vphi = riaf_omega
-!           endwhere
-!        endif
 
         u0 = calc_u0(metric,dble(riaf_vr),dble(riaf_vth),dble(riaf_omega))
         fu = rms_vel(dble(a),x0%data(3),x0%data(2))
@@ -1093,95 +1053,62 @@
         f%p = t
         f%bmag = bmag
         f%rho2 = nnth
-!BEGIN TESTING 4 VECTOR ROUTINES
-!testing dot product
-!        where(rr.lt.rms)
-!           rrcompare = 0.0
-!        elsewhere
-!           rrcompare = 1.0
-!        endwhere
+
         checkacc = 1e-5
-!        if(maxval(abs(gtt - metric(:,1))).gt.1e-5) then
-!           write(6,*) 'ERROR: gtt Metric'
-!        elseif(maxval(abs(gphi - metric(:,10))).gt.2e-4) then
-!           write(6,*) 'ERROR: gphi Metric: ',maxval(abs(gphi-metric(:,10)))
-!        elseif(maxval(abs(metric(:,4) - metric(:,4))).gt.1e-4) then
-!           write(6,*) 'ERROR: metric(:,4) Metric'
-!        else
-!           write(6,*) 'METRIC GOOD'
-!        endif
+
         call assign_metric(f%u,transpose(metric))
         call assign_metric(f%b,transpose(metric))
-!        ferret = abs(f%u * f%u + 1.0)
-!        ferretub = abs(f%u * f%b)
-!        ferretbb = abs(f%b * f%b - bmag**2.)
-!        alwinbad = 0
-!        alwingood = 0
-!        idlbad = 0
-!        idlgood = 0
-!        do i=1,size(x0)
-!           if(rrcompare(i).gt.(0.5)) then
-              !alwin stuff
-!              if(ferret(i).gt.checkacc) then
-!                 alwinbad = alwinbad + 1
-!              else
-!                 alwingood = alwingood + 1                
-!                 if(ferretub(i).gt.checkacc) then
-!                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
-!                 elseif(ferretbb(i).gt.checkacc) then
-!                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
-!                 endif
-!              endif
-!           else
-!              if(ferret(i).gt.checkacc) then
-!                 idlbad = idlbad + 1
-!                 write(6,*) ferret(i)
-!              else
-!                 idlgood = idlgood + 1
-!                 if(ferretub(i).gt.checkacc) then
-!                    write(6,*) 'WARNING: u dot b is wrong somewhere ',ferretub(i)
-!                 elseif(ferretbb(i).gt.checkacc) then
-!                       write(6,*) 'WARNING: b dot b is wrong somewhere ',ferretbb(i)
-!                 endif
-!              endif
-!           endif
-!        enddo
-!        if((idlgood+idlbad).gt.0) then
-!        if((1.0*alwingood/(1.0*alwingood+1.0*alwinbad)).lt.(1.0*idlgood/(1.0*idlgood+1.0*idlbad))) then
-!           write(6,*) 'ALWIN',alwingood,alwinbad
-!        else
-!           write(6,*) 'IDL',idlgood,idlbad
-!        endif
-!        elseif(alwinbad.gt.0) then
-!           write(6,*) 'When 0 points inside RMS, ERROR: ', alwingood,alwinbad
-!        endif
-!END 4 VECTOR CHECKING ROUTINES
-!        rrcompare = 1d0
-!        write(6,*) 'u dot b: ',f%u*f%b
-!        write(6,*) 'u dot u: ',f%u*f%u
-!        if(maxval(abs(f%u * f%u + 1.0)).gt.checkacc) then
-!           write(6,*) 'ALWIN WARNING: u dot u is wrong somewhere '
-!           write(6,*) 'Error size: ',maxval(rrcompare*abs(f%u * f%u + 1.0))
-!           write(6,*) 'u0: ',f%u%data(1)
-!           write(6,*) 'vr: ',vr
-!           write(6,*) 'vphi: ',vphi
-!        endif
-!        if(maxval((1.0-rrcompare)*abs(f%u * f%u + 1.0)).gt.checkacc) then
-!           write(6,*) 'IDL WARNING: u dot u is wrong somewhere '
-!           write(6,*) 'Error size: ',maxval((1.0-rrcompare)*abs(f%u * f%u + 1.0))
-!        endif
 
-!        if(maxval(abs(f%u * f%b)).gt.checkacc) then
-!           write(6,*) 'WARNING: u dot b is wrong somewhere '
-!           write(6,*) 'Error size: ',maxval(abs(f%u * f%b))
-!           write(6,*) 'b0: ',f%b%data(1)
-!           write(6,*) 'u0: ',f%u%data(1)
-!        endif
-!        if(maxval(abs(f%b * f%b - bmag**2.)).gt.checkacc) then
-!           write(6,*) 'WARNING: b dot b is wrong somewhere ' 
-!           write(6,*) 'Error size: ',maxval(abs(f%b * f%b - bmag**2.))
         end subroutine get_sariaf_fluidvars
 
+        subroutine get_toy_fluidvars(x0,a,f)
+        type (four_vector), intent(in), dimension(:) :: x0
+        type (fluid), intent(inout) :: f
+        real(kind=8), intent(in) :: a
+        type (four_vector), dimension(size(x0)) :: ulower
+        real(kind=8), dimension(size(x0)) :: ctheta
+        real(kind=8), dimension(size(x0)) :: bmag,n,l
+        real(kind=8), dimension(size(x0)) :: ubar,aleph,bb
+        real(kind=8), dimension(size(x0)) :: rr
+        real(kind=8) :: rms
+        real(kind=8), dimension(size(x0),10) :: metric,con_metric
+        type (four_vector), dimension(size(x0)) :: fu
+
+        rr = x0%data(2)
+        ctheta =cos(x0%data(3))
+
+        call toy_vals(a,ctheta,rr,n,l)
+        
+! construct four-velocity from three-velocity
+        metric=kerr_metric(rr,x0%data(3),a)
+        con_metric=kerr_metric(rr,x0%data(3),a,1)
+
+        aleph = -1.*(metric(:,4)*f%u%data(1)+metric(:,10)*f%u%data(4)) &
+             /(metric(:,1)*f%u%data(1)+metric(:,4) * f%u%data(4))
+        ubar = sqrt(-1./(con_metric(:,1) + l*l*con_metric(:,10) - &
+             2*l*con_metric(:,4)))
+        ulower%data(1)=-ubar; ulower%data(2)=0d0; ulower%data(3)=0d0
+        ulower%data(4)=l*ubar
+        
+! u^t = g^t\mu u_\mu = g^t\phi u_\phi + g^tt u_t
+        f%u%data(2)=0d0; f%u%data(3)=0d0
+        f%u%data(1)=con_metric(:,4)*ulower%data(4)+con_metric(:,1)*ulower%data(1)
+        f%u%data(4)=con_metric(:,4)*ulower%data(1)+con_metric(:,10)*ulower%data(4)
+
+        bmag=1d0
+        f%b%data(4) = bmag/sqrt(bb)
+        f%b%data(3) = 0d0
+        f%b%data(2) = 0d0
+        f%b%data(1) = aleph * f%b%data(4)
+        f%rho = n
+        f%bmag = bmag
+
+        call assign_metric(f%u,transpose(metric))
+        call assign_metric(f%b,transpose(metric))
+
+!        write(6,*) 'udotu: ',f%u*f%u
+
+        end subroutine get_toy_fluidvars
 
         subroutine get_powerlaw_fluidvars(x0,a,f)
 !powerlaw fluid model currently in progress (can also be one zone). Inputs
@@ -1297,6 +1224,16 @@
 !        f%b%data(4) = sqrt(riaf_n0 / riaf_beta) * f%b%data(4)
 !        not necessary to scale f%b because f%b is only used for an angle
         end subroutine convert_fluidvars_sariaf
+
+        subroutine convert_fluidvars_toy(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+        type (fluid), intent(in) :: f
+        real(kind=8), dimension(size(f%rho)), &
+             intent(out) :: ncgs,ncgsnth,bcgs,tcgs
+        type (source_params), intent(in) :: sp
+        ncgs = f%rho
+        bcgs = f%bmag
+        tcgs=0d0
+        end subroutine convert_fluidvars_toy
 
         subroutine convert_fluidvars_powerlaw(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f

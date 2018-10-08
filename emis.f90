@@ -13,7 +13,8 @@
                   ESYNCHPL=3,EPOLSYNCHPL=4,EBREMS=5,ELINE=6, &
                   EIRON=7,EBB=8,EBBPOL=9,EINTERP=10,EFBB=11,ERHO=12, &
                   ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20, &
-                  EHYBRIDTH=21, EHYBRIDPL=22, EMAXJUTT=23, EMAXCOMP=24
+                  EHYBRIDTH=21, EHYBRIDPL=22, EMAXJUTT=23, EMAXCOMP=24, &
+                  ETOY=25
 
        type emis
          real(kind=8), dimension(:,:), allocatable :: j,K
@@ -146,6 +147,17 @@
 !         write(6,*) 'rhoemis: ',rho
          end subroutine rhoemis
 
+         subroutine toyemis(n,nu,alpha,A,K)
+         real(kind=8), dimension(:), intent(in) :: n,nu
+         real(kind=8), dimension(:,:), intent(inout) :: K
+         real(kind=8), intent(in) :: alpha,A
+         K=0d0
+! code comparison paper equations 6,7
+         K(:,1)=n*(nu/2.3d11)**(-alpha)
+         K(:,5)=A*n*(nu/2.3d11)**(-2.5-alpha)
+!         write(6,*) 'K5: ',maxval(K(:,5)),minval(nu),maxval(nu)
+         end subroutine toyemis
+
          subroutine fbbemis(nu,T,f,K)
          real(kind=8), dimension(:), intent(in) :: nu,T
          real(kind=8), dimension(:,:), intent(inout) :: K
@@ -224,6 +236,9 @@
          elseif(ename=='RHO') then
             e%neq=1
             e%type=ERHO
+         elseif(ename=='TOY') then
+            e%neq=1
+            e%type=ETOY
          elseif(ename=='BBPOL') then
            e%neq=4
            e%type=EBBPOL
@@ -380,6 +395,9 @@
              call fbbpolemis(nu,e%tcgs,e%fcol,e%cosne,K)
            case(erho)
               call rhoemis(e%ncgs,e%rshift,K)
+! p1 and gmax are the toy parameters of this model alpha and A
+           case(etoy)
+              call toyemis(e%ncgs,nu,dble(ep%p1),dble(ep%gmax),K)
            case(einterp)
 !              write(6,*) 'interpemis no abs: ',size(nu), size(e%freqarr), size(e%fnu)
 !              write(6,*) 'interpemis K: ',size(K,1), size(K,2)
@@ -436,6 +454,8 @@
            CASE (EFBB)
              e%tcgs=tcgs
            CASE (ERHO)
+             e%ncgs=ncgs
+           CASE (ETOY)
              e%ncgs=ncgs
            CASE (EBBPOL)
              e%tcgs=tcgs
@@ -583,6 +603,8 @@
            CASE (EFBB)
              deallocate(e%tcgs)
            CASE (ERHO)
+             deallocate(e%ncgs)
+           CASE (ETOY)
              deallocate(e%ncgs)
            CASE (EBBPOL)
              deallocate(e%tcgs)

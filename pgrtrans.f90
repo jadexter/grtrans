@@ -106,7 +106,7 @@
             ! these can later be added to a loop over emis parameter structures
             !       eparams%gmin=gmin;
             eparams%gmax=gmax; eparams%p1=p1
-            eparams%p2=p2;
+            eparams%p2=p2
             allocate(eparams%otherargs(nepotherargs))
             eparams%otherargs = epotherargs
             eparams%coefindx = epcoefindx

@@ -72,7 +72,7 @@ class_four_vector.o: ./class_four_vector.f90
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./class_four_vector.f90
 emis.o: ./emis.f90 math.o polsynchemis.o chandra_tab24.o calc_maxjutt.o calc_maxcomp.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./emis.f90
-fluid.o: ./fluid.f90 class_four_vector.o phys_constants.o interpolate.o kerr.o fluid_model_sphacc.o fluid_model_phatdisk.o fluid_model_thindisk.o fluid_model_ffjet.o fluid_model_numdisk.o fluid_model_hotspot.o fluid_model_hotspot_schnittman.o fluid_model_harm.o fluid_model_harm3d.o fluid_model_harmpi.o fluid_model_thickdisk.o fluid_model_mb09.o fluid_model_sariaf.o fluid_model_powerlaw.o calcgmin.o
+fluid.o: ./fluid.f90 class_four_vector.o phys_constants.o interpolate.o kerr.o fluid_model_sphacc.o fluid_model_phatdisk.o fluid_model_thindisk.o fluid_model_ffjet.o fluid_model_numdisk.o fluid_model_hotspot.o fluid_model_hotspot_schnittman.o fluid_model_harm.o fluid_model_harm3d.o fluid_model_harmpi.o fluid_model_thickdisk.o fluid_model_mb09.o fluid_model_sariaf.o fluid_model_toy.o fluid_model_powerlaw.o calcgmin.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid.f90
 fluid_model_sphacc.o: ./fluid_model_sphacc.f90 class_four_vector.o phys_constants.o interpolate.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_sphacc.f90
@@ -104,7 +104,8 @@ fluid_model_mb09.o: ./fluid_model_mb09.f90 class_four_vector.o interpolate.o ker
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_mb09.f90
 fluid_model_sariaf.o: ./fluid_model_sariaf.f90 phys_constants.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_sariaf.f90
-
+fluid_model_toy.o: ./fluid_model_toy.f90 phys_constants.o
+	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_toy.f90
 fluid_model_powerlaw.o: ./fluid_model_powerlaw.f90 phys_constants.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./fluid_model_powerlaw.f90
 
@@ -146,10 +147,10 @@ radtrans_integrate.o: ./radtrans_integrate.f90 odepack.o interpolate.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./radtrans_integrate.f90
 read_inputs.o: ./read_inputs.f90
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./read_inputs.f90
-SRC = ./odepack_aux.f ./interpolate_aux.f ./geokerr_wrapper.f ./interpolate.f90 ./read_inputs.f90 ./class_four_vector.f90 ./odepack.f90 ./emis.f90 ./rad_trans.f90 ./kerr.f90 ./fluid.f90 ./grtrans_driver.f90 ./calcgmin.f90 ./calc_maxjutt.f90 ./calc_maxcomp.f90 ./fluid_model_sphacc.f90 ./fluid_model_thindisk.f90 ./fluid_model_phatdisk.f90 ./fluid_model_numdisk.f90 ./fluid_model_hotspot.f90 ./fluid_model_hotspot_schnittman.f90 ./fluid_model_harm.f90 ./fluid_model_harm3d.f90 ./fluid_model_harmpi.f90 ./fluid_model_thickdisk.f90 ./fluid_model_mb09.f90 ./fluid_model_sariaf.f90 ./fluid_model_powerlaw.f90 ./fluid_model_ffjet.f90           \
+SRC = ./odepack_aux.f ./interpolate_aux.f ./geokerr_wrapper.f ./interpolate.f90 ./read_inputs.f90 ./class_four_vector.f90 ./odepack.f90 ./emis.f90 ./rad_trans.f90 ./kerr.f90 ./fluid.f90 ./grtrans_driver.f90 ./calcgmin.f90 ./calc_maxjutt.f90 ./calc_maxcomp.f90 ./fluid_model_sphacc.f90 ./fluid_model_thindisk.f90 ./fluid_model_phatdisk.f90 ./fluid_model_numdisk.f90 ./fluid_model_hotspot.f90 ./fluid_model_hotspot_schnittman.f90 ./fluid_model_harm.f90 ./fluid_model_harm3d.f90 ./fluid_model_harmpi.f90 ./fluid_model_thickdisk.f90 ./fluid_model_mb09.f90 ./fluid_model_sariaf.f90 ./fluid_model_powerlaw.f90 ./fluid_model_ffjet.f90 ./fluid_model_toy.f90          \
 ./polsynchemis.f90 ./geodesics.f90 ./math.f90 ./camera.f90 ./phys_constants.f90 ./bessel.f90 ./grtrans.f90 ./grtrans_program.f90
 OBJ = odepack_aux.o interpolate_aux.o geokerr_wrapper.o interpolate.o read_inputs.o class_four_vector.o odepack.o emis.o rad_trans.o radtrans_integrate.o kerr.o fluid.o grtrans_driver.o calcgmin.o calc_maxjutt.o calc_maxcomp.o fluid_model_sphacc.o  pgrtrans.o \
-polsynchemis.o geodesics.o math.o camera.o phys_constants.o bessel.o fits.o fluid_model_thindisk.o fluid_model_phatdisk.o fluid_model_numdisk.o fluid_model_hotspot.o fluid_model_hotspot_schnittman.o fluid_model_ffjet.o fluid_model_harm.o fluid_model_harm3d.o fluid_model_harmpi.o fluid_model_thickdisk.o fluid_model_mb09.o fluid_model_sariaf.o fluid_model_powerlaw.o grtrans.o grtrans_program.o chandra_tab24.o
+polsynchemis.o geodesics.o math.o camera.o phys_constants.o bessel.o fits.o fluid_model_thindisk.o fluid_model_phatdisk.o fluid_model_numdisk.o fluid_model_hotspot.o fluid_model_hotspot_schnittman.o fluid_model_ffjet.o fluid_model_harm.o fluid_model_harm3d.o fluid_model_harmpi.o fluid_model_thickdisk.o fluid_model_mb09.o fluid_model_sariaf.o fluid_model_toy.o fluid_model_powerlaw.o grtrans.o grtrans_program.o chandra_tab24.o
 OBJPUB = odepack_aux.o interpolate_aux.o geokerr_wrapper.o interpolate.o read_inputs.o class_four_vector.o odepack.o emis.o rad_trans.o radtrans_integrate.o kerr.o fluid.o grtrans_driver.o calcgmin.o calc_maxjutt.o calc_maxcomp.o fluid_model_sphacc.o  \
 polsynchemis.o geodesics.o math.o camera.o phys_constants.o bessel.o fits.o fluid_model_thindisk.o fluid_model_phatdisk.o fluid_model_numdisk.o fluid_model_hotspot.o fluid_model_hotspot_schnittman.o fluid_model_ffjet.o fluid_model_harm.o fluid_model_harm3d.o fluid_model_harmpi.o grtrans.o grtrans_program.o chandra_tab24.o
 clean: neat
