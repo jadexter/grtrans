@@ -694,7 +694,6 @@
 
       subroutine polsynchth(nu,n,b,t,theta,e)
       use phys_constants, ec=>e
-      use bessel, only: besselk0,besselk1,besselk
       implicit none
       ! Calculate polarized synchrotron emission/absorption
       ! coefficients in ultrarel limit using formulas from Huang et al
@@ -715,12 +714,22 @@
       thetae=k*T/m/c/c+thetaemin
       ! Critical frequency for synchrotron emission:
       nuc=3d0*ec*B*sin(theta)/4d0/pi/m/c*thetae**2+nucminval
+
       xm=nu/nuc
       ji=ec**2/c/sqrt(3d0)/2d0*n/thetae**2*nu*iix(xm)
       jq=ec**2/c/sqrt(3d0)/2d0*n/thetae**2*nu*iqx(xm)
       jv=4d0*ec**2/c/3d0/sqrt(3d0)/tan(theta)*n/2d0/thetae**3d0*nu* &
          ivx(xm)
       ju=0d0
+
+      !write(6,*) 'min/max B: ', minval(B),maxval(B)
+      !write(6,*) 'min/max thetae: ', minval(thetae),maxval(thetae)
+      !write(6,*) 'min/max sin(theta): ', minval(sin(theta)),maxval(sin(theta))
+      !write(6,*) 'min/max n: ', minval(n),maxval(n)
+      !write(6,*) 'min/max nu: ', minval(nu),maxval(nu)
+      !write(6,*) 'min/max xm: ', minval(xm),maxval(xm)
+
+
 !      write(6,*) 'vars'
 !      write(6,'(3E9.4)') n,B,T
 !      write(*,*) 'nu: ',minval(nu),maxval(nu),minval(nuc),&
@@ -729,7 +738,7 @@
 !      write(6,'(4E9.4)') xm,iix(xm),iqx(xm),ivx(xm)
 !      write(6,*) 'j: ', jq/ji
       bnutnu=bnu(T,nu)
-!      write(6,*) 'bnu: ',maxval(T), minval(nu),maxval(nu)
+
       ai=ji/bnutnu
       aq=jq/bnutnu
       av=jv/bnutnu
@@ -740,18 +749,25 @@
       wp2=4d0*pi*n*ec**2/m
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1d3*omega0/2d0/pi/nu))
-! UPDATING to fix NaNs for small temperatures thetae <~ 10^-2 by setting bessel ratios there = 1
-      where(thetae.gt.1d-2)
-         eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-              (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
-      sin(theta)**2
-         eps12=wp2*omega0/(2d0*pi*nu)**3* &
-              (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+! my slightly modified versions
+      !eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+      !(beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
+      !sin(theta)**2
+      !eps12=wp2*omega0/(2d0*pi*nu)**3* &
+      !(beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
+
+!AC ANDREW for low temperature/low thetae lets turn off faraday 
+      where(thetae.lt.1d-6)
+         eps11m22=0.
+         eps12=0.
       elsewhere
          eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-              (1d0+6d0*thetae)*sin(theta)**2
-         eps12=wp2*omega0/(2d0*pi*nu)**3*cos(theta)
-      end where
+         (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
+         sin(theta)**2
+         eps12=wp2*omega0/(2d0*pi*nu)**3* &
+         (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
+      endwhere
+
 ! s08 versions
 !      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
 !     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
@@ -768,15 +784,19 @@
       targ=sqrt(4d0*eps12**2+eps11m22**2)
       tp=-(eps11m22-targ)/2d0/eps12
       tm=-(eps11m22+targ)/2d0/eps12
+
       rhov=2d0*pi*nu/c*eps12
       rhoq=2d0*pi*nu/2d0/c*eps11m22
+
+
 ! confusion about sign of rhoq. Shcherbakov (2008) disagrees with Huang & Shcherbakov (2011). Statement is different basis vectors. Basis looks identical between SH10, which I follow, and HS11. So I did signs as in Huang & Shcherbakov.
 ! limiting case for rhoq for small \nu / \nu_T where S08 approximations break down:
 !      rhoqlim=2d0**(2d0/3d0)/3d0**(7d0/2d0)*pi*n*ec**2d0/m/c/thetae**3/nuc* &
 !        xm**(-5d0/3d0)
 ! this is implemented directly in shffunc now, see 12/9/2014 notes or idl polsynchemis.pro
 ! test unpolarized
-!      jq=0.; jv=0.; aq=0.; av=0.; rhoq=0.; rhov=0.
+!AC 
+!       jq=0.; jv=0.; aq=0.; av=0.; rhoq=0.; rhov=0.
 ! w/o Faraday:
 !      rhoq=0.!; rhov=0
 !      rhov=0.
@@ -784,6 +804,23 @@
 !      ai=0.
 ! w/o coupled absorption:
 !      aq=0.; av=0.
+
+      if(any(isnan(jq))) then 
+         write(6,*) "nan in jq"
+      endif
+      if(any(isnan(jv))) then 
+         write(6,*) "nan in jv"
+      endif
+      if(any(isnan(rhoq))) then 
+         write(6,*) "nan in rhoq"
+      endif
+      if(any(isnan(rhou))) then 
+         write(6,*) "nan in rhou"
+      endif
+      if(any(isnan(rhov))) then 
+         write(6,*) "nan in rhov"
+      endif
+
       e=reshape((/ji,jq,ju,jv,ai,aq,au,av, &
       rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
 !      testindx=maxloc(B,1)
@@ -794,10 +831,11 @@
  !     write(6,*) 'reshape: ',maxval(emis(:,1)), maxval(emis(:,5))
       if(any(isnan(jq))) then
          write(6,*) 'NaN in polsynchemis.f90'
-         write(6,*) 'xm: ',xm
-         write(6,*) 'iqx: ',iqx(xm)
-         write(6,*) 'bnutnu: ',bnutnu
-         write(6,*) 'theta: ',theta
+         !write(6,*) 'xm: ',xm
+         !write(6,*) 'iqx: ',iqx(xm)
+         write(6,*) 'bnutnu: ',minval(bnutnu)
+         write(6,*) 'T: ',minval(T)
+         !write(6,*) 'theta: ',theta
       endif
 
       contains
@@ -847,7 +885,7 @@
         real(kind=8), intent(in), dimension(:) :: x
         real(kind=8), dimension(size(x)) :: beselk
         integer, intent(in) :: n
-        if(n.eq.0) then
+        if(n.eq.0) then 
           beselk=-log(x/2d0)-.5772d0 
         else if(n.eq.1) then
           beselk=1d0/x
@@ -898,15 +936,24 @@
       use phys_constants, only: k, m, c, c2, ec=>e, pi
       real(kind=8), dimension(:), intent(in) :: nu,n,B,T
       real(kind=8), dimension(size(n),11), intent(out) :: e
-      real(kind=8), dimension(size(n)) :: thetae,nucrit,xm,jnu,anu
-      
-      thetae=k*T/m/c2
-      nucrit = 3d0*ec*B/(4*pi*m*c)*thetae**2d0+1d0  ! This is actually nucrit/z**2 where z=E/kT
-      xm     = nu/nucrit
-      jnu=4.43d-30/2d0*nu*n*ipx(xm)/thetae**2
+      real(kind=8), dimension(size(n)) :: thetae,nucrit,xm,jnu,anu,zero
+      real(kind=8) :: nucminval = 1d0
+      real(kind=8) :: thetaemin = 1d-10
+      zero=0.d0
+      thetae=k*T/m/c2+thetaemin
+      nucrit = 3d0*ec*B/(4*pi*m*c)*thetae**2d0+nucminval  ! This is actually nucrit/z**2 where z=E/kT
+      xm = nu/nucrit
+      jnu = 4.43d-30/2d0*nu*n*ipx(xm)/thetae**2
       ! Calculate anu from LTE:
-      anu=jnu/bnu(T,nu)
+      where(abs(jnu)>0.) 
+         anu=jnu/bnu(T,nu)
+      elsewhere   
+         anu=zero
+      endwhere
       e=0d0
+
+      !write(6,*) 'alnu: ',  minval(anu), maxval(anu)
+
       e(:,1)=jnu; e(:,5)=anu
 
       contains
@@ -940,10 +987,133 @@
       real(kind=8), dimension(size(T)) :: bnu
 !      write(6,*) 'bnu: ',T,nu
       where(h*nu/k/T.lt.1d-6)
-         bnu=2d0*nu*nu*k*T/c2
+         bnu = 2d0*nu*nu*k*T/c2
       elsewhere
          bnu = 2d0*h*nu/c2*nu*nu/(exp(h*nu/k/T)-1d0)
       endwhere
+
+      where(bnu.eq.0)
+         bnu=epsilon(T) !AC
+      endwhere
+
       end function bnu
+
+      !AC emissivity for sampled distribution
+      !AC define gammas outside of this function before it's called.
+      subroutine synchbinemis(nu, n, B, theta, gammas, delta_gammas, e)
+
+      use phys_constants, only: k, m, c, c2, ec=>e, pi
+      integer :: i
+      real(kind=8), dimension(:,:), intent(in) :: n
+      real(kind=8), dimension(:), intent(in) :: nu,B,theta,gammas,delta_gammas
+      real(kind=8), dimension(size(B),11), intent(out) :: e !AC 11?
+      real(kind=8), dimension(size(B)) :: nup, jnu,anu,zero
+      real(kind=8), dimension(size(B)) :: prefj, prefa
+      real(kind=8), dimension(size(n(1,:))) :: spec, nucrit,xm,fxs,intj,kxs,inta !AC sizing ok?
+      !prefj = 5.938330326995697e-24 !sqrt(3)*e^3/4pi^2*mc^2
+      !prefa = 1.161607125350063e-9 !4Pi*3sqrt(3)
+
+      zero=0.d0
+      prefj = sqrt(3.)*(ec**3) * abs(B) * sin(theta)/ (4.*(pi**2)*m*(c**2))
+      where (abs(B).gt.0.)
+         prefa = 4.*pi*ec / (3.*sqrt(3.)*abs(B)*sin(theta))
+      elsewhere
+         prefa = zero
+      endwhere
+      nup = (3.d0*ec*B*sin(theta))/(4.*pi*m*c)
+      !write(6,*) 'nup: ', maxval(nup), minval(nup)
+      !write(6,*) 'prefj: ', maxval(prefj), minval(prefj)
+
+      do i=1, size(B)
+         spec = n(i,:)
+         nucrit = nup(i) * ((gammas)**2)
+         xm = nu(i)/nucrit !AC what dimension is nu?
+
+
+         fxs = fx(xm)
+         intj = fxs * spec * delta_gammas
+         jnu(i) = prefj(i) * sum(intj)
+
+         !write(6,*) 'fx: ', size(gammas), minval(fxs), maxval(fxs)
+         !write(6,*) 'Ij: ', size(gammas), minval(intj), maxval(intj)
+         !write(6,*) jnu(i)
+         
+         kxs = k53x(xm)
+         inta = kxs * spec * delta_gammas / (gammas**5)!PIN
+         anu(i) = prefa(i) * sum(inta)
+
+      if(any(isnan(kxs))) then
+         write(6,*) 'NaN in bin k53 !!!! '
+      endif
+      if(any(isnan(inta))) then
+         write(6,*) 'NaN in bin opacity integrand!! '
+      endif
+      if(isnan(sum(inta))) then
+         write(6,*) 'opacity sum NaN!!'
+      endif
+      
+         !write(6,*) 'kx: ', size(gammas), minval(kxs), maxval(kxs)
+         !write(6,*) 'Ij: ', size(gammas), minval(intj), maxval(intj)
+         !write(6,*) jnu(i)
+
+         
+      end do
+
+      !write(6,*) 'alnu: ',  minval(anu), maxval(anu)
+
+      if(any(isnan(anu))) then
+         write(6,*) 'NaN in bin opacity !!!!!!!! '
+      endif
+     
+      e=0.d0
+      e(:,1)=jnu; e(:,5)=anu
+
+      contains
+      
+      function fx(x) result(i)
+      ! F(x) fitting function
+      real(kind=8), dimension(:), intent(in) :: x
+      real(kind=8), dimension(size(x)) :: i
+      real(kind=8), dimension(size(x)) :: a11, a12, a13, a21, a22, a23, d1,d2,a1,a2
+      where (x.ge.1000)
+         i = 0.d0
+      elsewhere
+         a11 = -0.97947838884478688
+         a12 = -0.83333239129525072
+         a13 = 0.15541796026816246
+         a21 = -0.0469247165562628882
+         a22 = -0.7005501805646288
+         a23 = 0.0103876297841949544
+         d1 = exp(a11*x + a12*(x**0.5) + a13*(x**(1./3.)))
+         d2 = 1. - exp(a21*x + a22*(x**0.5) + a23*(x**(1./3.)))
+         a1 = 2.149528241534479 * (x**(1./3.))
+         a2 = 1.2533141373155 * (x**(0.5)) * exp(-x)
+         i = a1*d1 + a2*d2
+      end where
+      end function fx
+
+      function k53x(x) result(i)
+      ! K_5/3(x) fitting function
+      real(kind=8), dimension(:), intent(in) :: x
+      real(kind=8), dimension(size(x)) :: i
+      real(kind=8), dimension(size(x)) :: a11, a12, a13, a21,d1,d2,a1,a2
+      where (x.ge.1000)
+         i = 0.d0
+      elsewhere (x.le.(1.e-6))
+         i = 6.7e16
+      elsewhere
+         a11=-1.0194198041210243
+         a12=0.28011396300530672
+         a13=-0.0771058491739234908
+         a21=-15.761577796582387
+         d1 = exp(a11*x + a12*(x**0.5) + a13*(x**(1./3.)))
+         d2 = 1. - exp(a21*x)
+         a1 = 1.433018827689652 * (x**(-5./3.))
+         a2 = 1.2533141373155 * (x**(-0.5)) * exp(-x)
+         i = a1*d1 + a2*d2
+      end where
+      end function k53x
+
+      end subroutine synchbinemis
 
       end module polsynchemis

@@ -2,7 +2,7 @@
        module emissivity
        use math
        use polsynchemis, only: initialize_polsynchpl,polsynchpl, &
-        polsynchth,del_polsynchpl,synchpl,bnu,synchemis,synchemisnoabs
+        polsynchth,del_polsynchpl,synchpl,bnu,synchemis,synchemisnoabs,synchbinemis
        use chandra_tab24, only: interp_chandra_tab24
        use calc_maxjutt, only: calc_maxjutt_subroutine
        use calc_maxcomp, only: calc_maxcomp_subroutine
@@ -14,16 +14,18 @@
                   EIRON=7,EBB=8,EBBPOL=9,EINTERP=10,EFBB=11,ERHO=12, &
                   ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20, &
                   EHYBRIDTH=21, EHYBRIDPL=22, EMAXJUTT=23, EMAXCOMP=24, &
-                  ETOY=25
+                  EBINS=25, EHYBRIDTHBINS=26, ESYNCHTHBREMS=27
 
        type emis
-         real(kind=8), dimension(:,:), allocatable :: j,K
-         real(kind=8), dimension(:), allocatable :: ncgs,bcgs, &
-          tcgs,incang,p,ncgsnth,rshift,freqarr,fnu,deltapol,psipol
+         real(kind=8), dimension(:,:), allocatable :: j,K,nnthcgs
+         real(kind=8), dimension(:), allocatable :: ncgs,bcgs,&
+              tcgs,incang,p,ncgsnth,rshift,freqarr,fnu,deltapol,psipol
+         real(kind=8), dimension(:), allocatable :: relel_gammas, delta_relel_gammas 
          real(kind=8) :: gmax,fcol
+         real(kind=8) :: bingammamax, bingammamin
          real(kind=8), dimension(:), allocatable :: cosne,gmin
 !         real(kind=8), dimension(:), allocatable :: args
-         integer :: neq,nk,npts,type,nfreq
+         integer :: neq,nk,npts,type,nfreq,nrelbin
        end type emis
 
        type emis_params
@@ -147,17 +149,6 @@
 !         write(6,*) 'rhoemis: ',rho
          end subroutine rhoemis
 
-         subroutine toyemis(n,nu,alpha,A,K)
-         real(kind=8), dimension(:), intent(in) :: n,nu
-         real(kind=8), dimension(:,:), intent(inout) :: K
-         real(kind=8), intent(in) :: alpha,A
-         K=0d0
-! code comparison paper equations 6,7
-         K(:,1)=n*(nu/2.3d11)**(-alpha)
-         K(:,5)=A*n*(nu/2.3d11)**(-2.5-alpha)
-!         write(6,*) 'K5: ',maxval(K(:,5)),minval(nu),maxval(nu)
-         end subroutine toyemis
-
          subroutine fbbemis(nu,T,f,K)
          real(kind=8), dimension(:), intent(in) :: nu,T
          real(kind=8), dimension(:,:), intent(inout) :: K
@@ -191,9 +182,117 @@
          K(:,2)=K(:,1)*dble(interpdel)
          end subroutine fbbpolemis
 
+         !AC free-free (based on GRay formula)
+
+         subroutine brememisHEROIC(nu,ne,T,ee)
+         use phys_constants, only: h,c2,k,m,pi
+         real(kind=8), dimension(:), intent(in) :: nu,T,ne
+         real(kind=8), dimension(size(ne)) :: fee, fei, arg, zero,anu,jnu,rho,sqrtt,temp
+         real(kind=8), dimension(size(ne)) :: thetae,sqrtthetae,tempfactor
+         real(kind=8), dimension(:,:), intent(inout) :: ee
+
+         real(kind=8) :: Ry=2.18967d-11 !Rydberg erg
+         real(kind=8) :: epsilon=1.d-32
+         real(kind=8) :: temin = 100
+         real(kind=8) :: thetaemin=1.e-10
+         zero=0.d0
+
+         !where(isnan(T))
+         !   temp=temin
+         !elsewhere(T.le.zero)
+         !   temp=T+temin
+         !endwhere
+         temp=T      
+         rho=ne*1.67219e-24 !assume rho=n*mproton, cgs
+         sqrtt = sqrt(temp)
+         thetae=k*temp/m/c2
+         sqrtthetae=sqrt(thetae)
+         tempfactor=1./(sqrtt+(1.d5/temp)**10) + epsilon
+         arg=h*nu/(k*temp)
+         
+         where(thetae<1.)
+            fei = 1.016*sqrtthetae*(1+1.781*(thetae**1.34))
+            fee = thetae*sqrtthetae*(1+1.1*thetae+thetae*thetae*(1-1.25*sqrtthetae))
+         elsewhere
+            fei = 1.432 * thetae * (log(1.123 * thetae + 0.48) + 1.5)
+            fee = 1.328 * thetae * (log(1.123 * thetae) + 1.28)
+         end where
+
+         !where(isnan(thetae))
+         !   anu=zero
+         where(arg>100.)
+            anu=zero
+         elsewhere(arg<1.e-8)
+            anu =(1.10d61/sqrtt)*rho*rho*fei*arg*tempfactor/(nu*nu*nu)
+            anu = anu + (1.14d51/sqrtt/temp)*rho*rho*fee*arg*tempfactor/(nu*nu)
+         elsewhere
+            anu = (1.10d61/sqrtt)*rho*rho*fei*(1-exp(-arg))*tempfactor/(nu*nu*nu)
+            anu = anu + (1.14d51/sqrtt/temp)*rho*rho*fee*(1-exp(-arg))*tempfactor/(nu*nu)
+         endwhere
+
+         jnu = anu*bnu(temp,nu)
+         
+         ee(:,1)=jnu; ee(:,5)=anu
+
+         end subroutine brememisHEROIC
+
+         subroutine brememisGRay(nu,ne,T,ee)
+         use phys_constants, only: h,c2,k,m,pi
+         real(kind=8), dimension(:), intent(in) :: nu,T,ne
+         real(kind=8), dimension(size(ne)) :: x,y,sqrtx,sqrty,gaunt,zero,anu,jnu
+         real(kind=8), dimension(:,:), intent(inout) :: ee
+
+         real(kind=8) :: Ry=2.178741d-11 !Rydberg erg
+         real(kind=8) :: epsilon=1.d-32
+         real(kind=8) :: temin = 100
+         real(kind=8) :: con1,con2,con3,con4
+         zero=0.d0
+
+         !Gaunt factor
+         x=k*(T+temin)/Ry
+         y=h*nu/(k*(T+temin))
+         sqrtx=sqrt(x)
+         sqrty=sqrt(y)
+
+         con1 = sqrt(3./pi)
+         con2 = log(4/1.7810724179)
+         con3=  sqrt(12.)
+         con4 = log(4/(1.78109724179**2.5))
+         
+         where(x>1)
+            where (y>1)
+               gaunt=con1/sqrty
+            elsewhere
+               gaunt=con1*(con2-log(y+epsilon))
+            endwhere
+         elsewhere(x*y>1)
+            gaunt=con2/(sqrtx*sqrty)
+         elsewhere(y>sqrtx)
+            gaunt=1.
+         elsewhere
+            gaunt=con1*(con4+log(sqrtx/(y+epsilon)))
+         endwhere
+
+         where (gaunt<epsilon)
+            gaunt=epsilon
+         endwhere
+         
+         jnu = 6.38e-38 * ne * ne * gaunt / (sqrt(T+temin)*exp(y) + epsilon)/(4.*pi)        
+
+         ! Calculate anu from LTE:
+         where(abs(jnu)>0.) 
+            anu=jnu/bnu(T,nu)
+         elsewhere   
+            anu=zero
+         endwhere
+         
+         ee(:,1)=jnu; ee(:,5)=anu
+
+         end subroutine brememisGRay
+       
          subroutine select_emissivity_values(e,ename)
          type (emis), intent(out) :: e
-         character(len=20), intent(in) :: ename
+         character(len=100), intent(in) :: ename
          if(ename=='POLSYNCHTH') then
             e%type=EPOLSYNCHTH
             e%neq=4
@@ -212,9 +311,15 @@
          elseif(ename=='HYBRIDTHPL') then
             e%type=EHYBRIDTHPL 
             e%neq=4
+         elseif(ename=='BREMS') then
+            e%type=EBREMS
+            e%neq=1
          elseif(ename=='SYNCHTHAV') then
             e%type=ESYNCHTHAV
             e%neq=1
+         elseif(ename=='SYNCHTHBREMS') then
+            e%type=ESYNCHTHBREMS
+            e%neq=1            
          elseif(ename=='SYNCHTHAVNOABS') then
             e%type=ESYNCHTHAVNOABS
             e%neq=1
@@ -224,6 +329,12 @@
          elseif(ename=='SYNCHPL') then
            e%neq=1
            e%type=ESYNCHPL
+         elseif(ename=='BINS') then !AC
+            e%type=EBINS
+            e%neq=1                       
+         elseif(ename=='HYBRIDTHBINS') then !AC
+            e%type=EHYBRIDTHBINS
+            e%neq=1                       
          elseif(ename=='lambda') then
            e%neq=1
            e%type=ELAMBDA
@@ -236,9 +347,6 @@
          elseif(ename=='RHO') then
             e%neq=1
             e%type=ERHO
-         elseif(ename=='TOY') then
-            e%neq=1
-            e%type=ETOY
          elseif(ename=='BBPOL') then
            e%neq=4
            e%type=EBBPOL
@@ -254,9 +362,11 @@
          e%nk=1+e%neq*(e%neq-1)/2
          end subroutine select_emissivity_values
 
-         subroutine initialize_emissivity(e,npts,nfreq,rshift,ang,cosne)
+         subroutine initialize_emissivity(e,npts,nfreq,rshift,ang,cosne,nrelbin,bingammamin,bingammamax)
          type (emis), intent(inout) :: e
          integer, intent(in) :: npts, nfreq
+         integer, intent(in),optional :: nrelbin
+         real,  intent(in),optional :: bingammamax,bingammamin
          real(kind=8), dimension(:), intent(in) :: rshift,ang,cosne
  !        write(6,*) 'init emis: ',npts,e%nk,e%neq
          allocate(e%j(npts,e%neq)); allocate(e%K(npts,e%nk))
@@ -265,16 +375,17 @@
          allocate(e%incang(npts)); allocate(e%cosne(npts))
          e%rshift=rshift; e%incang=ang; e%cosne=cosne
          SELECT CASE (e%type)
+            
            CASE (EHYBRIDTHPL)
              allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
              allocate(e%bcgs(npts))
              allocate(e%ncgsnth(npts)); allocate(e%p(npts))
-             call initialize_polsynchpl(e%neq)
+             call initialize_polsynchpl(e%neq) !I guess this is right?
            CASE (EHYBRIDTH) !Thermal decomposition of the Hybrid Image
              allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
              allocate(e%bcgs(npts))
              allocate(e%ncgsnth(npts)); allocate(e%p(npts))
-             call initialize_polsynchpl(e%neq)
+             call initialize_polsynchpl(e%neq) !I guess this is right?
            CASE (EHYBRIDPL) !Power Law decomposition of the Hybrid Image
              allocate(e%ncgs(npts)); allocate(e%tcgs(npts))
              allocate(e%bcgs(npts))
@@ -304,7 +415,27 @@
            CASE (ESYNCHTHAV)
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
              allocate(e%bcgs(npts))
-           CASE (ESYNCHTHAVNOABS)
+          CASE (ESYNCHTHBREMS)
+             allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
+             allocate(e%bcgs(npts))       
+          CASE (EBREMS)
+             allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
+          CASE (EBINS) !AC hybrid thermal/nonthermal pop in bins
+             e%nrelbin=nrelbin
+             e%bingammamax=bingammamax
+             e%bingammamin=bingammamin
+             allocate(e%relel_gammas(e%nrelbin));
+             allocate(e%delta_relel_gammas(e%nrelbin));
+             allocate(e%bcgs(npts)); allocate(e%nnthcgs(npts,nrelbin))                          
+          CASE (EHYBRIDTHBINS) !AC hybrid thermal/nonthermal pop in bins
+             e%nrelbin=nrelbin
+             e%bingammamax=bingammamax
+             e%bingammamin=bingammamin
+             allocate(e%relel_gammas(e%nrelbin));
+             allocate(e%delta_relel_gammas(e%nrelbin));
+             allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
+             allocate(e%bcgs(npts)); allocate(e%nnthcgs(npts,nrelbin))             
+          CASE (ESYNCHTHAVNOABS)
              allocate(e%tcgs(npts)); allocate(e%ncgs(npts))
              allocate(e%bcgs(npts))
            CASE (EBB)
@@ -327,10 +458,10 @@
          type (emis), intent(inout) :: e
          type (emis_params), intent(in) :: ep
          real(kind=8), intent(in), dimension(:) :: nu
-         real(kind=8), dimension(e%npts,11) :: K, Kth, Kpl
+         real(kind=8), dimension(e%npts,11) :: K, Kth, Kpl, Kbr
 
          integer :: i
-         select case(e%type)
+         select  case(e%type)
            case(emaxjutt)
               call calc_maxjutt_subroutine(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,ep%otherargs,K)
            case(emaxcomp)
@@ -379,6 +510,13 @@
                 write(6,*) 'NaN in polsynchpl p: ',e%p
                 write(6,*) 'NaN in polsynchpl gmin: ',e%gmin
              endif
+           case(ebins) !A should inclination angle be added to thermal synch???
+             call synchbinemis(nu, e%nnthcgs, e%bcgs, e%incang, e%relel_gammas, e%delta_relel_gammas, K)
+           case(ehybridthbins) !AC should inclination angle be added to thermal synch???
+              call synchemis(nu, e%ncgs, e%bcgs, e%tcgs, Kth)
+              !call brememisHEROIC(nu,e%ncgs,e%tcgs,Kbr) !AC brem emission
+              call synchbinemis(nu, e%nnthcgs, e%bcgs, e%incang, e%relel_gammas, e%delta_relel_gammas, Kpl)
+             K = Kth + Kpl !+ Kbr
            case(esynchpl)
              call synchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
               e%gmax,K)
@@ -386,6 +524,12 @@
 !             write(6,*) 'synchpl sum: ',sum(K(:,1))
            case(esynchthav)
               call synchemis(nu,e%ncgs,e%bcgs,e%tcgs,K)
+           case(esynchthbrems)
+              call synchemis(nu,e%ncgs,e%bcgs,e%tcgs,Kth)
+              call brememisHEROIC(nu,e%ncgs,e%tcgs,Kpl)
+              K = Kth+Kpl
+           case(ebrems)
+              call brememisHEROIC(nu,e%ncgs,e%tcgs,K)
            case(esynchthavnoabs)
               call synchemisnoabs(nu,e%ncgs,e%bcgs,e%tcgs,K)
            case(ebb)
@@ -395,9 +539,6 @@
              call fbbpolemis(nu,e%tcgs,e%fcol,e%cosne,K)
            case(erho)
               call rhoemis(e%ncgs,e%rshift,K)
-! p1 and gmax are the toy parameters of this model alpha and A
-           case(etoy)
-              call toyemis(e%ncgs,nu,dble(ep%p1),dble(ep%gmax),K)
            case(einterp)
 !              write(6,*) 'interpemis no abs: ',size(nu), size(e%freqarr), size(e%fnu)
 !              write(6,*) 'interpemis K: ',size(K,1), size(K,2)
@@ -422,11 +563,11 @@
          endif
          end subroutine calc_emissivity
 
-         subroutine assign_emis_params(e,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,nf)
+         subroutine assign_emis_params(e,ncgs,ncgsnth,nnthcgs,bcgs,tcgs,fnu,freqarr,nf)
          type (emis), intent(inout) :: e
          real(kind=8), dimension(:), intent(in) :: bcgs,ncgs,tcgs,ncgsnth
          real(kind=8), dimension(:), intent(in) :: freqarr
-         real(kind=8), dimension(:,:), intent(in) :: fnu
+         real(kind=8), dimension(:,:), intent(in) :: fnu, nnthcgs
          integer, intent(in) :: nf
          SELECT CASE (e%type)
            CASE (EHYBRIDTHPL)
@@ -440,13 +581,21 @@
            CASE (EMAXCOMP) !alwinnote 2015/03/05
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EPOLSYNCHTH)
-             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
+              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
+           CASE (EBINS) !AC
+             e%bcgs=bcgs;  e%nnthcgs=nnthcgs              
+           CASE (EHYBRIDTHBINS) !AC
+             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%nnthcgs=nnthcgs              
            CASE (EPOLSYNCHPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
            CASE (ESYNCHPL)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs; e%ncgsnth=ncgsnth
            CASE (ESYNCHTHAV)
-             e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
+              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
+           CASE (ESYNCHTHBREMS)
+              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
+           CASE (EBREMS)
+             e%ncgs=ncgs; e%tcgs=tcgs              
            CASE (ESYNCHTHAVNOABS)
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EBB)
@@ -454,8 +603,6 @@
            CASE (EFBB)
              e%tcgs=tcgs
            CASE (ERHO)
-             e%ncgs=ncgs
-           CASE (ETOY)
              e%ncgs=ncgs
            CASE (EBBPOL)
              e%tcgs=tcgs
@@ -555,59 +702,69 @@
          subroutine del_emissivity(e)
          type (emis), intent(inout) :: e
          deallocate(e%j); deallocate(e%K); deallocate(e%rshift)
-         deallocate(e%cosne); deallocate(e%gmin); deallocate(e%incang)
+         deallocate(e%cosne); deallocate(e%gmin)
          SELECT CASE (e%type)
            CASE (EHYBRIDTHPL)
              deallocate(e%ncgs); deallocate(e%tcgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
              deallocate(e%ncgsnth); deallocate(e%p)
              call del_polsynchpl(e%neq)              
            CASE (EHYBRIDTH)
              deallocate(e%ncgs); deallocate(e%tcgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
              deallocate(e%ncgsnth); deallocate(e%p)
              call del_polsynchpl(e%neq)              
            CASE (EHYBRIDPL)
              deallocate(e%ncgs); deallocate(e%tcgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
              deallocate(e%ncgsnth); deallocate(e%p)
              call del_polsynchpl(e%neq)              
            CASE (EMAXJUTT) !alwinnote 2015/03/05
              deallocate(e%tcgs); deallocate(e%ncgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
            CASE (EMAXCOMP) !alwinnote 2015/07/22
              deallocate(e%tcgs); deallocate(e%ncgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
 !             deallocate(e%args)
            CASE (EPOLSYNCHTH)
              deallocate(e%tcgs); deallocate(e%ncgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
            CASE (EPOLSYNCHPL)
              deallocate(e%ncgs); deallocate(e%tcgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
              deallocate(e%ncgsnth); deallocate(e%p)
              call del_polsynchpl(e%neq)
            CASE (ESYNCHPL)
              deallocate(e%ncgs); deallocate(e%tcgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
              deallocate(e%ncgsnth); deallocate(e%p)
              call del_polsynchpl(e%neq)
            CASE (ESYNCHTHAV)
              deallocate(e%tcgs); deallocate(e%ncgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
+           CASE (ESYNCHTHBREMS)
+             deallocate(e%tcgs); deallocate(e%ncgs)
+             deallocate(e%bcgs); deallocate(e%incang)             
+           CASE (EBREMS)
+             deallocate(e%tcgs); deallocate(e%ncgs)
            CASE (ESYNCHTHAVNOABS)
              deallocate(e%tcgs); deallocate(e%ncgs)
-             deallocate(e%bcgs)
+             deallocate(e%bcgs); deallocate(e%incang)
+           CASE (EBINS) !AC
+             deallocate(e%bcgs); deallocate(e%incang)
+             deallocate(e%nnthcgs)
+           CASE (EHYBRIDTHBINS) !AC
+             deallocate(e%tcgs); deallocate(e%ncgs)
+             deallocate(e%bcgs); deallocate(e%incang)
+             deallocate(e%nnthcgs)
            CASE (EBB)
-             deallocate(e%tcgs)
+             deallocate(e%tcgs); deallocate(e%incang)
            CASE (EFBB)
-             deallocate(e%tcgs)
+             deallocate(e%tcgs); deallocate(e%incang)
            CASE (ERHO)
-             deallocate(e%ncgs)
-           CASE (ETOY)
-             deallocate(e%ncgs)
+             deallocate(e%ncgs); deallocate(e%incang)
            CASE (EBBPOL)
-             deallocate(e%tcgs)
+             deallocate(e%tcgs); deallocate(e%incang)
            CASE (EINTERP)
               deallocate(e%fnu)
          END SELECT
@@ -681,6 +838,11 @@
          type (emis), intent(inout) :: e
          type (emis_params), intent(in) :: ep
          SELECT CASE (e%type)
+           CASE (EBINS) !AC ??
+             call emis_model_bins(e, e%bingammamin, e%bingammamax, e%nrelbin)
+           CASE (EHYBRIDTHBINS) !AC ??
+             !call emis_model_syncth(e,ep%mu) !AC we want mu=1 always, so don't run this
+             call emis_model_bins(e, e%bingammamin, e%bingammamax, e%nrelbin)
            CASE (EHYBRIDTHPL)
              call emis_model_synchth(e,ep%mu)
              call emis_model_synchpl(e,ep%gmin,ep%gmax,ep%p1)
@@ -705,6 +867,32 @@
          END SELECT
          end subroutine emis_model
 
+         !AC set relel bins
+         subroutine emis_model_bins(e,relgammamin, relgammamax, nrelbin)
+           type (emis), intent(inout) :: e
+           integer, intent(in) :: nrelbin
+           real(kind=8), intent(in) :: relgammamin, relgammamax
+           real(kind=8) :: logbinspace, binspace
+           real(kind=8), dimension(nrelbin+1) ::relel_gammas_e
+           integer :: i
+
+           logbinspace = (log(relgammamax)-log(relgammamin))/float(nrelbin)
+           binspace = exp(logbinspace)
+           
+           relel_gammas_e(1) = relgammamin;
+           e%relel_gammas(1) = exp(log(relgammamin) + 0.5*logbinspace)
+           do i=2, nrelbin
+              relel_gammas_e(i) = relel_gammas_e(i-1)*binspace
+              e%relel_gammas(i) = e%relel_gammas(i-1)*binspace
+              e%delta_relel_gammas(i-1) = relel_gammas_e(i) - relel_gammas_e(i-1)
+           end do
+           relel_gammas_e(nrelbin+1)=relgammamax
+           e%delta_relel_gammas(nrelbin) = relgammamax - relel_gammas_e(nrelbin)
+
+           !write(6,*) maxval(e%relel_gammas)
+           !write(6,*) maxval(e%delta_relel_gammas)
+         end subroutine emis_model_bins
+         
          subroutine emis_model_synchpl(e,gmin,gmax,p)
          type (emis), intent(inout) :: e
          real, intent(in) :: gmax,p
@@ -723,9 +911,7 @@
          subroutine emis_model_synchth(e,mu)
          type (emis), intent(inout) :: e
          real, dimension(:), intent(in) :: mu
-! This is constant Ti/Te electron model
-! UPDATE 3/13/2017 don't want this here since e- temp can depend on other parameters
-! for now only uses things in e, but could e.g. use polar angle or who knows what else.
+! e- temp is now handled in convert_fluid
 !         e%tcgs=e%tcgs*mu
          end subroutine emis_model_synchth
 

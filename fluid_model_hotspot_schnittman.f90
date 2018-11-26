@@ -70,6 +70,9 @@
       t = x0%data(1)
       th = x0%data(3)
       omega = 1d0/(r0spot**(3d0/2d0)+a)
+! shift phi & t: (THIS SHOULD NOW BE DONE ELSEWHERE)
+!      phi = -phi-pi/2d0
+!      t = -t
 ! "cartesian" coords:
       x = r*sin(th)*cos(phi)
       y = r*sin(th)*sin(phi)

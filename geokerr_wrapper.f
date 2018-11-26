@@ -1374,7 +1374,7 @@ c (2.62) Carlson (1989)
      *                 d12,d13,d14,d24,d34,d15,d25,d35,d45,X1,X2,X3,X4,Y1,Y2,Y3,Y4,
      *                 U122,U132,U142,I1,X52,Y52,W22,Q22,P22,I3,I2,r12,r13,
      *                 r25i,r35i,A111m1m2,one,half,two,three,
-     *                 rc,rd,rj,rf,r15,r25,r35,r45
+     *                 rc,rd,rj,rf
       integer p(5)
       PARAMETER ( ONE=1.D0, TWO=2.D0, HALF=0.5d0, THREE=3.D0 )
 c (2.1) Carlson (1988)
@@ -1431,18 +1431,6 @@ c (2.1)  Carlson (1988)
           r25i=b2*b5/(a2*b5-a5*b2)
           r35i=b3*b5/(a3*b5-a5*b3)
 c (2.48) Carlson (1988)
-c test code!!!
-c          I3=two*d12*d13*d14/three/d15*rj(U122,U132,U142,W22)+two*rc(P22,Q22)
-c          r15=a1/b1-a5/b5
-c          r25=a2/b2-a5/b5
-c          r35=a3/b3-a5/b5
-c          r45=a4/b4-a5/b5
-c          open(unit=10,file='testcarlson.txt')
-c          write(10,*) 'test I3: ',I3
-c          write(10,*) 'test rsum: ',1d0/r15+1d0/r25+1d0/r35+1d0/r45
-c          write(10,*) 'test full term: ',-1d0/2d0/d15*(1d0/r15+1d0/r25+1d0/r35+1d0/r45)*I3
-c          close(10)
-c end test!!!
           A111m1m2=X1*X2*X3/X4/X52-Y1*Y2*Y3/Y4/Y52
           ellquarticreal=half*b5**two*d24*d34/d15/d25/d35/d45*I2
      *   + (b1/d15)**two*(one-half*r12*r13*r25i*r35i)*I1-b5**two/d15/d25/d35*A111m1m2

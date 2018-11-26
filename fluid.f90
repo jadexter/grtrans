@@ -23,6 +23,10 @@
           advance_harm3d_timestep
       use fluid_model_harmpi, only: initialize_harmpi_model, del_harmpi_data, harmpi_vals, &
           advance_harmpi_timestep
+      use fluid_model_koral, only: initialize_koral_model, del_koral_data, koral_vals, &
+           advance_koral_timestep           
+      use fluid_model_koral3d, only: initialize_koral3d_model, del_koral3d_data, koral3d_vals, &
+           advance_koral3d_timestep
       use fluid_model_thickdisk, only: initialize_thickdisk_model, del_thickdisk_data, thickdisk_vals, &
            advance_thickdisk_timestep
       use fluid_model_mb09, only: initialize_mb09_model, del_mb09_data, mb09_vals, &
@@ -33,29 +37,37 @@
       integer, parameter :: CONST=0,TAIL=1
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6
       integer, parameter :: COSMOS=10,MB=11,HARM=12,FFJET=13,NUMDISK=14,THICKDISK=15,MB09=16
-      integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19,HARMPI=20,TOY=21
+      integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19,HARMPI=20,TOY=21,KORAL=22,KORALNTH=23, &
+           SHELL=24,KORAL3D=25,KORAL3D_DISK=26,KORAL3D_TOPJET=27,KORAL3D_BOTJET=28
+
+      integer :: nrelbin=0
+      real :: bingammamin=1., bingammamax=1.
+!      real :: sigcut=1.e10
 
       type fluid
-        integer :: model, nfreq
-        real :: rin
+        integer :: model, nfreq, nrelbin
+        real :: rin,bingammamin,bingammamax,sigcut
         real, dimension(:), allocatable :: rho,p,bmag,rho2, &
-             kela,kelb,kelc,keld
+             kela,kelb,kelc,keld,Be
         real, dimension(:,:), allocatable :: fnu
+        real, dimension(:,:), allocatable :: nnth
         type (four_vector), dimension(:), allocatable :: u,b
       end type
 
       type fluid_args
-         character(len=300) :: dfile,hfile,gfile,sim
+         character(len=100) :: dfile,hfile,gfile,sim
          integer :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset, &
               dindf,magcrit,bl06
          real(8) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
               fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta, &
-              np,tp,rin,rout,thin,thout,phiin,phiout
+              np,tp,rin,rout,thin,thout,phiin,phiout,scalefac,sigcut
       end type
 
+! added sigcut here instead of in fluid
       type source_params
 !        real(kind=8), dimension(:), allocatable :: mdot,lleddeta,mu
-        real(kind=8) :: nfac,bfac,mbh,mdot,p1,p2,gmax,gminval,jetalphaval,muval
+        real(kind=8) :: nfac,bfac,mbh,mdot,p1,p2,gmax,gminval, &
+             jetalphaval,muval,sigcut
         real(kind=8), dimension(:), allocatable :: gmin,jetalpha,mu
         integer :: type
       end type
@@ -120,16 +132,16 @@
         subroutine assign_fluid_args(fargs,dfile,hfile,gfile,sim,nt,indf,nfiles,jonfix, &
              nw,nfreq_tab,nr,offset,dindf,magcrit,rspot,r0spot,n0spot,tscl,rscl, &
              wmin,wmax,fmin,fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,bl06,np,tp, &
-             rin,rout,thin,thout,phiin,phiout)
+             rin,rout,thin,thout,phiin,phiout,scalefac,sigcut)
           type (fluid_args), intent(inout) :: fargs
           character(len=100), intent(in) :: dfile,hfile,gfile,sim
           integer, intent(in) :: nt,indf,nfiles,jonfix,nw,nfreq_tab,nr,offset,dindf, &
                magcrit,bl06
           real(8), intent(in) :: rspot,r0spot,n0spot,tscl,rscl,wmin,wmax,fmin, &
                fmax,rmax,sigt,fcol,mdot,mbh,nscl,nnthscl,nnthp,beta,np,tp, &
-               rin,rout,thin,thout,phiin,phiout
+               rin,rout,thin,thout,phiin,phiout,scalefac,sigcut
+          write(6,*) 'in fluid args'
           fargs%dfile = dfile; fargs%hfile = hfile; fargs%gfile=gfile
-          write(6,*) 'assign fluid args: ',fargs%dfile
           fargs%sim = sim; fargs%nt = nt; fargs%indf = indf; fargs%nfiles = nfiles
           fargs%jonfix = jonfix; fargs%nw = nw; fargs%nfreq_tab = nfreq_tab
           fargs%nr = nr; fargs%offset = offset; fargs%dindf = dindf
@@ -142,7 +154,8 @@
           fargs%beta = beta; fargs%bl06 = bl06; fargs%np = np; fargs%tp=tp
           fargs%rin = rin; fargs%rout = rout; fargs%thin = thin
           fargs%thout = thout; fargs%phiin = phiin; fargs%phiout = phiout
-!          write(6,*) 'assign fluid args: ',jonfix,offset
+          write(6,*) 'after assign fluid args: ',sigcut
+          fargs%scalefac=scalefac; fargs%sigcut=sigcut
         end subroutine assign_fluid_args
 
         subroutine load_fluid_model(fname,a,fargs)
@@ -181,6 +194,26 @@
             call initialize_harm3d_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
         elseif(fname=='HARMPI') then
             call initialize_harmpi_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
+        elseif(fname=='KORAL') then
+            write(6,*) 'dfile: ',fargs%dfile
+            call initialize_koral_model(a,ifile,.false.,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf, & 
+                                        fargs%scalefac,nrelbin,bingammamin,bingammamax)
+        elseif(fname=='KORAL3D') then
+            call initialize_koral3d_model(a,ifile,.false.,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf, & 
+                 fargs%scalefac,nrelbin,bingammamin,bingammamax)
+        elseif(fname=='KORAL3D_DISK') then
+            call initialize_koral3d_model(a,ifile,.false.,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf, & 
+                                        fargs%scalefac,nrelbin,bingammamin,bingammamax)                      
+        elseif(fname=='KORAL3D_TOPJET') then
+            call initialize_koral3d_model(a,ifile,.false.,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf, & 
+                                        fargs%scalefac,nrelbin,bingammamin,bingammamax)                      
+        elseif(fname=='KORAL3D_BOTJET') then
+            call initialize_koral3d_model(a,ifile,.false.,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf, & 
+                                        fargs%scalefac,nrelbin,bingammamin,bingammamax)                      
+
+        elseif(fname=='KORALNTH') then
+            call initialize_koral_model(a,ifile,.true.,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf, &
+                                        fargs%scalefac,nrelbin,bingammamin,bingammamax)            
         elseif(fname=='SPHACC') then
            call init_sphacc()
         elseif(fname=='FFJET') then
@@ -222,6 +255,18 @@
            call advance_thickdisk_timestep(dt)
         elseif(fname=='MB09') then 
            call advance_mb09_timestep(dt)
+        elseif(fname=='KORAL') then
+           call advance_koral_timestep(dt)
+        elseif(fname=='KORAL3D') then
+           call advance_koral3d_timestep(dt)
+        elseif(fname=='KORAL3D_DISK') then
+           call advance_koral3d_timestep(dt)
+        elseif(fname=='KORAL3D_TOPJET') then
+           call advance_koral3d_timestep(dt)
+        elseif(fname=='KORAL3D_BOTJET') then
+           call advance_koral3d_timestep(dt)
+        elseif(fname=='KORALNTH') then
+           call advance_koral_timestep(dt)
         elseif(fname=='HOTSPOT') then
            call advance_hotspot_timestep(real(dt))
         elseif(fname=='SCHNITTMAN') then
@@ -271,6 +316,33 @@
                  f%model=THICKDISK
               elseif(fname=='MB09') then
                  f%model=MB09
+              elseif(fname=='KORAL') then
+                 allocate(f%Be(nup))
+                 f%model=KORAL
+!                 f%sigcut=sigcut
+              elseif(fname=='KORAL3D') then
+                 allocate(f%Be(nup))
+                 f%model=KORAL3D
+!                 f%sigcut=sigcut
+              elseif(fname=='KORAL3D_DISK') then
+                 allocate(f%Be(nup))
+                 f%model=KORAL3D_DISK
+!                 f%sigcut=sigcut
+              elseif(fname=='KORAL3D_BOTJET') then
+                 allocate(f%Be(nup))
+                 f%model=KORAL3D_BOTJET
+!                 f%sigcut=sigcut
+              elseif(fname=='KORAL3D_TOPJET') then
+                 allocate(f%Be(nup))
+                 f%model=KORAL3D_TOPJET
+!                 f%sigcut=sigcut
+              elseif(fname=='KORALNTH') then
+                 f%model=KORAL
+                 allocate(f%Be(nup))
+                 allocate(f%nnth(nup, nrelbin))
+                 f%nrelbin=nrelbin
+                 f%bingammamin=bingammamin
+                 f%bingammamax=bingammamax 
               elseif(fname=='FFJET') then
                  f%model=FFJET
               elseif(fname=='SPHACC') then
@@ -316,6 +388,18 @@
            call del_thickdisk_data()
         elseif(fname=='MB09') then
            call del_mb09_data()
+        elseif(fname=='KORAL') then
+           call del_koral_data()
+        elseif(fname=='KORAL3D') then
+           call del_koral3d_data()
+        elseif(fname=='KORAL3D_DISK') then
+           call del_koral3d_data()
+        elseif(fname=='KORAL3D_TOPJET') then
+           call del_koral3d_data()
+        elseif(fname=='KORAL3D_BOTJET') then
+           call del_koral3d_data()
+        elseif(fname=='KORALNTH') then
+           call del_koral_data() 
         elseif(fname=='FFJET') then
     !      write(6,*) 'load'
            call del_ffjet_data()
@@ -347,6 +431,7 @@
               deallocate(f%bmag)
            endif
            if(f%model==SARIAF.or.f%model==POWERLAW) deallocate(f%rho2)
+           if(f%model==KORALNTH) deallocate(f%nnth)
            if(f%model==HARMPI) then
               deallocate(f%kela); deallocate(f%kelb)
               deallocate(f%kelc); deallocate(f%keld)
@@ -407,6 +492,18 @@
              call get_thickdisk_fluidvars(x0,real(a),f)
           CASE (MB09)
              call get_mb09_fluidvars(x0,real(a),f)
+          CASE (KORAL)
+             call get_koral_fluidvars(x0,real(a),f)
+          CASE (KORAL3D)
+             call get_koral3d_fluidvars(x0,real(a),f,0)
+          CASE (KORAL3D_DISK)
+             call get_koral3d_fluidvars(x0,real(a),f,1)
+          CASE (KORAL3D_TOPJET)
+             call get_koral3d_fluidvars(x0,real(a),f,2)
+          CASE (KORAL3D_BOTJET)
+             call get_koral3d_fluidvars(x0,real(a),f,3)
+          CASE (KORALNTH)
+             call get_koral_fluidvars(x0,real(a),f)             
           CASE (SARIAF)
              call get_sariaf_fluidvars(x0,real(a),f) !alwinremark this exists below
           CASE (TOY)
@@ -417,10 +514,11 @@
         END SELECT
         end subroutine get_fluid_vars_arr
 
-        subroutine convert_fluid_vars_arr(f,ncgs,ncgsnth,bcgs,tcgs,fnuvals,freqvals,sp)
+        subroutine convert_fluid_vars_arr(f,ncgs,ncgsnth,nnthcgs,bcgs,tcgs,fnuvals,freqvals,sp)
         type (fluid), intent(in) :: f
         type (source_params), intent(inout) :: sp
         real(kind=8), intent(out), dimension(size(f%rho)) :: ncgs,ncgsnth,bcgs,tcgs
+        real(kind=8), intent(out), dimension(size(f%rho),f%nrelbin) :: nnthcgs
         real(kind=8), intent(out), dimension(:), allocatable :: freqvals
         real(kind=8), intent(out), dimension(:,:), allocatable :: fnuvals
         ncgs=0d0; ncgsnth=0d0; bcgs=0d0; tcgs=0d0
@@ -449,6 +547,18 @@
              call convert_fluidvars_thickdisk(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (MB09)
              call convert_fluidvars_mb09(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+          CASE (KORAL)
+             call convert_fluidvars_koral(f,ncgs,ncgsnth,bcgs,tcgs,nnthcgs,sp,0)
+          CASE (KORAL3D)
+             call convert_fluidvars_koral(f,ncgs,ncgsnth,bcgs,tcgs,nnthcgs,sp,0)
+          CASE (KORAL3D_DISK)
+             call convert_fluidvars_koral(f,ncgs,ncgsnth,bcgs,tcgs,nnthcgs,sp,1)
+          CASE (KORAL3D_TOPJET)
+             call convert_fluidvars_koral(f,ncgs,ncgsnth,bcgs,tcgs,nnthcgs,sp,2)
+          CASE (KORAL3D_BOTJET)
+             call convert_fluidvars_koral(f,ncgs,ncgsnth,bcgs,tcgs,nnthcgs,sp,3)
+          CASE (KORALNTH)
+             call convert_fluidvars_koral(f,ncgs,ncgsnth,bcgs,tcgs,nnthcgs,sp,0)             
           CASE (SARIAF)
              call convert_fluidvars_sariaf(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (TOY)
@@ -613,6 +723,23 @@
         call mb09_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
 !        write(6,*) 'mb09 u: ',f%u*f%u, f%b*f%b
         end subroutine get_mb09_fluidvars
+
+        subroutine get_koral_fluidvars(x0,a,f)
+        type (four_Vector), intent(in), dimension(:) :: x0
+        real, intent(in) :: a
+        type (fluid), intent(inout) :: f
+        real(kind=8), dimension(size(x0)) :: zero,ones,uout,bout,nout,tout,rr,th  
+        call koral_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%nnth)
+        end subroutine get_koral_fluidvars
+
+        subroutine get_koral3d_fluidvars(x0,a,f,type)
+        type (four_Vector), intent(in), dimension(:) :: x0
+        real, intent(in) :: a
+        integer, intent(in) :: type
+        type (fluid), intent(inout) :: f
+        real(kind=8), dimension(size(x0)) :: zero,ones,uout,bout,nout,tout,rr,th  
+        call koral3d_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%Be, f%nnth,type)
+        end subroutine get_koral3d_fluidvars
 
 ! scale code to cgs units given mbh and simulation and cgs mdot values
         subroutine scale_sim_units(mbh,mdotcgs,mdot,rho,p,bmag, &
@@ -801,6 +928,84 @@
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
 !        write(6,*) 'fluidvars harmpi ncgsnth: ',minval(ncgsnth),maxval(ncgsnth)
         end subroutine convert_fluidvars_harmpi
+
+        ! AC: KORAL quantities should ALREADY be in CGS (maybe L Bfield?)
+        subroutine convert_fluidvars_koral(f,ncgs,ncgsnth,bcgs,tempcgs,nnthcgs,sp,type)
+        type (fluid), intent(in) :: f
+        type (source_params), intent(in) :: sp
+        integer, intent(in) :: type
+        real(kind=8) :: sigcut
+        real(kind=8), dimension(size(f%rho)) :: sigmacgs
+        real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
+        real(kind=8), dimension(size(f%rho), f%nrelbin), intent(out) :: nnthcgs        
+        real(kind=8), dimension(size(f%rho)) :: rhocgs
+!        sigcut=f%sigcut
+        sigcut=sp%sigcut
+        rhocgs=f%rho
+        ncgs=rhocgs/mp !AC what about X!=1?
+        tempcgs=f%p !AC the p variable stores electron temperature for KORAL
+        !convert HL to gaussian
+        bcgs=f%bmag*sqrt(4*pi) !AC convert HL to cgs?
+        sigmacgs = (bcgs*bcgs) / (rhocgs*8.988e20*4*pi)
+        if(any(sigmacgs.ge.sigcut)) then
+            !ANDREW sigma cutoff
+            where(sigmacgs.ge.sigcut)  
+               rhocgs = 0.
+               tempcgs = 10.
+               bcgs = 0.
+            end where
+        endif
+
+        !ANDREW -- zero out density to zero out emissivity in disk or out of disk
+        if(type.eq.1) then  !zero out jet
+            !ANDREW --  old -- sigma cutoff
+            !where(sigmacgs.ge.1)
+            !   rhocgs = 0.
+            !   tempcgs = 10.
+            !   bcgs = 0.
+            !end where
+            !ANDREW --  new -- Be cutoff
+            if(any(f%Be.ge.0.05)) then 
+                where((f%Be.ge.0.05))
+                   rhocgs = 0.
+                   tempcgs = 10.
+                   bcgs = 0.
+                end where
+            end if
+         endif
+         
+        if((type.eq.2).or.(type.eq.3)) then !zero out disk
+            !ANDREW --  old -- sigma cutoff
+            !where(sigmacgs.le.1)
+            !   rhocgs = 0.
+            !   tempcgs = 10.
+            !   bcgs = 0.
+            !end where
+            !ANDREW --  new -- Be cutoff
+            if(any((f%Be.le.0.05).and.(sigmacgs.le.1))) then 
+                where((f%Be.le.0.05).and.(sigmacgs.le.1))
+                   rhocgs = 0.
+                   tempcgs = 10.
+                   bcgs = 0.
+                end where
+            end if
+        endif
+        
+        ! non-thermal e-
+        !AC - make this the integral of the nonthermal bins?
+        ncgsnth=0.
+        nnthcgs=f%nnth
+        if(any(isnan(tempcgs))) then
+            write(6,*) 'NAN temp: '
+        endif
+        if(any(isnan(ncgs))) then
+            write(6,*) 'NAN n: '
+        endif
+        if(any(isnan(bcgs))) then
+            write(6,*) 'NAN b: '
+        endif
+         
+        end subroutine convert_fluidvars_koral
 
         subroutine convert_fluidvars_ffjet(f,ncgs,ncgsnth,bcgs,tcgs,sp)
         type (fluid), intent(in) :: f

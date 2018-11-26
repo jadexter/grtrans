@@ -65,7 +65,7 @@
 !         real(kind=8), intent(in) :: mbh1,mdot
          real(kind=8), intent(in), dimension(:) :: freqs
          integer, intent(in) :: gunit,i,l,nup, nfreq, nparams, extra, debug
-         character(len=20), intent(in) :: iname,fname,ename
+         character(len=100), intent(in) :: iname,fname,ename
          real(kind=8) :: fac
          real(kind=8), dimension(:), allocatable :: s2xi,c2xi,s2psi,c2psi, &
           rshift,ang,nu,cosne,tau,tau_temp,intvals,dummy,vrl,vtl,vpl,cosne2, &
@@ -87,7 +87,7 @@
             WRITE_GEO=0
          endif
          if (WRITE_GEO==1) then
-            nitems=19
+            nitems=18
 ! Dump geodesic information for debugging
             open(unit=9,file='geodebug.out',form='formatted')
               ! header with number of points, number of items, mdot, mbh, frequency
@@ -122,19 +122,20 @@
 !         write(6,*) 'evals: ',e%nk,e%neq
             ! Get fluid variables:
             call get_fluid_vars(g%x,g%k,g%gk%a,f)
-!            write(6,*) 'fluid model: ',f%rho
+!            write(6,*) 'fluid model: '!,f%rho
             call comoving_ortho(g%x%data(2),g%x%data(3),g%gk%a, &
                  g%gk%alpha(1),g%gk%beta(1),g%gk%mu0,f%u,f%b,g%k,s2xi,c2xi, &
                  ang,rshift,cosne)
-!            write(6,*) 'comoving ortho grtrans driver: ',s2xi,c2xi
+!            write(6,*) 'comoving ortho grtrans driver: ',s2xi,c2xi,'\n'
             call initialize_rad_trans(r,iname,g%npts,c(1)%nvals,extra)
             call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
             do m=1,nparams
-               sp=sparams(m)
+            sp=sparams(m)
                call initialize_source_params(sp,g%npts)
                call initialize_emis_params(ep,g%npts)
-               call initialize_emissivity(e,g%npts,f%nfreq,rshift,ang,cosne)!,emisargs)
-!               write(6,*) 'm: ',m,nparams,sparams(m)%mdot,size(sparams)
+               call initialize_emissivity(e,g%npts,f%nfreq,rshift,ang,cosne,f%nrelbin,f%bingammamin,f%bingammamax)!,emisargs)
+               !write(6,*) 'f%nrelbin',f%nrelbin
+               !               write(6,*) 'm: ',m,nparams,sparams(m)%mdot,size(sparams)
 !               allocate(sparams(m)%gmin(npts))
                MBH=sp%mbh
                LBH=GC*MBH*MSUN/C2
@@ -144,12 +145,15 @@
                ep%gmin=sp%gmin
                ep%mu=sp%mu
 !              write(6,*) 'after convert'
-!           write(6,*) 'emis model',FREQS
-!               write(6,*) 'emis model'
+!              write(6,*) 'emis model',FREQS
+!              write(6,*) 'emis model'
                call emis_model(e,ep)
 ! Compute emissivity:
 !               write(6,*) 'emis',NFREQ
                do k=1,NFREQ
+                  !write(6,*) 'FREQS: ',FREQS(k)
+                  !write(6,*) 'min/max rshift: ',minval(rshift),maxval(rshift)
+    
                   nu=FREQS(k)/rshift
 !                  write(6,*) 'init rad trans'
 !                  call initialize_rad_trans(r,iname,g%npts,c((l-1)*nfreq*nparams+(m-1)*nfreq+k)%nvals,extra)
@@ -159,13 +163,22 @@
 !                  write(6,*) 'ej1: ',e%j(:,1)
 !                  write(6,*) 'ej2: ',e%j(:,2)
 !                  write(6,*) 'ej4: ',e%j(:,4)
-                  if(any(isnan(e%j).or.isnan(e%K))) then
+                  if(any(isnan(e%j))) then
                      write(6,*) 'NaN in emissivity at i: ',i
 !                     write(6,*) 'NaN in emissivity where: ',maxloc(isnan(e%j))
 !                     write(6,*) 'NaN in emissivity where: ',maxloc(isnan(e%K))
-                     write(6,*) 'NaN in emissivity fac LBH: ',fac,LBH
-                     write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
+                     !write(6,*) 'NaN in emissivity fac LBH: ',fac,LBH
+                     !write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
                   endif
+
+                  if(any(isnan(e%K))) then
+                     !write(6,*) 'NaN in opacity at i: ',i
+!                     write(6,*) 'NaN in emissivity where: ',maxloc(isnan(e%j))
+!                     write(6,*) 'NaN in emissivity where: ',maxloc(isnan(e%K))
+                     !write(6,*) 'NaN in emissivity fac LBH: ',fac,LBH
+                     !write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
+                  endif
+   
 !               write(6,*) 'emis j: ',e%j(:,1)
 !               write(6,*) 'emis n: ',e%ncgsnth
 !               write(6,*) 'emis b: ',e%bcgs
@@ -193,9 +206,14 @@
 ! Call integration routine:
 !                     write(6,*) 'integrate'
                      if(any(isnan(e%j))) then
-                        write(6,*) 'NaN in emissivity after rotate at i: ',i
-                        write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
+                        !write(6,*) 'NaN in emissivity after rotate at i: ',i
+                        !write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
                      endif
+                     if(any(isnan(e%K))) then
+                        !write(6,*) 'NaN in opacity after rotate at i: ',i
+                        !write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
+                     endif
+
                      if(g%npts.ne.1) then
                         call invariant_emis(e,rshift)
 !                        fac=sum(e%j(:,1))/g%npts
@@ -242,6 +260,10 @@
                            else
                               dlp(:)=0.
                            endif
+!                           write(6,*) 'dlp: ',minval(dlp),maxval(dlp)
+!                           write(6,*) 'rtau', size(r%tau),size(r%tau(7:7))
+!                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex))
+!                           write(6,*) 'tsum: ',tsum(g%lambda(1:taudex),dummy(1:taudex)*g%x(1:taudex)%data(2))
                            intvals=1d0/tsum(g%lambda,dummy)*tsum(g%lambda,dummy*g%x%data(2))
 !                           write(6,*) 'intvals 1: ',intvals,tsum(g%lambda,dummy),tsum(g%lambda,dummy*g%x%data(2))
 !                           write(6,*) 'g lambda: ',g%lambda(1:g%npts),g%npts
@@ -341,7 +363,6 @@
                      write(9,*) e%incang
                      write(9,*) e%j(:,1)
                      write(9,*) e%K(:,1)
-                     write(9,*) e%ncgsnth
 ! Faraday rotation, conversion coefs
                      write(9,*) e%j(:,2)
                      write(9,*) e%j(:,4)
@@ -416,6 +437,7 @@
         !         write(6,*) 'after emis'
 !               deallocate(sparams(m)%gmin)
             enddo
+
             call del_rad_trans(r)
             call del_radtrans_integrate_data()
             call del_fluid_model(f)
@@ -450,12 +472,14 @@
 !         type (emis), intent(inout) :: e
          type (source_params), intent(inout) :: sp
          real(kind=8), dimension(e%npts) :: ncgs,bcgs,tcgs,ncgsnth
+         real(kind=8), dimension(e%npts,f%nrelbin) :: nnthcgs !AC f%nrelbin or e%nrelbin?
          real(kind=8), dimension(:), allocatable :: freqarr
          real(kind=8), dimension(:,:), allocatable :: fnu
-         call convert_fluid_vars(f,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,sp)
+         call convert_fluid_vars(f,ncgs,ncgsnth,nnthcgs,bcgs,tcgs,fnu,freqarr,sp)
+!         write(6,*) 'CONVERTED'
 !         write(6,*) 'sz: ',size(ncgs), size(bcgs), size(tcgs)
 !         write(6,*) 'alloc: ',allocated(e%ncgs),allocated(e%bcgs),allocated(e%tcgs)
-         call assign_emis_params(e,ncgs,ncgsnth,bcgs,tcgs,fnu,freqarr,f%nfreq)
+         call assign_emis_params(e,ncgs,ncgsnth,nnthcgs,bcgs,tcgs,fnu,freqarr,f%nfreq)
          end subroutine convert_model
 
          subroutine transpol(rshift,s2psi,c2psi,cosne)

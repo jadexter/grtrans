@@ -95,7 +95,7 @@
        
          subroutine create_fits(unit,filename,status)
          integer, intent(in) :: unit
-         character(len=200), intent(in) :: filename
+         character(len=100), intent(in) :: filename
          integer, intent(out) :: status
          integer :: blocksize=1
          status=0
@@ -104,7 +104,7 @@
          end subroutine create_fits
 
          subroutine delete_fits(filename,status)
-         character(len=200), intent(in) :: filename
+         character(len=100), intent(in) :: filename
          integer, intent(inout) :: status
          integer :: unit
          call open_fits(unit,filename,1,status)
@@ -114,7 +114,7 @@
 
          subroutine open_fits(unit,filename,readwrite,status)
          integer, intent(in) :: unit, readwrite
-         character(len=200), intent(in) :: filename
+         character(len=100), intent(in) :: filename
          integer, intent(out) :: status
          integer :: blocksize=1
          status=0

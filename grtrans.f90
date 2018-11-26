@@ -42,7 +42,7 @@
             cflag, extra, debug,outfile,fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix, &
             fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit,frspot,fr0spot,fn0spot,ftscl,frscl, &
             fwmin,fwmax,ffmin,ffmax,frmax,fsigt,ffcol,fmdot,fnscl,fnnthscl,fnnthp,fbeta, &
-            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,coefindx, &
+            fbl06,fnp,ftp,frin,frout,fthin,fthout,fphiin,fphiout,fscalefac,sigcut,coefindx, &
             epotherargs,nepotherargs)
 ! if you want to use pgrtrans ivals, ab, freqs then do so before here
        call del_pgrtrans_data()

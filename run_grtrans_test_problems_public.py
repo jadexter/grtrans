@@ -104,7 +104,7 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].read_grtrans_output()
     else:
         xlist[-1].run_pgrtrans(fname='THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='BBPOL',nvals=4,spin=0.9,standard=2,nn=[100,100,1],uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals=[-21,21,-21,21])
-        xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
+        xlist[-1].calc_spec_pgrtrans(xlist[-1].nx)
     if save==0:
         i = pickle.load(open('test_grtrans_thindisk.p','rb'))
         if pgrtrans==0:
