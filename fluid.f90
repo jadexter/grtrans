@@ -764,6 +764,34 @@
         bcgs=bcgs*sqrt(4d0*pi)
         end subroutine scale_sim_units
 
+! as written in equation 1 of Moscibrodzka+2016 assuming cgs units
+        subroutine monika_e_orig(rho,p,b,beta_trans,rlow,rhigh,trat)
+          real(kind=4), intent(in), dimension(:) :: rho,p,b
+          real(kind=8), intent(in) :: rlow,rhigh,beta_trans
+          real(kind=8), intent(inout), dimension(size(rho)) :: trat
+          real(kind=8), dimension(size(rho)) :: beta,b2
+!          beta=p/(b*b)/0.5d0
+!          beta_trans=1.d0
+! here p is the total *temperature* Tp+Te
+! b is in HL
+          beta=2d0*rho*k*p/mp/(b*b)
+          b2=beta*beta
+! defaults to 100, for now gmin even though should just be its own source param
+!          rhigh=sp%gminval
+!          rlow=1d0
+!        Nhigh=1d0
+!        Nlow=1d0
+          where(b.gt.0d0)
+             trat=rhigh*b2/(1d0+b2)+rlow/(1d0+b2)
+!           nrat=Nhigh*b2/(1d0+b2)+Nlow/(1d0+b2)
+          elsewhere
+             trat=rhigh
+!           nrat=Nhigh
+          endwhere
+! changed to add 1+trat to have maximum T_e = T_tot / 2
+!          tempcgs=(p/rho)*mp*c*c/k/(1d0+trat)
+        end subroutine monika_e_orig
+
         subroutine monika_e(rho,p,b,beta_trans,rlow,rhigh,trat)
           real(kind=4), intent(in), dimension(:) :: rho,p,b
           real(kind=8), intent(in) :: rlow,rhigh,beta_trans
@@ -939,13 +967,24 @@
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
         real(kind=8), dimension(size(f%rho), f%nrelbin), intent(out) :: nnthcgs        
         real(kind=8), dimension(size(f%rho)) :: rhocgs
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: beta_trans
 !        sigcut=f%sigcut
         sigcut=sp%sigcut
         rhocgs=f%rho
         ncgs=rhocgs/mp !AC what about X!=1?
-        tempcgs=f%p !AC the p variable stores electron temperature for KORAL
         !convert HL to gaussian
         bcgs=f%bmag*sqrt(4*pi) !AC convert HL to cgs?
+! changed to allow postprocessing Monika model
+        if(sp%gminval.ge.1d0) then
+           beta_trans = 1d0
+           call monika_e_orig(f%rho,f%p+f%Be,f%bmag,beta_trans,1d0, &
+             sp%gminval,trat)
+! f%Be is confusingly the proton temperature here
+           tempcgs = f%Be*trat
+        else if(sp%gminval.lt.0d0) then
+           tempcgs=f%p !AC the p variable stores electron temperature for KORAL
+        endif
         sigmacgs = (bcgs*bcgs) / (rhocgs*8.988e20*4*pi)
         if(any(sigmacgs.ge.sigcut)) then
             !ANDREW sigma cutoff

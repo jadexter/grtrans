@@ -418,14 +418,15 @@
           endif
 
           if(shortfile) dlen = 23
-           
+
           nhead=11; nhead2=3
           allocate(header(nhead))
           allocate(header2(nhead2))
 
           ! M87 library vs. Andrew format difference
+          ! FOR SHORTFILE BE IS THE ION TEMPERATURE TO RECONSTRUCT P FOR POST-PROCESSING
           if(shortfile) then
-             rhopos=10; vpos=12; bpos=16; ppos=21; gridpos=4
+             rhopos=10; vpos=12; bpos=16; ppos=21; gridpos=4; Bepos=22
           else
              rhopos=10; Bepos=32; ppos=33; vpos=12; bpos=25; gdetpos=16; gridpos=4; nthpos=43 !AC: is nthpos correct?? change for 3D?
           endif
@@ -457,7 +458,8 @@
           do i=0, (nx1*nx2*nx3)/nelem-1
              read(8,*) data
              rho(1+i*nelem:(i+1)*nelem)=data(rhopos,:)
-             if(.not.shortfile) Be(1+i*nelem:(i+1)*nelem)=data(Bepos,:)  
+!             if(.not.shortfile) Be(1+i*nelem:(i+1)*nelem)=data(Bepos,:)  
+             Be(1+i*nelem:(i+1)*nelem)=data(Bepos,:)
              p(1+i*nelem:(i+1)*nelem)=data(ppos,:) !AC p is actually Te  
 
              b(1+i*nelem:(i+1)*nelem)%data(1)=(data(bpos,:))
