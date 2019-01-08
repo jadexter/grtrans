@@ -981,7 +981,7 @@
            call monika_e_orig(f%rho,f%p+f%Be,f%bmag,beta_trans,1d0, &
              sp%gminval,trat)
 ! f%Be is confusingly the proton temperature here
-           tempcgs = f%Be*trat
+           tempcgs = f%Be/trat
         else if(sp%gminval.lt.0d0) then
            tempcgs=f%p !AC the p variable stores electron temperature for KORAL
         endif

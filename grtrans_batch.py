@@ -427,7 +427,7 @@ class grtrans:
             hdu=fits.open(self.ofile)
             n=len(hdu)
             print(len(hdu[0].data))
-            ab=np.reshape(hdu[0].data,(len(hdu[0].data)/2,2))
+            ab=np.reshape(hdu[0].data,(int(len(hdu[0].data)/2),2))
 # read image headers
             nu=np.empty(n-1); nx=np.empty(n-1); ny=np.empty(n-1)
             for i in range(n-1):
@@ -445,7 +445,7 @@ class grtrans:
             print(np.shape(ivals), np.shape(hdu[1].data))
 # read images
             for i in range(n-1):
-                ivals[:,:,i]=np.reshape(hdu[i+1].data,(nx*ny,nvals))
+                ivals[:,:,i]=np.reshape(hdu[i+1].data,(int(nx*ny),int(nvals)))
                 del hdu[i+1].data
 
         else:
@@ -486,7 +486,7 @@ class grtrans:
         self.ny=ny
         self.nvals=nvals
         self.calc_spec(n-1)
-        self.calc_freqs(self.inputs.nfreq)
+#        self.calc_freqs(self.inputs.nfreq)
 
 #!AC is this always right - no n?
     def calc_freqs(self,n):
