@@ -77,7 +77,7 @@ class grtrans_inputs:
         self.pfcol=1.7
         self.jdfile='m87bl09rfp10xi5a998fluidvars.bin'
         self.ndfile='phatdiskm8st25.bin'
-        self.ntscl=30.
+        self.ntscl=1.
         self.nrscl=6.
         self.snscl=3e7
         self.snnthscl=8e4
@@ -147,7 +147,7 @@ class grtrans_inputs:
         self.frspot=1.5
         self.fr0spot=6.0
         self.fn0spot=1e4
-        self.ftscl=30.
+        self.ftscl=1.
         self.frscl=6.
         self.fmdot=0.1
 

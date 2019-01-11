@@ -975,6 +975,10 @@
         ncgs=rhocgs/mp !AC what about X!=1?
         !convert HL to gaussian
         bcgs=f%bmag*sqrt(4*pi) !AC convert HL to cgs?
+! allow scaling w/ Mdot
+!        write(6,*) 'convert koral nfac: ', sp%nfac,sp%sigcut,sp%gminval
+        bcgs=bcgs*sqrt(sp%nfac)
+        ncgs=ncgs*sp%nfac
 ! changed to allow postprocessing Monika model
         if(sp%gminval.ge.1d0) then
            beta_trans = 1d0

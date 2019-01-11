@@ -320,7 +320,6 @@
         u%data(1)=merge(dble(u1tmp),done,(x2.gt.x2mintrust).and.(x2.lt.x2maxtrust))
         vpl0=merge(vpl0,dzero,(x2.gt.x2mintrust).and.(x2.lt.x2maxtrust))
 
-
         !AC load nonthermal
         !AC do we have to do this in a loop? 
         if(doingkoralnth) then
@@ -330,8 +329,7 @@
               ntmp=merge(ntmp,dzero,x1.gt.uniqx1(1))
               nth(:,ie)=merge(ntmp,dzero,x2.gt.x2mintrust)
            end do
-        end if
-        
+        end if        
 
         ! Compute magnitude of interpolated b-field and force b^2 > 0 (need to look into numerical issues here):
         call assign_metric(b,transpose(kerr_metric(zr, real(x0%data(3)),a)))

@@ -130,7 +130,8 @@
             call initialize_rad_trans(r,iname,g%npts,c(1)%nvals,extra)
             call init_radtrans_integrate_data(r%iflag,r%neq,g%npts,r%npts)
             do m=1,nparams
-            sp=sparams(m)
+               sp=sparams(m)
+!               write(6,*) 'grtrans_driver sp: ',sp%nfac,sp%gminval
                call initialize_source_params(sp,g%npts)
                call initialize_emis_params(ep,g%npts)
                call initialize_emissivity(e,g%npts,f%nfreq,rshift,ang,cosne,f%nrelbin,f%bingammamin,f%bingammamax)!,emisargs)
@@ -139,6 +140,7 @@
 !               allocate(sparams(m)%gmin(npts))
                MBH=sp%mbh
                LBH=GC*MBH*MSUN/C2
+!               write(6,*) 'grtrans_driver convert: ',sp%nfac,sp%gminval
                call convert_model(sp)
 !               write(6,*) 'gmin mu: ',sp%gmin
 !               write(6,*) 'gmin mu: ',sp%mu

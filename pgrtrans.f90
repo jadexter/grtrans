@@ -140,6 +140,7 @@
             do m=1,NCAMS
                call initialize_raytrace_camera(c(m),nro,nphi,nvals,nextra)
             enddo
+            write(6,*) 'welcome to grtrans!'
             write(6,*) 'fluid args: ',fdfile,fhfile,fgfile,fsim,fnt,findf,fnfiles,fjonfix
             write(6,*) 'fluid args 2: ',fnw,fnfreq_tab,fnr,foffset,fdindf,fmagcrit
             write(6,*) 'fluid args 3: ',frspot,fr0spot,fn0spot,ftscl,frscl
