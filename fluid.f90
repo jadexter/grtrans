@@ -1008,7 +1008,7 @@
 ! allow scaling w/ Mdot
 !        write(6,*) 'convert koral nfac: ', sp%nfac,sp%sigcut,sp%gminval
         bcgs=bcgs*sqrt(sp%nfac)
-        ncgs=ncgs*sp%nfac
+        ncgs=ncgs*sp%nfac; rhocgs=rhocgs*sp%nfac
 ! changed to allow postprocessing Monika model
         if(sp%gminval.ge.1d0) then
            beta_trans = 1d0
