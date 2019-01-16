@@ -764,6 +764,35 @@
         bcgs=bcgs*sqrt(4d0*pi)
         end subroutine scale_sim_units
 
+        ! EHT theory notes formulae based on Moscibrodzka+2016
+        ! assumes inputs are cgs units
+        subroutine charles_e(rho,p,u,b,beta_trans,rlow,rhigh,tcgs)
+          real(kind=4), intent(in), dimension(:) :: rho,p,u,b
+          real(kind=8), intent(in) :: rlow,rhigh,beta_trans
+          real(kind=8), intent(inout), dimension(size(rho)) :: tcgs
+          real(kind=8), dimension(size(rho)) :: beta,b2,trat
+!          beta=p/(b*b)/0.5d0
+!          beta_trans=1.d0
+! here p = T_p + T_e and u = T_p + 2 T_e
+! b is in HL
+          beta=2d0*rho*k*p/mp/(b*b)
+          b2=beta*beta
+! defaults to 100, for now gmin even though should just be its own source param
+!          rhigh=sp%gminval
+!          rlow=1d0
+!        Nhigh=1d0
+!        Nlow=1d0
+          where(b.gt.0d0)
+             trat=rhigh*b2/(1d0+b2)+rlow/(1d0+b2)
+!           nrat=Nhigh*b2/(1d0+b2)+Nlow/(1d0+b2)
+          elsewhere
+             trat=rhigh
+!           nrat=Nhigh
+          endwhere
+! notes formula 9 with u = 2u/3nk = Tp+2Te from Koral
+          tcgs=u/(2d0+trat)
+        end subroutine charles_e
+
 ! as written in equation 1 of Moscibrodzka+2016 assuming cgs units
         subroutine monika_e_orig(rho,p,b,beta_trans,rlow,rhigh,trat)
           real(kind=4), intent(in), dimension(:) :: rho,p,b
@@ -772,7 +801,8 @@
           real(kind=8), dimension(size(rho)) :: beta,b2
 !          beta=p/(b*b)/0.5d0
 !          beta_trans=1.d0
-! here p is the total *temperature* Tp+Te
+! here p is the total *temperature* Tp+2Te
+! 2 is here to account for adiabatic indices
 ! b is in HL
           beta=2d0*rho*k*p/mp/(b*b)
           b2=beta*beta
@@ -982,10 +1012,14 @@
 ! changed to allow postprocessing Monika model
         if(sp%gminval.ge.1d0) then
            beta_trans = 1d0
-           call monika_e_orig(f%rho,f%p+f%Be,f%bmag,beta_trans,1d0, &
-             sp%gminval,trat)
+! change this to be 2*f%Be+f%p to account for different adiabatic indices
+!           call monika_e_orig(f%rho,f%p+f%Be,f%bmag,beta_trans,1d0, &
+!             sp%gminval,trat)
 ! f%Be is confusingly the proton temperature here
-           tempcgs = f%Be/trat
+!           tempcgs = f%Be/trat
+! CHANGING koral Rhigh method to align with EHT theory notes
+           call charles_e(f%rho,f%p+f%Be,2.*f%p+f%Be,f%bmag,beta_trans,1d0,&
+                sp%gminval,tempcgs)
         else if(sp%gminval.lt.0d0) then
            tempcgs=f%p !AC the p variable stores electron temperature for KORAL
         endif

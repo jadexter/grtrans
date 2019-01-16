@@ -505,7 +505,7 @@ class grtrans:
             da=self.ab[self.nx,0]-self.ab[0,0]
             db=self.ab[1,1]-self.ab[0,1]
             spec=np.sum(self.ivals,0)*da*db
-            if self.nvals==4:
+            if self.nvals>=4:
                 self.lp=np.sqrt(spec[1,:]**2.+spec[2,:]**2.)/spec[0,:]
                 self.cp=spec[3,:]/spec[0,:]
                 self.lpf=np.sum(np.sqrt(self.ivals[:,1,:]**2.+self.ivals[:,2,:]**2.),0)*da*db/spec[0,:]
@@ -529,7 +529,7 @@ class grtrans:
             da=self.ab[0,self.nx]-self.ab[0,0]
             db=self.ab[1,1]-self.ab[1,0]
             spec=np.sum(self.ivals,1)*da*db
-            if self.nvals==4:
+            if self.nvals>=4:
                 self.lp=np.sqrt(spec[1,:]**2.+spec[2,:]**2.)/spec[0,:]
                 self.cp=spec[3,:]/spec[0,:]
                 self.lpf=np.sum(np.sqrt(self.ivals[1]**2.+self.ivals[2]**2.),0)*da*db/spec[0,:]
@@ -580,9 +580,9 @@ class grtrans:
 
 
         if self.ivals.ndim < 3:
-            imgplot = plt.imshow(np.transpose(ivals[:,stokes].reshape((self.nx,self.ny))),origin='lower',cmap='hot',interpolation='gaussian')
+            imgplot = plt.imshow(np.transpose(ivals[:,stokes].reshape((self.nx,self.ny))),origin='lower',cmap='inferno',interpolation='gaussian')
         else:
-            imgplot = plt.imshow(np.transpose(ivals[:,stokes,idex].reshape((self.nx,self.ny))),origin='lower',cmap='hot',interpolation='gaussian')
+            imgplot = plt.imshow(np.transpose(ivals[:,stokes,idex].reshape((self.nx,self.ny))),origin='lower',cmap='inferno',interpolation='gaussian')
         plt.axis('off')
         if vmin:
             imgplot.set_clim(vmin=vmin,vmax=vmax)
