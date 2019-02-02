@@ -694,6 +694,7 @@
 
       subroutine polsynchth(nu,n,b,t,theta,e)
       use phys_constants, ec=>e
+      use bessel, only: besselk0,besselk1,besselk
       implicit none
       ! Calculate polarized synchrotron emission/absorption
       ! coefficients in ultrarel limit using formulas from Huang et al
@@ -756,17 +757,37 @@
       !eps12=wp2*omega0/(2d0*pi*nu)**3* &
       !(beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
 
-!AC ANDREW for low temperature/low thetae lets turn off faraday 
-      where(thetae.lt.1d-6)
-         eps11m22=0.
-         eps12=0.
+! with updated bessel functions
+!      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+!     (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
+!      sin(theta)**2
+!      eps12=wp2*omega0/(2d0*pi*nu)**3* &
+!      (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+
+! UPDATING to fix NaNs for small temperatures thetae <~ 10^-2 by setting bessel ratios there = 1
+      where(thetae.gt.1d-2)
+         eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+              (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
+      sin(theta)**2
+         eps12=wp2*omega0/(2d0*pi*nu)**3* &
+              (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
       elsewhere
          eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-         (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
-         sin(theta)**2
-         eps12=wp2*omega0/(2d0*pi*nu)**3* &
-         (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
-      endwhere
+              (1d0+6d0*thetae)*sin(theta)**2
+         eps12=wp2*omega0/(2d0*pi*nu)**3*cos(theta)
+      end where
+
+!AC ANDREW for low temperature/low thetae lets turn off faraday 
+!      where(thetae.lt.1d-6)
+!         eps11m22=0.
+!         eps12=0.
+!      elsewhere
+!         eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+!         (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
+!         sin(theta)**2
+!         eps12=wp2*omega0/(2d0*pi*nu)**3* &
+!         (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
+!      endwhere
 
 ! s08 versions
 !      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
@@ -781,9 +802,9 @@
 !      sin(theta)**2
 !      eps12=wp2*omega0/(2d0*pi*nu)**3* &
 !      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
-      targ=sqrt(4d0*eps12**2+eps11m22**2)
-      tp=-(eps11m22-targ)/2d0/eps12
-      tm=-(eps11m22+targ)/2d0/eps12
+!      targ=sqrt(4d0*eps12**2+eps11m22**2)
+!      tp=-(eps11m22-targ)/2d0/eps12
+!      tm=-(eps11m22+targ)/2d0/eps12
 
       rhov=2d0*pi*nu/c*eps12
       rhoq=2d0*pi*nu/2d0/c*eps11m22
