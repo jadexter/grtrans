@@ -593,7 +593,7 @@ class grtrans:
         imgplot = plt.imshow(np.transpose(self.ivals[stokes,:,idex].reshape((self.nx,self.ny))),origin='lower')
         plt.show()
 
-    def get_pol_vectors(self,idex=0,pgrtrans=1,nsamp=8,trim=-1):
+    def get_pol_vectors(self,idex=0,pgrtrans=1,nsamp=8,trim=-1,pcut=0.05):
         if trim < 0:
             nx=self.nx
             ny=self.ny
@@ -622,6 +622,8 @@ class grtrans:
         scale=np.max(m)*10.
         mx = (np.transpose(np.resize(m * np.cos(evpa),(self.ny,self.nx))))
         my = (np.transpose(np.resize(m * np.sin(evpa),(self.ny,self.nx))))
+        mask=np.zeros_like(mx)+1.; mask[np.resize(m/np.max(m),(self.ny,self.nx)) < pcut]=np.nan
+        mx*=mask; my*=mask
         mx=mx[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
         my=my[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
         img=img.reshape((self.ny,self.nx)).transpose()
@@ -631,7 +633,7 @@ class grtrans:
         return U,V,mx,my,img,scale
 
 
-    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,xlim=[-1.],ylim=[-1.],vmax=-1.,interp='bilinear'):
+    def disp_pol_map(self,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,xlim=[-1.],ylim=[-1.],vmax=-1.,interp='bilinear',pcut=0.05):
         ###----------------------------------------------
 #        i=img/np.max(img)/sat
         fig,ax = plt.subplots()
@@ -648,14 +650,14 @@ class grtrans:
             ax.set_ylim(ylim)
             extent=[xlim[0],xlim[1],ylim[0],ylim[1]]
         leg = ax.legend(bbox_to_anchor=(0.05, 0.95), loc=2, borderaxespad=0.,frameon=False)
-        self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim,extent=extent,vmax=vmax,interp=interp)
+        self.pol_map(ax,idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,sat=sat,trim=trim,extent=extent,vmax=vmax,interp=interp,pcut=pcut)
 
-    def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,extent=[-1],vmax=-1.,interp='bilinear'):
+    def pol_map(self,ax,idex=0,pgrtrans=1,nsamp=8,sat=0.8,trim=-1,extent=[-1],vmax=-1.,interp='bilinear',pcut=0.05):
         if trim < 0:
             trim=self.nx
         if np.sum(extent)==-1:
             extent=[0,self.nx,0,self.nx]
-        U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim)
+        U,V,mx,my,img,scale = self.get_pol_vectors(idex=idex,pgrtrans=pgrtrans,nsamp=nsamp,trim=trim,pcut=pcut)
         if vmax < 0:
             vmax=sat*np.max(img)
 #        img[img > sat*np.max(img)]=sat*np.max(img)
