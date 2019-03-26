@@ -131,7 +131,6 @@
                sparams(iii)%gmax=gmax
                sparams(iii)%p1=p1
                sparams(iii)%p2=p2
-! adding sigcut here for koral
                sparams(iii)%sigcut=sigcut
                call assign_source_params_type(sparams(iii),stype)
             enddo

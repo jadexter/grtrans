@@ -319,23 +319,18 @@
               elseif(fname=='KORAL') then
                  allocate(f%Be(nup))
                  f%model=KORAL
-!                 f%sigcut=sigcut
               elseif(fname=='KORAL3D') then
                  allocate(f%Be(nup))
                  f%model=KORAL3D
-!                 f%sigcut=sigcut
               elseif(fname=='KORAL3D_DISK') then
                  allocate(f%Be(nup))
                  f%model=KORAL3D_DISK
-!                 f%sigcut=sigcut
               elseif(fname=='KORAL3D_BOTJET') then
                  allocate(f%Be(nup))
                  f%model=KORAL3D_BOTJET
-!                 f%sigcut=sigcut
               elseif(fname=='KORAL3D_TOPJET') then
                  allocate(f%Be(nup))
                  f%model=KORAL3D_TOPJET
-!                 f%sigcut=sigcut
               elseif(fname=='KORALNTH') then
                  f%model=KORAL
                  allocate(f%Be(nup))
@@ -764,6 +759,24 @@
         bcgs=bcgs*sqrt(4d0*pi)
         end subroutine scale_sim_units
 
+        subroutine andrew_sigcut(bcgs,rhocgs,tempcgs,ncgs,sigcut)
+          real(kind=8), dimension(:), intent(inout) :: bcgs,rhocgs,tempcgs,ncgs
+          real(kind=8), intent(in) :: sigcut
+          real(kind=8), dimension(size(bcgs)) :: sigmacgs
+          sigmacgs = (bcgs*bcgs) / (rhocgs*8.988e20*4*pi)
+          if(any(sigmacgs.ge.sigcut)) then
+!             write(6,*) 'sigcut: ',maxval(sigmacgs),minval(sigmacgs),sigcut
+            !ANDREW sigma cutoff
+! JD changing values to see if we can avoid Koral NaNs
+          where(sigmacgs.ge.sigcut)
+             rhocgs = 0d0
+             ncgs = 0d0
+             tempcgs = 1d9
+             bcgs = 1d-4
+          end where
+         end if
+        end subroutine andrew_sigcut
+
         ! EHT theory notes formulae based on Moscibrodzka+2016
         ! assumes inputs are cgs units
         subroutine charles_e(rho,p,u,b,beta_trans,rlow,rhigh,tcgs)
@@ -947,11 +960,12 @@
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8), dimension(size(f%rho)) :: trat,rhocgs
         real(kind=8) :: mdot,beta_trans
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
+        rhocgs=ncgs*mp
 ! to use ressler_e call grtrans with gmin = -1
 !        write(6,*) 'harmpi convert: ',sp%gminval,allocated(f%kel)
         if(sp%gminval.ge.1d0) then
@@ -984,6 +998,7 @@
 !             maxval(f%bmag**2d0/f%rho),minval(bcgs),maxval(bcgs)
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
+        call andrew_sigcut(bcgs,rhocgs,tempcgs,ncgs,dble(sp%sigcut))
 !        write(6,*) 'fluidvars harmpi ncgsnth: ',minval(ncgsnth),maxval(ncgsnth)
         end subroutine convert_fluidvars_harmpi
 
@@ -1023,15 +1038,8 @@
         else if(sp%gminval.lt.0d0) then
            tempcgs=f%p !AC the p variable stores electron temperature for KORAL
         endif
-        sigmacgs = (bcgs*bcgs) / (rhocgs*8.988e20*4*pi)
-        if(any(sigmacgs.ge.sigcut)) then
-            !ANDREW sigma cutoff
-            where(sigmacgs.ge.sigcut)  
-               rhocgs = 0.
-               tempcgs = 10.
-               bcgs = 0.
-            end where
-        endif
+
+        call andrew_sigcut(bcgs,rhocgs,tempcgs,ncgs,sigcut)
 
         !ANDREW -- zero out density to zero out emissivity in disk or out of disk
         if(type.eq.1) then  !zero out jet

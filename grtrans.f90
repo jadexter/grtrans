@@ -15,7 +15,7 @@
        use chandra_tab24, only: load_chandra_tab24, del_chandra_tab24
 
        implicit none
-       character(len=200), intent(in) :: outfile,ifile
+       character(len=300), intent(in) :: outfile,ifile
 !       character(len=40) :: outfile,ifile
        integer :: nextra=0, inum, gunit, i, indx, ncams, j, m, l, nparams, &
             nthreads, threadnum, iii
