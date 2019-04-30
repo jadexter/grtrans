@@ -661,7 +661,7 @@ class grtrans:
 #        img[img > sat*np.max(img)]=sat*np.max(img)
         ax.imshow(img,origin='lower',extent=extent,vmax=vmax,interpolation=interp)
         quiveropts = dict(color='white',headlength=0, pivot='middle', scale=scale,
-                         width=8e-3, headwidth=1,headaxislength=0) # common options
+                         width=6e-3, headwidth=1,headaxislength=0) # common options
         Uscl = (U-np.min(U))*1./(np.max(U)-np.min(U))*(extent[1]-extent[0])+extent[0]
         Vscl = (V-np.min(V))*1./(np.max(V)-np.min(V))*(extent[3]-extent[2])+extent[2]
         ax.quiver(Uscl,Vscl,mx,my,**quiveropts)
