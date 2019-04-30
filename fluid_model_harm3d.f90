@@ -107,7 +107,7 @@
         subroutine harm3d_vals(x0,a,rho,p,b,u,bmag)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
-        real(kind=8), dimension(size(x0)) :: done,pfac,nfac
+        real(kind=8), dimension(size(x0)) :: done,pfac,nfac,bfac
         real, dimension(size(x0)) :: x3,x2,x1,zm,theta,fone, &
          vpl0,vrl0,vtl0,rd,td, pd,rttd,zr,dzero, &
          vr0,vth0,vph0,bth,dummy,tt,ttd,zt,zphi,zpp
@@ -139,6 +139,7 @@
         uniqr=exp(uniqx1)
         uniqth=pi*uniqx2
         uniqph=uniqx3
+!        write(6,*) 'uniqx1: ',minval(uniqx1),maxval(uniqx1)
 !        write(6,*) 'uniqr: ',minval(uniqr), maxval(uniqr)
 !        write(6,*) 'uniqth: ',minval(uniqth), maxval(uniqth)
 !        write(6,*) 'uniqph: ',minval(uniqph), maxval(uniqph)
@@ -170,7 +171,9 @@
         ux2=lx2+1
         lx3=floor((x3-uniqx3(1))/(uniqx3(nx3)-uniqx3(1))*(nx3-1))+1
         ux3=lx3+1
-!        lx2=merge(merge(lx2,one,lx2.ge.1),umax,lx2.le.(nx2-1))
+        lx2=merge(merge(lx2,one,lx2.ge.1),umax,lx2.le.(nx2-1))
+        lx1=merge(lx1,one,lx1.ge.1)
+        ux1=lx1+1
         lx2=merge(lx2,one,lx2.ge.1)
         lx2=merge(lx2,nx2,lx2.le.nx2)
         ux2=merge(ux2,one,ux2.ge.1)
@@ -201,13 +204,22 @@
         rd=(zr-uniqr(lx1))/(uniqr(ux1)-uniqr(lx1))
 ! When the geodesic is inside the innermost zone center located outside the horizon, 
 ! use nearest neighbor rather than interpolate
-        where(uniqr(lx1).le.(1.+sqrt(1.-a**2.)))
+!        where(lx1.lt.0)
+! adding this to deal with lx1 << 0 in Chris White snapshot
+!           lx1=0; ux1=1
+!           rd=1.
+!        endwhere
+!        where(zr.le.(1.+sqrt(1.-a**2.)))
+! changomg this to be inside of uniqr(1)
+        where(zr.le.uniqr(1))
            rd=1.
-           pfac=1e-3
-           nfac=1e-3
+           pfac=1d-6
+           nfac=1d-6
+           bfac=1d-6
         elsewhere
-           pfac=1.
-           nfac=1.
+           pfac=1d0
+           nfac=1d0
+           bfac=1d0
         endwhere
 !        write(6,*) 'coords: ',
 !        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
@@ -265,8 +277,10 @@
                                                                                                !        write(6,*) 'after reshape', minval(ttd), maxval(ttd)
 !        rttd=ttd
         rttd=0.
-        rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
-        p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
+        rho=interp(rhoi,rttd,pd,rd,td)*nfac
+        p=interp(ppi,rttd,pd,rd,td)*pfac
+!        rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
+!        p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
 !        write(6,*) 'rho: ', rho, p
         vrl0=merge(interp(vrli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
         vtl0=merge(interp(vtli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
@@ -285,7 +299,7 @@
         call assign_metric(b,transpose(kerr_metric(zr, &
          real(x0%data(3)),a)))
         bmag=b*b; bmag=merge(bmag,dzero,bmag.ge.0d0)
-        bmag=sqrt(bmag)
+        bmag=sqrt(bmag)*bfac
         ! Get four-velocity:
         call lnrf_frame(vrl0,vtl0,vpl0,zr,a,real(x0%data(3)) &
          ,vr0,vth0,vph0,1)
@@ -294,12 +308,13 @@
         u%data(4)=u%data(1)*dble(vph0)
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
-!        write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
+ !       write(6,*) 'min vals u', minval(u%data(1)), maxval(abs(u*u+1))
+ !       write(6,*) 'minmax vals: ',minval(rho),maxval(rho),minval(bmag),minval(p)
 !        write(6,*) 'harm vals r: ',zr
 !        write(6,*) 'harm vals rho: ',rho
 !        write(6,*) 'harm vals rd: ',rd
 !        write(6,*) 'harm vals ux: ',nx1,ux1
-!        write(6,*) 'harm vals udotu: ',(abs(u*u+1))(minloc(zr))
+!        write(6,*) 'harm vals udotu: ',(abs(u*u+1))
 !        write(6,*) 'harm vals minloc: ',minloc(zr),rd(minloc(zr)), &
 !             td(minloc(zr)),x0(minloc(zr))%data(3),uniqth(lx2(minloc(zr))), &
 !             lx2(minloc(zr)),pd(minloc(zr)),lx1(minloc(zr)),ux1(minloc(zr)), &
@@ -343,8 +358,13 @@
         dx1=header(8)
         dx2=header(9)
         dx3=header(10)
-        asim=header(13)
-        gam=header(14)
+        if(nhead.eq.15) then
+           asim=header(11)
+           gam=header(12)
+        else
+           asim=header(13)
+           gam=header(14)
+        endif
         h=header(nhead-1)
         tcur=header(1)
 ! is this true for HARM?
@@ -372,9 +392,13 @@
           ! JAD 11/24/2012 based on previous IDL codes
           ! Set grid parameters so we can generalize later:
 !          nhead=21 ; dlen=72
-          dlen=31; nhead=29
+! MONIKA FILE NUMBERS
+!          dlen=31; nhead=29
+! CHRIS WHITE FILE NUMBERS
+          dlen=35; nhead=15
           allocate(header(nhead))
-          rhopos=6; ppos=7; vpos=14; bpos=22; gdetpos=30
+!          rhopos=6; ppos=7; vpos=14; bpos=22; gdetpos=30
+          rhopos=9; ppos=rhopos+1; vpos=19; bpos=vpos+8
           allocate(grid(nx1*nx2*nx3,6)); allocate(p(nx1*nx2*nx3)); allocate(rho(nx1*nx2*nx3)); allocate(pmin(nx1*nx2*nx3))
           allocate(u(nx1*nx2*nx3)); allocate(b(nx1*nx2*nx3)); allocate(gdet(nx1*nx2*nx3))
           allocate(uks(nx1*nx2*nx3)); allocate(bks(nx1*nx2*nx3))
@@ -420,14 +444,16 @@
              deallocate(data)
              x1_arr=grid(:,1); x2_arr=grid(:,2); x3_arr=grid(:,3); r_arr=grid(:,4); th_arr=grid(:,5); ph_arr=grid(:,6)
           else
+! CHANGING FOR CHRIS WHITE VERSION
              data_file_app = trim(data_file) // '.bin'
              call read_harm3d_data(data_file_app,rho,p,u%data(1),u%data(2),u%data(3),u%data(4),b%data(1), &
-                  b%data(2),b%data(3),b%data(4))
-             call read_harm3d_grid_file()
+                  b%data(2),b%data(3),b%data(4),grid)
+             x1_arr=real(grid(:,1)); x2_arr=real(grid(:,2)); x3_arr=real(grid(:,3))
+!             call read_harm3d_grid_file()
              r_arr=exp(x1_arr); th_arr=x2_arr*pi; ph_arr=x3_arr
           endif
           p=merge(p,pmin,p.gt.pmin)
-          write(6,*) "min vals p", minval(p)
+          write(6,*) "min vals p", minval(rho),minval(p)
           write(6,*) "min vals u", minval(u%data(1)), minval(u%data(2)), minval(u%data(3)), minval(u%data(4))
           write(6,*) "max vals u", maxval(u%data(1)), maxval(u%data(2)), maxval(u%data(3)), maxval(u%data(4))
           write(6,*) 'read harm grid sizes', size(x1_arr), size(x2_arr), size(x3_arr), size(r_arr), size(th_arr), size(ph_arr)
@@ -492,32 +518,69 @@
         close(unit=8)
         end subroutine read_harm3d_grid_file
 
-        subroutine read_harm3d_data(dfile,rho,p,u0,vr,vth,vph,b0,br,bth,bph)
-        integer :: nx, status
-        real, dimension(:), allocatable :: data
+        subroutine read_harm3d_data(dfile,rho,p,u0,vr,vth,vph,b0,br,bth,bph,grid)
+        integer :: nx, status, dlen, nheader_bytes,rhopos,ppos,vpos,bpos
+        real, dimension(:,:), allocatable :: data
         real(8), intent(inout), dimension(:) :: rho,p,u0,vr,vth,vph,b0,br,bth,bph
+        real(8), intent(inout), dimension(:,:) :: grid
         real, dimension(size(rho),10) :: metric
         real, dimension(size(rho)) :: ui2
         character(len=100), intent(in) :: dfile
-        open(unit=8,file=dfile,form='unformatted',status='old')
-        read(8) nx
-        if(nx.ne.10*nx1*nx2*nx3) then
-           write(6,*) 'ERROR: INCORRECT DATA SIZE IN READ_HARM3D_DATA: ',nx,nx1,nx2,nx3
-           return
-        endif
-        allocate(data(nx))
+        character :: header_byte
+        !open(unit=8,file=dfile,form='unformatted',status='old')
+!        read(8) nx
+!        if(nx.ne.10*nx1*nx2*nx3) then
+!           write(6,*) 'ERROR: INCORRECT DATA SIZE IN READ_HARM3D_DATA: ',nx,nx1,nx2,nx3
+!           return
+!        endif
+!        allocate(data(nx))
+!        read(8) data
+!        close(8)
+
+! CHRIS NUMBERS
+        dlen=35
+        rhopos=10; ppos=rhopos+1; vpos=19; bpos=vpos+8
+        allocate(data(dlen,nx1*nx2*nx3))
+
+        open(unit=8,file=dfile,form='unformatted',access='stream',status='old',action='read')
+        nheader_bytes=1
+        read(8) header_byte
+        do while(header_byte.ne.char(10))
+           read(8) header_byte
+           nheader_bytes=nheader_bytes+1
+        end do
+        write(6,*) 'read header: ',nheader_bytes,dlen
         read(8) data
         close(8)
-        rho=data(1:nx1*nx2*nx3)
-        p=data(nx1*nx2*nx3+1:2*nx1*nx2*nx3)
-        u0=data(2*nx1*nx2*nx3+1:3*nx1*nx2*nx3)
-        vr=data(3*nx1*nx2*nx3+1:4*nx1*nx2*nx3)
-        vth=data(4*nx1*nx2*nx3+1:5*nx1*nx2*nx3)
-        vph=data(5*nx1*nx2*nx3+1:6*nx1*nx2*nx3)
-        b0=data(6*nx1*nx2*nx3+1:7*nx1*nx2*nx3)
-        br=data(7*nx1*nx2*nx3+1:8*nx1*nx2*nx3)
-        bth=data(8*nx1*nx2*nx3+1:9*nx1*nx2*nx3)
-        bph=data(9*nx1*nx2*nx3+1:10*nx1*nx2*nx3)
+
+        write(6,*) 'data first entry: ',data(:,1)
+        write(6,*) 'data last entry: ',data(:,nx1*nx2*nx3)
+
+        grid=transpose(data(4:9,:))
+!        write(6,*) 'grid: ',maxval(grid(
+        rho=data(rhopos,:)
+        p=data(ppos,:)
+        u0=data(vpos,:)
+        vr=data(vpos+1,:)
+        vth=data(vpos+2,:)
+        vph=data(vpos+3,:)
+        b0=data(bpos,:)
+        br=data(bpos+1,:)
+        bth=data(bpos+2,:)
+        bph=data(bpos+3,:)
+        
+
+!        rho=data(1:nx1*nx2*nx3)
+!        p=data(nx1*nx2*nx3+1:2*nx1*nx2*nx3)
+!        u0=data(2*nx1*nx2*nx3+1:3*nx1*nx2*nx3)
+!        vr=data(3*nx1*nx2*nx3+1:4*nx1*nx2*nx3)
+!        vth=data(4*nx1*nx2*nx3+1:5*nx1*nx2*nx3)
+!        vph=data(5*nx1*nx2*nx3+1:6*nx1*nx2*nx3)
+!        b0=data(6*nx1*nx2*nx3+1:7*nx1*nx2*nx3)
+!        br=data(7*nx1*nx2*nx3+1:8*nx1*nx2*nx3)
+!        bth=data(8*nx1*nx2*nx3+1:9*nx1*nx2*nx3)
+!        bph=data(9*nx1*nx2*nx3+1:10*nx1*nx2*nx3)
+
         deallocate(data)
 ! calculate u0 from others (from IDL grtrans):
 !        metric=kerr_metric(r_arr,th_arr,asim)
@@ -532,7 +595,10 @@
         character(len=20) :: default_ifile='harm.in'
         character(len=100), intent(in), optional :: df,hf,gf
         integer, intent(in), optional :: ntt,indft
-        nhead=29
+! MONIKA FILE NUMBER
+!        nhead=29
+! CHRIS FILE NUMBER
+        nhead=15
 ! if all inputs are given, assign variables rather than reading from file
         if (present(df)) then
            dfile = df
@@ -551,7 +617,7 @@
 !        write(6,*) 'init harm'
         call read_harm3d_data_header(nhead)
         if (abs(asim-a).gt.1e-4) then 
-           write(6,*) 'ERROR -- Different simulation and grtrans spin values!'
+           write(6,*) 'ERROR -- Different simulation and grtrans spin values!',a,asim
            return
         endif
 !        write(6,*) 'read header', nx1, nx2

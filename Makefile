@@ -5,7 +5,7 @@ FC=ifort
 AR=xiar
 ARFLAGS=rcv
 PHIFLAGS=-mmic
-OMP = -qopenmp #-mkl
+OMP = -openmp #-mkl
 OMPLIB = -liomp5 -lpthread
 FCNAME=intelem
 ifeq ($(DEBUG),1)

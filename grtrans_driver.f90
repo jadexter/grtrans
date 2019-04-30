@@ -181,9 +181,10 @@
                      !write(6,*) 'fluid properties: ',e%ncgs,e%tcgs,e%bcgs
                   endif
    
-!               write(6,*) 'emis j: ',e%j(:,1)
-!               write(6,*) 'emis n: ',e%ncgsnth
-!               write(6,*) 'emis b: ',e%bcgs
+!               write(6,*) 'emis i: ',i
+!               write(6,*) 'emis j: ',minval(e%j(:,1))
+!!               write(6,*) 'emis n: ',minval(e%ncgsnth)
+!               write(6,*) 'emis b: ',minval(e%bcgs)
 !               write(6,*) 'emis ang: ',e%incang
 ! don't integrate if there's no emission:
 !                  write(6,*) 'ej: ',sum(e%j(:,1))
@@ -204,6 +205,11 @@
 !                  endif
 !                  if (1d0/(1d0/(fac/1d10)).gt.0d0) then
                   if (fac/1d16.gt.0d0) then
+!                     write(6,*) 'emis i: ',i
+!                     write(6,*) 'emis j: ',maxval(e%j(:,1))
+!                     write(6,*) 'emis n: ',minval(e%ncgs)
+!                     write(6,*) 'emis b: ',minval(e%bcgs)
+!                     write(6,*) 'emis te: ',i,e%tcgs(maxloc(e%ncgs))
                      if(e%neq.eq.4) call rotate_emis(e,s2xi,c2xi)
 ! Call integration routine:
 !                     write(6,*) 'integrate'

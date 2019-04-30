@@ -750,13 +750,18 @@
         lcgs=GC*mbh*msun/c**2; tcgs=lcgs/c
         rhocgs=mdotcgs/mdot/lcgs**3*tcgs*rho; ncgs=rhocgs/mp
         ! Use this to convert pressure:
+!        where(rho.gt.0d0)
         pcgs=p*rhocgs/rho*c**2d0
         ! Ideal gas temperature for single fluid (i.e., no separate e-/p):
         tempcgs=pcgs/ncgs/k
-        ! And finally, bfield conversion is just square root of this:
+        ! finally, bfield conversion is just square root of this:
         bcgs=bmag*sqrt(rhocgs/rho)*c
         ! Convert HL units to cgs:
         bcgs=bcgs*sqrt(4d0*pi)
+!        elsewhere
+!           tempcgs=1d8
+!           bcgs=1d0
+!        endwhere
         end subroutine scale_sim_units
 
         subroutine andrew_sigcut(bcgs,rhocgs,tempcgs,ncgs,sigcut)
@@ -949,6 +954,7 @@
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
+!        write(6,*) 'tempcgs: ',minval(tempcgs),maxval(tempcgs),minval(f%p/f%rho),maxval(f%p/f%rho)
         call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
         tempcgs = tempcgs/(1d0+trat)
