@@ -23,6 +23,8 @@
           advance_harm3d_timestep
       use fluid_model_harmpi, only: initialize_harmpi_model, del_harmpi_data, harmpi_vals, &
           advance_harmpi_timestep
+      use fluid_model_iharm, only: initialize_iharm_model, del_iharm_data, iharm_vals, &
+          advance_iharm_timestep
       use fluid_model_koral, only: initialize_koral_model, del_koral_data, koral_vals, &
            advance_koral_timestep           
       use fluid_model_koral3d, only: initialize_koral3d_model, del_koral3d_data, koral3d_vals, &
@@ -38,7 +40,7 @@
       integer, parameter :: DUMMY=0,SPHACC=1,THINDISK=2,RIAF=3,HOTSPOT=4,PHATDISK=5,SCHNITTMAN=6
       integer, parameter :: COSMOS=10,MB=11,HARM=12,FFJET=13,NUMDISK=14,THICKDISK=15,MB09=16
       integer, parameter :: SARIAF=17,POWERLAW=18,HARM3D=19,HARMPI=20,TOY=21,KORAL=22,KORALNTH=23, &
-           SHELL=24,KORAL3D=25,KORAL3D_DISK=26,KORAL3D_TOPJET=27,KORAL3D_BOTJET=28
+           SHELL=24,KORAL3D=25,KORAL3D_DISK=26,KORAL3D_TOPJET=27,KORAL3D_BOTJET=28,IHARM=29
 
       integer :: nrelbin=0
       real :: bingammamin=1., bingammamax=1.
@@ -194,6 +196,8 @@
             call initialize_harm3d_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
         elseif(fname=='HARMPI') then
             call initialize_harmpi_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
+        elseif(fname=='IHARM') then
+            call initialize_iharm_model(a,ifile,fargs%dfile,fargs%hfile,fargs%gfile,fargs%nt,fargs%indf)
         elseif(fname=='KORAL') then
             write(6,*) 'dfile: ',fargs%dfile
             call initialize_koral_model(a,ifile,.false.,fargs%dfile,fargs%hfile,fargs%nt,fargs%indf, & 
@@ -251,6 +255,8 @@
            call advance_harm3d_timestep(dt)
         elseif(fname=='HARMPI') then
            call advance_harmpi_timestep(dt)
+        elseif(fname=='IHARM') then
+           call advance_iharm_timestep(dt)
         elseif(fname=='THICKDISK') then 
            call advance_thickdisk_timestep(dt)
         elseif(fname=='MB09') then 
@@ -312,6 +318,8 @@
                  allocate(f%kelb(nup))
                  allocate(f%kelc(nup))
                  allocate(f%keld(nup))
+              elseif(fname=='IHARM') then
+                 f%model=IHARM
               elseif(fname=='THICKDISK') then
                  f%model=THICKDISK
               elseif(fname=='MB09') then
@@ -379,6 +387,8 @@
            call del_harm3d_data()
         elseif(fname=='HARMPI') then
            call del_harmpi_data()
+        elseif(fname=='IHARM') then
+           call del_iharm_data()
         elseif(fname=='THICKDISK') then
            call del_thickdisk_data()
         elseif(fname=='MB09') then
@@ -483,6 +493,8 @@
              call get_harm3d_fluidvars(x0,real(a),f)
           CASE (HARMPI)
              call get_harmpi_fluidvars(x0,real(a),f)
+          CASE (IHARM)
+             call get_iharm_fluidvars(x0,real(a),f)
           CASE (THICKDISK)
              call get_thickdisk_fluidvars(x0,real(a),f)
           CASE (MB09)
@@ -538,6 +550,8 @@
              call convert_fluidvars_harm3d(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (HARMPI)
              call convert_fluidvars_harmpi(f,ncgs,ncgsnth,bcgs,tcgs,sp)
+          CASE (IHARM)
+             call convert_fluidvars_iharm(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (THICKDISK)
              call convert_fluidvars_thickdisk(f,ncgs,ncgsnth,bcgs,tcgs,sp)
           CASE (MB09)
@@ -698,6 +712,16 @@
              f%kelb,f%kelc,f%keld)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
         end subroutine get_harmpi_fluidvars
+
+        subroutine get_iharm_fluidvars(x0,a,f)
+        type (four_Vector), intent(in), dimension(:) :: x0
+        real, intent(in) :: a
+        type (fluid), intent(inout) :: f
+        ! Computes properties of jet solution from Broderick & Loeb (2009)
+        ! JAD 4/23/2010, fortran 3/30/2011
+        call iharm_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
+!        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
+        end subroutine get_iharm_fluidvars
 
         subroutine get_thickdisk_fluidvars(x0,a,f)
         type (four_Vector), intent(in), dimension(:) :: x0
@@ -961,6 +985,23 @@
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
         end subroutine convert_fluidvars_harm3d
+
+        subroutine convert_fluidvars_iharm(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
+        type (fluid), intent(in) :: f
+        type (source_params), intent(in) :: sp
+        real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
+        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8) :: mdot,beta_trans
+        mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
+        call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
+             bcgs,tempcgs)
+!        write(6,*) 'tempcgs: ',minval(tempcgs),maxval(tempcgs),minval(f%p/f%rho),maxval(f%p/f%rho)
+        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+             sp%gminval*(1d0/sp%muval-1d0),trat)
+        tempcgs = tempcgs/(1d0+trat)
+        call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
+             f%bmag**2d0/f%rho,bcgs,ncgsnth)
+        end subroutine convert_fluidvars_iharm
         
         subroutine convert_fluidvars_harmpi(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
         type (fluid), intent(in) :: f
