@@ -210,8 +210,8 @@
 !           rd=1.
 !        endwhere
 !        where(zr.le.(1.+sqrt(1.-a**2.)))
-! changomg this to be inside of uniqr(1)
-        where(zr.le.uniqr(1))
+! changing this to be inside of uniqr(1)
+        where(zr.le.maxval(uniqr(1),(1.+sqrt(1.-a**2.))))
            rd=1.
            pfac=1d-6
            nfac=1d-6
