@@ -202,16 +202,8 @@
         pd=(zphi-minph)/(uniqph(2)-uniqph(1))
         td=abs(theta-uniqth(lx2))/dth
         rd=(zr-uniqr(lx1))/(uniqr(ux1)-uniqr(lx1))
-! When the geodesic is inside the innermost zone center located outside the horizon, 
-! use nearest neighbor rather than interpolate
-!        where(lx1.lt.0)
-! adding this to deal with lx1 << 0 in Chris White snapshot
-!           lx1=0; ux1=1
-!           rd=1.
-!        endwhere
-!        where(zr.le.(1.+sqrt(1.-a**2.)))
-! changing this to be inside of uniqr(1)
-        where(zr.le.max(uniqr(1),(1.+sqrt(1.-a**2.))))
+! When the geodesic is inside the innermost zone center located outside the horizon, use nearest neighbor rather than interpolate
+        where(uniqr(lx1).le.max(uniqr(1),(1.+sqrt(1.-a**2.))))
            rd=1.
            pfac=1d-6
            nfac=1d-6
@@ -222,8 +214,8 @@
            bfac=1d0
         endwhere
 !        write(6,*) 'coords: ',
-!        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
-!        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
+        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
+        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
         ! th is fastest changing index
         x3l=lx3-1; x3u=ux3-1
         x2l=(lx2-1)*nx3 ; x2u=(ux2-1)*nx3
@@ -315,10 +307,13 @@
 !        write(6,*) 'harm vals rd: ',rd
 !        write(6,*) 'harm vals ux: ',nx1,ux1
 !        write(6,*) 'harm vals udotu: ',(abs(u*u+1))
+
 !        write(6,*) 'harm vals minloc: ',minloc(zr),rd(minloc(zr)), &
 !             td(minloc(zr)),x0(minloc(zr))%data(3),uniqth(lx2(minloc(zr))), &
 !             lx2(minloc(zr)),pd(minloc(zr)),lx1(minloc(zr)),ux1(minloc(zr)), &
 !             uniqx1(1),x1(minloc(zr))
+!        write(6,*) 'harm vals minloc u0 vrl: ',u(minloc(zr))%data(1),vrl0(minloc(zr))
+!        write(6,*) 'harm vals minloc u0i vrli: ',u0i(minloc(zr),:),vrli(minloc(zr),:)
 !        write(6,*) 'harm vals minloc b0i: ',b0i(minloc(zr),:)
 !        write(6,*) 'harm vals minloc bri: ',bri(minloc(zr),:)
 !        write(6,*) 'harm vals minloc bthi: ',bthi(minloc(zr),:)
