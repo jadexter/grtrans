@@ -214,8 +214,8 @@
            bfac=1d0
         endwhere
 !        write(6,*) 'coords: ',
-        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
-        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
+!        write(6,*) 'rd td pd: ',minval(rd),maxval(rd),minval(td),maxval(td),minval(pd),maxval(pd)
+!        write(6,*) 'ux lx: ',minval(lx1),maxval(ux1),minval(lx2),maxval(ux2),minval(lx3),maxval(ux3)
         ! th is fastest changing index
         x3l=lx3-1; x3u=ux3-1
         x2l=(lx2-1)*nx3 ; x2u=(ux2-1)*nx3
