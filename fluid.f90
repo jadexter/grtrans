@@ -973,7 +973,7 @@
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8), dimension(size(f%rho)) :: trat,rhocgs
         real(kind=8) :: mdot,beta_trans
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
@@ -984,6 +984,9 @@
         tempcgs = tempcgs/(1d0+trat)
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
+! adding option to remove emission from highly magnetized regions \sigma > sigcut
+        rhocgs=ncgs*mp
+        call andrew_sigcut(bcgs,rhocgs,tempcgs,ncgs,dble(sp%sigcut))
         end subroutine convert_fluidvars_harm3d
 
         subroutine convert_fluidvars_iharm(f,ncgs,ncgsnth,bcgs,tempcgs,sp)
