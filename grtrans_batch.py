@@ -565,17 +565,17 @@ class grtrans:
 # calculate image first and second moments and use to get xy centroids and semi-major/minor axes
     def calc_centroid_size(self,pgrtrans=-1):
         self.calc_spec(self.nx)
-        nimages=len(x.spec[0])
+        nimages=len(self.spec[0])
         M00=np.sum(self.ivals[:,0],0)
         M10=np.zeros(nimages); M01=np.zeros(nimages); M11=np.zeros(nimages)
         M20=np.zeros(nimages); M02=np.zeros(nimages)
-        for k in range(len(x.spec[0])):
-            w=x.ivals[:,0,k]
-            M01.append(np.sum(w*x.ab[:,0]))
-            M10.append(np.sum(w*x.ab[:,1]))
-            M20.append(np.sum(w*x.ab[:,0]**2.))
-            M02.append(np.sum(w*x.ab[:,1]**2.))
-            M11.append(np.sum(w*x.ab[:,0]*x.ab[:,1]))
+        for k in range(nimages):
+            w=self.ivals[:,0,k]
+            M01.append(np.sum(w*self.ab[:,0]))
+            M10.append(np.sum(w*self.ab[:,1]))
+            M20.append(np.sum(w*self.ab[:,0]**2.))
+            M02.append(np.sum(w*self.ab[:,1]**2.))
+            M11.append(np.sum(w*self.ab[:,0]*self.ab[:,1]))
         xcen=M10/M00; ycen=M01/M00; mu20=M20/M00-xcen**2.; mu11=M11/M00-xcen*ycen
         mu02=M02-ycen**2.
 # now do semi-major/minor axis and orientation in terms of moments
