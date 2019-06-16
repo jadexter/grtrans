@@ -577,7 +577,7 @@ class grtrans:
             M02[k]=np.sum(w*self.ab[:,1]**2.)
             M11[k]=np.sum(w*self.ab[:,0]*self.ab[:,1])
         xcen=M10/M00; ycen=M01/M00; mu20=M20/M00-xcen**2.; mu11=M11/M00-xcen*ycen
-        mu02=M02-ycen**2.
+        mu02=M02/M00-ycen**2.
 # now do semi-major/minor axis and orientation in terms of moments
         theta=1./2.*np.arctan(2.*mu11/(mu20-mu02))
         fac=np.sqrt(4.*mu11**2.+(mu20-mu02)**2.)
