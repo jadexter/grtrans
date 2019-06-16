@@ -571,11 +571,11 @@ class grtrans:
         M20=np.zeros(nimages); M02=np.zeros(nimages)
         for k in range(nimages):
             w=self.ivals[:,0,k]
-            M01.append(np.sum(w*self.ab[:,0]))
-            M10.append(np.sum(w*self.ab[:,1]))
-            M20.append(np.sum(w*self.ab[:,0]**2.))
-            M02.append(np.sum(w*self.ab[:,1]**2.))
-            M11.append(np.sum(w*self.ab[:,0]*self.ab[:,1]))
+            M01[k]=np.sum(w*self.ab[:,0])
+            M10[k]=np.sum(w*self.ab[:,1])
+            M20[k]=np.sum(w*self.ab[:,0]**2.)
+            M02[k]=np.sum(w*self.ab[:,1]**2.)
+            M11[k]=np.sum(w*self.ab[:,0]*self.ab[:,1])
         xcen=M10/M00; ycen=M01/M00; mu20=M20/M00-xcen**2.; mu11=M11/M00-xcen*ycen
         mu02=M02-ycen**2.
 # now do semi-major/minor axis and orientation in terms of moments
