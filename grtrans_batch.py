@@ -571,8 +571,8 @@ class grtrans:
         M20=np.zeros(nimages); M02=np.zeros(nimages)
         for k in range(nimages):
             w=self.ivals[:,0,k]
-            M01[k]=np.sum(w*self.ab[:,0])
-            M10[k]=np.sum(w*self.ab[:,1])
+            M10[k]=np.sum(w*self.ab[:,0])
+            M01[k]=np.sum(w*self.ab[:,1])
             M20[k]=np.sum(w*self.ab[:,0]**2.)
             M02[k]=np.sum(w*self.ab[:,1]**2.)
             M11[k]=np.sum(w*self.ab[:,0]*self.ab[:,1])
