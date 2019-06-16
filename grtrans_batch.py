@@ -559,7 +559,32 @@ class grtrans:
         da = self.ab[self.nx,0]-self.ab[0,0]
         db = self.ab[1,1]-self.ab[0,1]
         self.ivals *= fac*da*db
-        self.spec *= fac            
+        self.spec *= fac
+
+# test code 6/15/2019
+# calculate image first and second moments and use to get xy centroids and semi-major/minor axes
+    def calc_centroid_size(self,pgrtrans=-1):
+        self.calc_spec(self.nx)
+        nimages=len(x.spec[0])
+        M00=np.sum(self.ivals[:,0],0)
+        M10=np.zeros(nimages); M01=np.zeros(nimages); M11=np.zeros(nimages)
+        M20=np.zeros(nimages); M02=np.zeros(nimages)
+        for k in range(len(x.spec[0])):
+            w=x.ivals[:,0,k]
+            M01.append(np.sum(w*x.ab[:,0]))
+            M10.append(np.sum(w*x.ab[:,1]))
+            M20.append(np.sum(w*x.ab[:,0]**2.))
+            M02.append(np.sum(w*x.ab[:,1]**2.))
+            M11.append(np.sum(w*x.ab[:,0]*x.ab[:,1]))
+        xcen=M10/M00; ycen=M01/M00; mu20=M20/M00-xcen**2.; mu11=M11/M00-xcen*ycen
+        mu02=M02-ycen**2.
+# now do semi-major/minor axis and orientation in terms of moments
+        theta=1./2.*np.arctan(2.*mu11/(mu20-mu02))
+        fac=np.sqrt(4.*mu11**2.+(mu20-mu02)**2.)
+        amax=np.sqrt(8.*(mu20+mu02+fac))
+        amin=np.sqrt(8.*(mu20+mu02-fac))
+        self.xcen=xcen; self.ycen=ycen; self.theta=theta
+        self.amin=amin; self.amax=amax
 
     def disp_grtrans_image(self,idex=0,stokes=0,logscale=False,vmin=False,vmax=False):
         f=plt.figure()
