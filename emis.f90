@@ -2,7 +2,7 @@
        module emissivity
        use math
        use polsynchemis, only: initialize_polsynchpl,polsynchpl, &
-        polsynchth,del_polsynchpl,synchpl,bnu,synchemis,synchemisnoabs,synchbinemis
+        polsynchth,del_polsynchpl,synchpl,bnu,synchemis,synchemisnoabs,synchbinemis,sympolemisth
        use chandra_tab24, only: interp_chandra_tab24
        use calc_maxjutt, only: calc_maxjutt_subroutine
        use calc_maxcomp, only: calc_maxcomp_subroutine
@@ -12,7 +12,8 @@
        integer,parameter :: ELAMBDA=0,ESYNCHTH=1,EPOLSYNCHTH=2, &
                   ESYNCHPL=3,EPOLSYNCHPL=4,EBREMS=5,ELINE=6, &
                   EIRON=7,EBB=8,EBBPOL=9,EINTERP=10,EFBB=11,ERHO=12, &
-                  ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EHYBRIDTHPL = 20, &
+                  ESYNCHTHAV=13, ESYNCHTHAVNOABS=14, EPOLSYNCHSYMTH=15, &
+                  EHYBRIDTHPL = 20, &
                   EHYBRIDTH=21, EHYBRIDPL=22, EMAXJUTT=23, EMAXCOMP=24, &
                   EBINS=25, EHYBRIDTHBINS=26, ESYNCHTHBREMS=27
 
@@ -356,6 +357,9 @@
          elseif(ename=='INTERPPOL') then
            e%neq=4
            e%type=EINTERP
+         elseif(ename=='POLSYNCHSYMTH') then
+            e%type=EPOLSYNCHSYMTH
+            e%neq=4
          else
            write(6,*) 'WARNING -- Emissivity not recognized!'
          endif
@@ -488,6 +492,8 @@
 !              write(6,*) 'polsynchth bcgs: ',e%bcgs
 !              write(6,*) 'polsynchth tcgs: ',e%tcgs
              call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,K)
+           case(epolsynchsymth)
+              call sympolemisth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,K)
            case(epolsynchpl)
 !              write(6,*) 'ppl nu', nu
 !             write(6,*) 'ppl n', e%ncgsnth
@@ -581,6 +587,8 @@
            CASE (EMAXCOMP) !alwinnote 2015/03/05
              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EPOLSYNCHTH)
+              e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
+           CASE (EPOLSYNCHSYMTH)
               e%ncgs=ncgs; e%bcgs=bcgs; e%tcgs=tcgs
            CASE (EBINS) !AC
              e%bcgs=bcgs;  e%nnthcgs=nnthcgs              
@@ -729,6 +737,9 @@
            CASE (EPOLSYNCHTH)
              deallocate(e%tcgs); deallocate(e%ncgs)
              deallocate(e%bcgs); deallocate(e%incang)
+           CASE (EPOLSYNCHSYMTH)
+              deallocate(e%tcgs); deallocate(e%ncgs)
+             deallocate(e%bcgs); deallocate(e%incang)
            CASE (EPOLSYNCHPL)
              deallocate(e%ncgs); deallocate(e%tcgs)
              deallocate(e%bcgs); deallocate(e%incang)
@@ -857,6 +868,8 @@
            CASE (EMAXCOMP) !alwinnote 2015/07/22
              call emis_model_synchth(e,ep%mu)
            CASE (EPOLSYNCHTH)
+             call emis_model_synchth(e,ep%mu)
+           CASE (EPOLSYNCHSYMTH)
              call emis_model_synchth(e,ep%mu)
            CASE (EPOLSYNCHPL)
              call emis_model_synchpl(e,ep%gmin,ep%gmax,ep%p1)

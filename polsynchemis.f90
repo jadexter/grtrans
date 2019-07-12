@@ -1000,6 +1000,35 @@
       e(:,5:11)=0.
       end subroutine synchemisnoabs
 
+      subroutine sympolemisth(nu,n,b,t,theta,e)
+        use phys_constants, ec=>e
+! Pandya+2016 fitting functions for thermal pol synchrotron
+        real(kind=8), intent(in), dimension(:) :: nu,n,t,b,theta
+        real(kind=8), intent(out), dimension(size(n),11) :: e
+        real(kind=8), dimension(size(n)) :: thetae,nuc,xm,ji, &
+             jq,jv,ju,bnutnu
+        real(kind=8), dimension(size(n)) :: fac,jis,jqs,jvs,x
+        real(kind=8) :: nucminval = 1d0
+        real(kind=8) :: thetaemin = 1d-10
+        e(:,:) = 0d0
+        thetae = k*t/m/c**2.d0+thetaemin
+        nuc = ec*b/m/c/2.d0/pi+nucminval
+        x = nu/(2.d0/9.d0*nuc*thetae**2.d0*sin(theta))
+        jis = sqrt(2.d0)*pi/27.d0*sin(theta)*(sqrt(x)+2.d0**(11.d0/12.d0)*x**(1.d0/6.d0))**2.d0
+        jqs = -sqrt(2.d0)*pi/27.d0*sin(theta)*(sqrt(x)+(7.d0*thetae**(24.d0/25.d0)+35.d0) &
+             /(10.d0*thetae**(24.d0/25.d0)+75.d0)*2.d0**(11.d0/12.d0)*x**(1.d0/6.d0))**2.d0
+        jvs = -(37.d0-87.d0*sin(theta-28.d0/25.d0))/100.d0/(thetae+1.d0)* & 
+             (1.d0+(thetae**(3.d0/5.d0)/25.d0+7.d0/10.d0)*x**(9.d0/25.d0))**(5.d0/3.d0)
+        fac=n*ec**2.d0/c*nuc*exp(-(x**(1.d0/3.d0)))
+        ji=fac*jis; jq=-fac*jqs; jv=-fac*jvs
+        e(:,1) = ji; e(:,2) = jq; e(:,4) = jv
+        bnutnu=bnu(t,nu)
+        e(:,5)=ji/bnutnu
+        e(:,6)=jq/bnutnu
+        e(:,8)=jv/bnutnu
+        
+      end subroutine sympolemisth
+
       function bnu(T,nu)
       ! Planck spectrum for array of T, scalar nu in cgs units.
       ! JAD 2/2/2009
