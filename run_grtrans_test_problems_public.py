@@ -1,7 +1,17 @@
+from __future__ import print_function
 import grtrans_batch as gr
 import pickle
 import numpy as np
 import copy
+import sys
+
+def load_pickle(file):
+    with open(file, 'rb') as f:
+        if sys.version_info.major > 2:
+            data = pickle.load(f, encoding='latin1')
+        else:
+            data = pickle.load(f)
+    return data
 
 def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
     # run grtrans test problems
@@ -25,18 +35,18 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
             xlist[-1].run_pgrtrans(fname='SPHACC',nfreq=25,nmu=1,fmin=1e8,fmax=1e15,ename='SYNCHTHAV',nvals=1,spin=0.,mbh=1.,standard=1,nn=[10000,1,100],gridvals=[0.,400.,0.,0.],uout=.0025,oname='sphacc_abs.out')
             xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
         if save==0:
-            i = pickle.load(open('test_grtrans_sphacc_intensity.p','rb'))
+            i = load_pickle('test_grtrans_sphacc_intensity.p')
             if pgrtrans==0:
                 terr = np.sum(np.abs(xlist[-1].ivals[:,0,14]-i))/np.sum(np.abs(i))
             else:
                 terr = np.sum(np.abs(xlist[-1].ivals[0,:,14]-i))/np.sum(np.abs(i))
-            print 'terr: ',terr
+            print('terr: ',terr)
             if terr < (10*tol): passed+=1
             else: failed.append('sphacc intensity')
             max_passed+=1
-            i = pickle.load(open('test_grtrans_sphacc_spectrum.p','rb'))
+            i = load_pickle('test_grtrans_sphacc_spectrum.p')
             terr = np.sum(np.abs(xlist[-1].spec-i))/np.sum(np.abs(i))
-            print 'terr: ',terr
+            print('terr: ',terr)
             if terr < (10*tol): passed+=1
             else: failed.append('sphacc spectrum')
             max_passed+=1
@@ -54,12 +64,12 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].run_pgrtrans(fname='FFJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHPL',nvals=4,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],ntscl=2.,nrscl=70.)
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
-        i = pickle.load(open('test_grtrans_ffjet.p','rb'))
+        i = load_pickle('test_grtrans_ffjet.p')
         if pgrtrans==0:
             terr = np.sum(np.abs(xlist[-1].ivals-i))/np.sum(np.abs(i))
         else:
             terr = np.sum(np.abs(xlist[-1].ivals.transpose([1,0,2])-i))/np.sum(np.abs(i))
-        print 'terr: ',terr
+        print('terr: ',terr)
         if terr < tol: passed+=1
         else: failed.append('ffjet')
         max_passed+=1
@@ -76,7 +86,7 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         x2.calc_spec_pgrtrans((np.shape(x2.ivals))[2])
     terr=10.
     terr = np.max(np.abs(x2.spec - xlist[-1].spec)/xlist[-1].spec)
-    print 'terr: ',terr
+    print('terr: ',terr)
     if terr < 0.05: passed += 1
     else: failed.append('delo')
     max_passed+=1
@@ -91,7 +101,7 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         x3.calc_spec_pgrtrans((np.shape(x3.ivals))[2])
     terr=10.
     terr = np.max(np.abs(x3.spec - xlist[-1].spec)/xlist[-1].spec)
-    print 'terr: ',terr
+    print('terr: ',terr)
     if terr < 0.05: passed += 1
     else: failed.append('formal')
     max_passed+=1
@@ -106,12 +116,12 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].run_pgrtrans(fname='THINDISK',nfreq=25,nmu=1,fmin=2.41e16,fmax=6.31e18,ename='BBPOL',nvals=4,spin=0.9,standard=2,nn=[100,100,1],uout=0.01,mbh=10, mumin=.26,mumax=.26,gridvals=[-21,21,-21,21])
         xlist[-1].calc_spec_pgrtrans(xlist[-1].nx)
     if save==0:
-        i = pickle.load(open('test_grtrans_thindisk.p','rb'))
+        i = load_pickle('test_grtrans_thindisk.p')
         if pgrtrans==0:
             terr = np.sum(np.abs(xlist[-1].ivals-i))/np.sum(np.abs(i))
         else:
             terr = np.sum(np.abs(xlist[-1].ivals.transpose([1,0,2])-i))/np.sum(np.abs(i))
-        print 'terr: ',terr
+        print('terr: ',terr)
         if terr < tol: passed+=1
         else: failed.append('thindisk')
         max_passed+=1
@@ -127,12 +137,12 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].run_pgrtrans(fname='FFJET',fdfile='m87bl09rfp10xi5a998fluidvars.bin',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='SYNCHPL',nvals=1,spin=0.998,standard=1,nn=[100,100,400],uout=0.01,mbh=3.4e9, mumin=.906,mumax=.906,gridvals=[-40,20,-20,40],ntscl=2.,nrscl=70.)
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
-        i = pickle.load(open('test_grtrans_ffjet.p','rb'))
+        i = load_pickle('test_grtrans_ffjet.p')
         if pgrtrans == 0:
             terr = np.sum(np.abs(xlist[-1].ivals[:,0,0]-i[:,0,0]))/np.sum(abs(i[:,0,0]))
         else:
             terr = np.sum(np.abs(xlist[-1].ivals[0,:,0]-i[:,0,0]))/np.sum(abs(i[:,0,0]))
-        print 'terr: ',terr
+        print('terr: ',terr)
         if terr < tol: passed+=1
         else: failed.append('polunpol')
         max_passed+=1
@@ -147,14 +157,14 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].run_pgrtrans(fname='HARM',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=0.9375,standard=1,nn=[150,150,400],uout=0.04,mbh=4e6, mdotmin=1.57e15,mdotmax=1.57e15,nmdot=1,mumin=.6428,mumax=.6428,gridvals=[-13.,13.,-13.,13.],fhfile='dump040',fdfile='dump',findf=40,fnt=1,muval=1./4.,gmin=1.)
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
-        i = pickle.load(open('test_grtrans_harm.p','rb'))
+        i = load_pickle('test_grtrans_harm.p')
         xlist[-1].ivals = np.where(xlist[-1].ivals==xlist[-1].ivals,xlist[-1].ivals,np.zeros(np.shape(xlist[-1].ivals)))
         i = np.where(i==i,i,np.zeros(np.shape(i)))
         if pgrtrans==0:
             terr = np.sum(np.abs(xlist[-1].ivals[:,0,0]-i[:,0,0]))/np.sum(abs(i[:,0,0]))
         else:
             terr = np.sum(np.abs(xlist[-1].ivals[0,:,0]-i[:,0,0]))/np.sum(abs(i[:,0,0]))
-        print 'terr: ',terr
+        print('terr: ',terr)
         if terr < tol: passed+=1
         else: failed.append('harm')
         max_passed+=1
@@ -170,7 +180,7 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
         xlist[-1].run_pgrtrans(fname='POWERLAW',nfreq=1,nmu=1,fmin=3.45e11,fmax=3.45e11,ename='POLSYNCHTH',nvals=4,spin=0.,standard=1,nn=[200,200,1600],uout=0.00005,mbh=4e6, mumin=0.5,mumax=0.5,nrotype=1,gridvals=[1200.,4000.,0.,2.*np.pi],iname='lsoda',srin=3200.,srout=3300.,ntscl=5e11,sthin=-0.02,sthout=0.02,rcut=4000.,snscl=1e5,phi0=-0.5,sphiin=0.,gmin=1.)
         xlist[-1].calc_spec_pgrtrans((np.shape(xlist[-1].ivals))[2])
     if save==0:
-        i = pickle.load(open('test_toroidalfield.p','rb'))
+        i = load_pickle('test_toroidalfield.p')
         xlist[-1].ivals = np.where(xlist[-1].ivals==xlist[-1].ivals,xlist[-1].ivals,np.zeros(np.shape(xlist[-1].ivals)))
         i = np.where(i==i,i,np.zeros(np.shape(i)))
 #        if pgrtrans==0:
@@ -181,15 +191,15 @@ def run_test_problems(save=0,pgrtrans=0,nosphacc=0,compile=0):
             terr = np.sum(np.abs(xlist[-1].ivals-i))/np.sum(np.abs(i))
         else:
             terr = np.sum(np.abs(xlist[-1].ivals.transpose([1,0,2])-i))/np.sum(np.abs(i))
-        print 'terr: ',terr
+        print('terr: ',terr)
         if terr < (2*tol): passed+=1
         else: failed.append('toroidal')
         max_passed+=1
     else:
         pickle.dump(xlist[-1].ivals,open('test_toroidalfield.p','wb'))
 
-    print 'tests total: ', max_passed
-    print 'tests passed: ', passed
-    print 'tests failed: ',failed        
+    print('tests total: ', max_passed)
+    print('tests passed: ', passed)
+    print('tests failed: ',failed)
 
     return passed, max_passed, failed, xlist
