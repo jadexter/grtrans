@@ -1,3 +1,4 @@
+from __future__ import print_function
 from geokerr import class_geokerr
 import numpy as np
 
@@ -31,7 +32,7 @@ class geokerr:
         self.inputs=geokerr_inputs(**kwargs)
 # test for presence of data in class_geokerr
         if len(np.shape(class_geokerr.aarr)) > 0:
-            print 'ERROR in initialize_geokerr_camera: data already exist!'
+            print('ERROR in initialize_geokerr_camera: data already exist!')
             return
         else:
 # initialize camera, save outputs, and delete class_geokerr data
@@ -59,7 +60,7 @@ class geokerr:
 
     def run_single_geodesic(self,i):
         if (i < 0) or (i >= self.inputs.n[0]*self.inputs.n[1]):
-            print 'error: invalid value of geodesic index for given camera ',i,self.inputs.n[0]*self.inputs.n[1]
+            print('error: invalid value of geodesic index for given camera ',i,self.inputs.n[0]*self.inputs.n[1])
 # first initialize geodesic at full length and call geokerr
         if self.inputs.mufill==0:
             self.npts = self.inputs.n[2]
@@ -69,7 +70,7 @@ class geokerr:
         class_geokerr.call_geokerr(self.u0,self.uf[i],self.inputs.uout,self.inputs.mu0,self.muf[i],self.inputs.a,self.l[i],self.q2[i],self.alpha[i],self.beta[i],self.tpm[i],self.tpr[i],self.su[i],self.sm[i],self.inputs.n[2],self.offset,self.inputs.phit,self.inputs.usegeor,self.inputs.mufill,self.inputs.kext,self.inputs.next)
 # now copy useful parts of geodesic
         self.i1=0
-#        print 'class geokerr tpri: ',class_geokerr.tpri[-1]
+#        print('class geokerr tpri: ',class_geokerr.tpri[-1])
         if class_geokerr.tpri[self.inputs.n[2]-1]==0:
             self.i2=self.inputs.n[2]
         else:
@@ -87,12 +88,12 @@ class geokerr:
     def run_camera(self,**kwargs):
         self.initialize_geokerr_camera(**kwargs)
 # initialize large arrays with all geodesic data
-        #print self.inputs.mufill
+        #print(self.inputs.mufill)
         if self.inputs.mufill==0:
             n = self.inputs.n[2]
         else:
             n = self.inputs.n[2]-self.inputs.kext*2+self.inputs.next
-        #print self.inputs.n[2], n
+        #print(self.inputs.n[2], n)
         
         uarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n))
         muarr = np.zeros((self.inputs.n[0]*self.inputs.n[1],n))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 #import numpy.linalg
 import scipy.integrate
@@ -64,10 +65,37 @@ def imatrix_4(a):
     imatrix = 1./detA*np.array([[b11,b12,b13,b14],[b21,b22,b23,b24],[b31,b32,b33,b34],[b41,b42,b43,b44]])
     return imatrix,detA
 
+def calc_M(a,rho):
+    ai=a[:,0]; aq=a[:,1];au=a[:,2];av=a[:,3] #= a# = a[1]; au = a[2]; av = a[3]
+#    onopol=np.exp(-ai*x)
+    rhoq = rho[:,0]; rhou = rho[:,1]; rhov = rho[:,2]
+    a2 = aq**2.+au**2.+av**2.
+    p2 = rhoq**2.+rhou**2.+rhov**2.
+    if np.sum(a2)==0. and np.sum(p2)==0.:
+        return np.identity(4)*onopol,0.,0.,0.,0.
+    else:
+        ap = aq*rhoq+au*rhou+av*rhov
+        lam1 = np.sqrt(np.sqrt((a2-p2)**2./4.+ap**2.)+(a2-p2)/2.)
+        lam2 = np.sqrt(np.sqrt((a2-p2)**2./4.+ap**2.)-(a2-p2)/2.)
+        theta = lam1**2.+lam2**2.
+        sig = np.sign(ap)
+        zero = 0.*ap
+        M2 = np.array([[zero,lam2*aq-sig*lam1*rhoq,lam2*au-sig*lam1*rhou,lam2*av-sig*lam1*rhov],[lam2*aq-sig*lam1*rhoq,zero,sig*lam1*av+lam2*rhov,-sig*lam1*au-lam2*rhou],[lam2*au-sig*lam1*rhoq,-sig*lam1*av-lam2*rhov,zero,sig*lam1*aq+lam2*rhoq],[lam2*av-sig*lam1*rhov,sig*lam1*au+lam2*rhou,-sig*lam1*aq-lam2*rhoq,zero]])
+        M3 = np.array([[zero,lam1*aq+sig*lam2*rhoq,lam1*au+sig*lam2*rhou,lam1*av+sig*lam2*rhov],[lam1*aq+sig*lam2*rhoq,zero,-sig*lam2*av+lam1*rhov,sig*lam2*au-lam1*rhou],[lam1*au+sig*lam2*rhou,sig*lam2*av-lam1*rhov,zero,-sig*lam2*aq+lam1*rhoq],[lam1*av+sig*lam2*rhov,-sig*lam2*au+lam1*rhou,sig*lam2*aq-lam1*rhoq,zero]])
+        M4 = np.array([[(a2+p2)/2.,av*rhou-au*rhov,aq*rhov-av*rhoq,au*rhoq-aq*rhou],[au*rhov-av*rhou,aq**2.+rhoq**2.-(a2+p2)/2.,aq*au+rhoq*rhou,av*aq+rhov*rhoq],[av*rhoq-aq*rhov,aq*au+rhoq*rhou,au**2.+rhou**2.-(a2+p2)/2.,au*av+rhou*rhov],[aq*rhou-au*rhoq,av*aq+rhoq*rhov,av*au+rhou*rhov,av**2.+rhov**2.-(a2+p2)/2.]])
+    return M2,M3,M4,lam1,lam2,theta
+
+# this is intended to be called with 4x4 matrices M1,M2,M3,M4 and scalar lam1,lam2,x
+def calc_O_M(M1,M2,M3,M4,lam1,lam2,ai,x):
+    onopol = np.exp(-ai*x)
+    O = onopol*(1./2.*(np.cosh(lam1*x)+np.cos(lam2*x))*M1 - np.sin(lam2*x)*M2-np.sinh(lam1*x)*M3+1./2.*(np.cosh(lam1*x)-np.cos(lam2*x))*M4)
+    return O
+
 def calc_O(a,rho,x):
-    onopol = np.exp(-a[0]*x)
-    aq = a[1]; au = a[2]; av = a[3]
-    rhoq = rho[0]; rhou = rho[1]; rhov = rho[2]
+#    onopol = np.exp(-a[0]*x)
+    ai,aq,au,av = a# = a[1]; au = a[2]; av = a[3]
+    onopol = np.exp(-ai*x)
+    rhoq,rhou,rhov = rho#rho[0]; rhou = rho[1]; rhov = rho[2]
     a2 = aq**2.+au**2.+av**2.
     p2 = rhoq**2.+rhou**2.+rhov**2.
     if np.sum(a2)==0. and np.sum(p2)==0.:
@@ -172,11 +200,13 @@ def intensity_var(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.array([1.,0.,0
     intprev = I0; iprev = I0; xprev = 0.; jprev = np.zeros(4)
 # intensity for constant coefs is integral along path + attenuated initial intensity
     identity = np.identity(4)
-    o[0,:,:] = np.identity(4)
+    o[0,:,:] = identity
+    M1=identity
+    print('calc_M: ',np.shape(a),np.shape(rho))
+    M2,M3,M4,lam1,lam2,theta = calc_M(a,rho)
     for k in range(len(x)-1):
-        o[k+1,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],x[k+1]-x[k])
-#        jj = (j[k+1,:]+j[k,:])/2.
-#        oo = (o[k+1,:,:]+o[k,:,:])/2.
+#        o[k+1,:,:],M1,M2,M3,M4 = calc_O(a[k,:],rho[k,:],x[k+1]-x[k])
+        o[k+1,:,:] = calc_O_M(M1,1./theta[k]*M2[:,:,k],1./theta[k]*M3[:,:,k],2./theta[k]*M4[:,:,k],lam1[k],lam2[k],a[k,0],x[k+1]-x[k])
         jj=j[k,:]
         oo=o[k,:,:]
 # try "symplectic" where intprev is updated for Q early:
@@ -213,7 +243,7 @@ def intensity_var_backwards(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.arra
         jj = j[k,:]
         integrand[k,:] = ocum[k,:,:].dot(jj)
 
-    print 'len: ',len(i[:,0]),len(integrand[:,0]), len(x)
+    print('len: ',len(i[:,0]),len(integrand[:,0]), len(x))
 
     for m in range(4):
 #        i[:,m] = scipy.integrate.cumtrapz(integrand[:,m],x,initial=0.)

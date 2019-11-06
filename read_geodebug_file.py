@@ -80,3 +80,4 @@ class geodebug:
         self.bhr = np.array(data[60].split(),dtype=float)
         self.bhth = np.array(data[61].split(),dtype=float)
         self.bhph = np.array(data[62].split(),dtype=float)
+        self.fac = np.array(data[63].split(),dtype=float)

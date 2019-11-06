@@ -153,7 +153,7 @@ polsynchemis.o: ./polsynchemis.f90 phys_constants.o bessel.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./polsynchemis.f90
 rad_trans.o: ./rad_trans.f90 read_inputs.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./rad_trans.f90
-radtrans_integrate.o: ./radtrans_integrate.f90 odepack.o interpolate.o
+radtrans_integrate.o: ./radtrans_integrate.f90 odepack.o interpolate.o math.o
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./radtrans_integrate.f90
 read_inputs.o: ./read_inputs.f90
 	$(FC) $(FFLAGS) $(OTHERFLAGS) -c	./read_inputs.f90
@@ -188,7 +188,7 @@ radtrans_integrate:
 	f2py -c radtrans_integrate.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m radtrans_integrate $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
 
 polsynchemis:
-	f2py -c polsynchemis.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m polsynchemis $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a
+	f2py -c polsynchemis.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m polsynchemis $(LIBS) $(GRTRANSDIR)/libgrtrans.a
 
 calcgmin::
 	f2py -c calcgmin.f90 --fcompiler=$(FCNAME) --f90flags="$(FFLAGS) $(OTHERFLAGS)" -m calcgmin $(LIBS) $(OMPLIB) $(GRTRANSDIR)/libgrtrans.a

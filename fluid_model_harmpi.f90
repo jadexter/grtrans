@@ -652,6 +652,10 @@
         where(zphi.lt.0.)
             zphi=zphi+2.*pi
         endwhere
+! JAD 10/28/2019 ADDING ANOTHER ROUND FOR < -2\pi!
+        where(zphi.lt.0.)
+           zphi=zphi+2.*pi
+        endwhere
 !        write(6,*) 'harmpi vals transform'
         if(BL.eq.3) then
            call transformbl2mksbl3(zr,theta,zphi,x1,x2,x3)

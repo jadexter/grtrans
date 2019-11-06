@@ -706,8 +706,6 @@
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         type (fluid), intent(inout) :: f
-        ! Computes properties of jet solution from Broderick & Loeb (2009)
-        ! JAD 4/23/2010, fortran 3/30/2011
         call harmpi_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%kela, &
              f%kelb,f%kelc,f%keld)
 !        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b

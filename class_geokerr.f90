@@ -82,7 +82,7 @@ module class_geokerr
              tpm,tpr,su,sm,nup,offset,phit,usegeor,mufill,ncase, &
              kext,next,u,mu,dt,dphi,tpmi,tpri,lam)
         call cpu_time(tend)
-        write(6,*) 'geokerr time elapsed: ',tend-tstart
+!        write(6,*) 'geokerr time elapsed: ',tend-tstart
 !        write(6,*) 'after geokerr', ncase
 !        write(6,*) 'sizes: ',size(ufi), size(u), size(mufi), size(mu)
 !        write(6,*) 'sizes: ',size(dti), size(dt), size(lambdai), size(lam)

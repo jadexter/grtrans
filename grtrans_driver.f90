@@ -378,6 +378,7 @@
                      write(9,*) e%K(:,4)
                      write(9,*) e%K(:,5)
                      write(9,*) e%K(:,7)
+! JAD 10/28/2019 removed /LBH/fac part here not sure ??
                      write(9,*) r%I(1,:)/fac/LBH
                      write(9,*) r%I(2,:)/fac/LBH
                      write(9,*) r%I(3,:)/fac/LBH
@@ -428,6 +429,7 @@
                      write(9,*) bhr
                      write(9,*) bhth
                      write(9,*) bhph
+                     write(9,*) fac
                      close(unit=9)
                      deallocate(aahat); deallocate(aat)
                      deallocate(bht); deallocate(kht)

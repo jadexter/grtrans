@@ -716,60 +716,17 @@
            c2xi=one
            angnorm=0.5d0
         endwhere
-!        testindx=maxloc(bdotb,1)
-!        write(6,*) 'bperp bp: ',bpdotbp(testindx)
-!        write(6,*) 'bperp bdotb: ',bdotb(testindx)
-!        write(6,*) 'bperp aadotbp: ',aadotbp(testindx)
-!        write(6,*) 'bperp s2xi: ',s2xi(testindx)
-!        write(6,*) 'bperp c2xi: ',c2xi(testindx)
-!        write(6,*) 'unit vectors: ',dot_product(bbhat,bbhat),dot_product(aahat,aahat),sqrt(knorm)
-!        write(6,*) 'orthogonal: ',dot_product(aahat,bbhat),(aahat(:,1)*khatr+aahat(:,2)*khatm+aahat(:,3)*khatp)/sqrt(knorm), &
-!             (bbhat(:,1)*khatr+bbhat(:,2)*khatm+bbhat(:,3)*khatp)/sqrt(knorm)
-!        cxitest=-(bbhat(:,1)*bhat%data(2)+bbhat(:,2)*bhat%data(3)+bbhat(:,3)*bhat%data(4))/sqrt(bdotb) + &
-!             (bbhat(:,1)*khatr+bbhat(:,2)*khatm+bbhat(:,3)*khatp)*(khat*bhat)/knorm/sqrt(bdotb)
-!        sxitest=(aahat(:,1)*bhat%data(2)+aahat(:,2)*bhat%data(3)+aahat(:,3)*bhat%data(4))/sqrt(bdotb) - &
-!             (aahat(:,1)*khatr+aahat(:,2)*khatm+aahat(:,3)*khatp)*(khat*bhat)/knorm/sqrt(bdotb)
-        !write(6,*) 'cxitest: ',cxi,cxitest
-        !write(6,*) 'sxitest: ',sxi,sxitest
-!        s2xi=2d0*sxi*cxi; c2xi=cxi*cxi-sxi*sxi
-! roman version manifestly has s2xi^2+c2xi^2 = 1, doesn't need bperp.
-!        write(6,*) 's2xi: ',s2xi
-!        Be1=bhat%data(2)*ahat%data(2)+bhat%data(3)*ahat%data(3)+bhat%data(4)*ahat%data(4)
-!        Be2=bhat%data(2)*bbhat(:,1)+bhat%data(3)*bbhat(:,2)+bhat%data(4)*bbhat(:,3)
-!        write(6,*) 's2xi roman: ',-2*Be1*Be2/(Be1*Be1+Be2*Be2)
-!        write(6,*) 'c2xi: ',c2xi
-!        write(6,*) 'c2xi roman: ',(-Be1*Be1+Be2*Be2)/(Be1*Be1+Be2*Be2)
-!        write(6,*) 'c2xi bp: ',(-aadotbp*aadotbp+bpdotbb*bpdotbb)/(aadotbp*aadotbp+bpdotbb*bpdotbb)
-!        s2xi=sin(2d0*xi); c2xi=cos(2d0*xi)
-        !angnorm=bdotk/sqrt(knorm)/sqrt(bdotb)
-!        write(6,*) 'cdot: ',b(1)%data,u(1)%data,k(1)%data
-!        write(6,*) 'cdot: ',bdotk,bdotb,om*om
-!        write(6,*) 'ang: ',angnorm, bdotk/sqrt(om2)/sqrt(bdotb)
         ang=acos(merge(merge(angnorm,angmax,angnorm.le.angmax),angmin, &
          angnorm.ge.angmin))
         ! CHANGED SIGN following \nu = -u^\mu k_\mu = -u^t k_t = k^t in comoving ortho so g = 1 / k^t
         g=1d0/khat%data(1)
-!        write(6,*) 'comoving ortho ang g: ',ang(testindx),g(testindx)
-!        write(6,*) 'comoving ortho r th: ',r(testindx),th(testindx)
-!        write(6,*) 'comoving ortho vectors a: ',aahat(testindx,1), &
-!             aahat(testindx,2),aahat(testindx,3)
-!        write(6,*) 'comoving ortho vectors k: ',khat(testindx)%data(2),&
-!             khat(testindx)%data(3),khat(testindx)%data(4)
-!        write(6,*) 'comoving ortho vectors b: ',bbhat(testindx,1),&
-!             bbhat(testindx,2),bbhat(testindx,3)
-!        write(6,*) 'comoving ortho vectors B: ',bhat(testindx)%data(2),&
-!             bhat(testindx)%data(3),bhat(testindx)%data(4)
-!        write(6,*) 'comoving ortho: ',u*u
-!        write(6,*) 'comoving ortho: ',k*k
-!        write(6,*) 'comoving ortho khat: ',khatr
-!        write(6,*) 'comoving ortho khat: ',khat%data(1)
         cosne=g*sqrt(beta*beta+mus*mus*(alpha*alpha-a*a))/r
-        if(any(isnan(s2xi)).or.any(isnan(c2xi))) then
+!        if(any(isnan(s2xi)).or.any(isnan(c2xi))) then
 !           write(6,*) 'NaN in comoving ortho aadotbp: ',aadotbp
 !           write(6,*) 'NaN in comoving ortho bpdotbb: ',bpdotbb
 !           write(6,*) 'NaN in comoving ortho ahat: ',aa%data(2),aa%data(3),aa%data(4)
 !           write(6,*) 'NaN in comoving ortho Kpw: ',Kap1,Kap2
-        endif
+!        endif
       end subroutine comoving_ortho_core
 
       subroutine comoving_ortho_debug_old(r,th,a,alpha,beta,mus,u,b,k, &
