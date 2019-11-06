@@ -1372,7 +1372,7 @@
         write(6,*) 'grid: ',SDUMP,nt
 ! now loop over and load data files
         do k=1,nt
-           write(append, fmt='(I4.3)') indf-(k-1)
+           write(append, fmt='(I5.3)') indf-(k-1)
            data_file = trim(dfile) // trim(adjustl(append))
            write(6,*) 'data_file: ',indf-(k-1),append,data_file
            call read_harmpi_data_file(data_file,rho,p,u,b,kela, &

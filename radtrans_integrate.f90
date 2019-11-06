@@ -179,7 +179,7 @@
         rnpts = nptsout
 !        write(6,*) 'intensity: ', rnpts, rI(rnpts,1)
         if(isnan(intensity(1,rnpts))) then
-           write(6,*) 'NaN in integrate ej: '!,ej
+           write(6,*) 'NaN in integrate!'!,ej
 !           write(6,*) 'NaN in integrate jj 2: ',jj
 !           write(6,*) 'NaN in integrate eK: ',eK
         endif

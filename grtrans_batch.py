@@ -581,8 +581,8 @@ class grtrans:
 # now do semi-major/minor axis and orientation in terms of moments
         theta=1./2.*np.arctan(2.*mu11/(mu20-mu02))
         fac=np.sqrt(4.*mu11**2.+(mu20-mu02)**2.)
-        amax=np.sqrt(8.*(mu20+mu02+fac))
-        amin=np.sqrt(8.*(mu20+mu02-fac))
+        amax=np.sqrt((mu20+mu02+fac)/2.)
+        amin=np.sqrt((mu20+mu02-fac)/2.)
         self.xcen=xcen; self.ycen=ycen; self.theta=theta
         self.amin=amin; self.amax=amax
 
