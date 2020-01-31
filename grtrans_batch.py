@@ -647,12 +647,12 @@ class grtrans:
         my = (np.transpose(np.resize(m * np.sin(evpa),(self.ny,self.nx))))
         mask=np.zeros_like(mx)+1.; mask[np.resize(m/np.max(m),(self.ny,self.nx)) < pcut]=np.nan
         mx*=mask; my*=mask
-        mx=mx[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
-        my=my[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
+        mx=mx[self.nx//2-nx//2:self.nx//2+nx//2,self.ny//2-ny//2:self.ny//2+ny//2]
+        my=my[self.nx//2-nx//2:self.nx//2+nx//2,self.ny//2-ny//2:self.ny//2+ny//2]
         img=img.reshape((self.ny,self.nx)).transpose()
-        img=img[self.nx/2-nx/2:self.nx/2+nx/2,self.ny/2-ny/2:self.ny/2+ny/2]
+        img=img[self.nx//2-nx//2:self.nx//2+nx//2,self.ny//2-ny//2:self.ny//2+ny//2]
         print('img shape: ',np.shape(img),nx,self.nx)
-        my=my[nsamp/2::nsamp,nsamp/2::nsamp]; mx=mx[nsamp/2::nsamp,nsamp/2::nsamp]
+        my=my[nsamp//2::nsamp,nsamp//2::nsamp]; mx=mx[nsamp//2::nsamp,nsamp//2::nsamp]
         return U,V,mx,my,img,scale
 
 
