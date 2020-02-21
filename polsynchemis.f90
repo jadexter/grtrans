@@ -778,18 +778,6 @@
          eps12=wp2*omega0/(2d0*pi*nu)**3*cos(theta)
       end where
 
-!AC ANDREW for low temperature/low thetae lets turn off faraday 
-!      where(thetae.lt.1d-6)
-!         eps11m22=0.
-!         eps12=0.
-!      elsewhere
-!         eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-!         (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
-!         sin(theta)**2
-!         eps12=wp2*omega0/(2d0*pi*nu)**3* &
-!         (beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
-!      endwhere
-
 ! s08 versions
 !      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
 !     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
