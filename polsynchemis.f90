@@ -724,21 +724,6 @@
          ivx(xm)
       ju=0d0
 
-      !write(6,*) 'min/max B: ', minval(B),maxval(B)
-      !write(6,*) 'min/max thetae: ', minval(thetae),maxval(thetae)
-      !write(6,*) 'min/max sin(theta): ', minval(sin(theta)),maxval(sin(theta))
-      !write(6,*) 'min/max n: ', minval(n),maxval(n)
-      !write(6,*) 'min/max nu: ', minval(nu),maxval(nu)
-      !write(6,*) 'min/max xm: ', minval(xm),maxval(xm)
-
-
-!      write(6,*) 'vars'
-!      write(6,'(3E9.4)') n,B,T
-!      write(*,*) 'nu: ',minval(nu),maxval(nu),minval(nuc),&
-!        maxval(nuc),minval(b),maxval(b),minval(theta),maxval(theta)
-!      write(*,*) 'xm: '
-!      write(6,'(4E9.4)') xm,iix(xm),iqx(xm),ivx(xm)
-!      write(6,*) 'j: ', jq/ji
       bnutnu=bnu(T,nu)
 
       ai=ji/bnutnu
@@ -751,19 +736,6 @@
       wp2=4d0*pi*n*ec**2/m
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1d3*omega0/2d0/pi/nu))
-! my slightly modified versions
-      !eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-      !(beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
-      !sin(theta)**2
-      !eps12=wp2*omega0/(2d0*pi*nu)**3* &
-      !(beselk(1d0/thetae,0)-shgmfunc(xarg))/beselK(1d0/thetae,2)*cos(theta)
-
-! with updated bessel functions
-!      eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-!     (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
-!      sin(theta)**2
-!      eps12=wp2*omega0/(2d0*pi*nu)**3* &
-!      (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
 
 ! UPDATING to fix NaNs for small temperatures thetae <~ 10^-2 by setting bessel ratios there = 1
       where(thetae.gt.1d-2)
@@ -778,42 +750,8 @@
          eps12=wp2*omega0/(2d0*pi*nu)**3*cos(theta)
       end where
 
-! s08 versions
-!      eps11m22=shffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
-!     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
-!      sin(theta)**2
-!      eps12=shgfunc(xarg)*wp2*omega0/(2d0*pi*nu)**3* &
-!      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
-!      write(*,*) 'eps: ',eps11m22, eps12
-! high-frequency limits
-!      eps11m22=wp2*omega0**2/(2d0*pi*nu)**4* &
-!     (beselk(1d0/thetae,1)/beselk(1d0/thetae,2)+6d0*thetae)* &
-!      sin(theta)**2
-!      eps12=wp2*omega0/(2d0*pi*nu)**3* &
-!      beselk(1d0/thetae,0)/beselK(1d0/thetae,2)*cos(theta)
-!      targ=sqrt(4d0*eps12**2+eps11m22**2)
-!      tp=-(eps11m22-targ)/2d0/eps12
-!      tm=-(eps11m22+targ)/2d0/eps12
-
       rhov=2d0*pi*nu/c*eps12
       rhoq=2d0*pi*nu/2d0/c*eps11m22
-
-
-! confusion about sign of rhoq. Shcherbakov (2008) disagrees with Huang & Shcherbakov (2011). Statement is different basis vectors. Basis looks identical between SH10, which I follow, and HS11. So I did signs as in Huang & Shcherbakov.
-! limiting case for rhoq for small \nu / \nu_T where S08 approximations break down:
-!      rhoqlim=2d0**(2d0/3d0)/3d0**(7d0/2d0)*pi*n*ec**2d0/m/c/thetae**3/nuc* &
-!        xm**(-5d0/3d0)
-! this is implemented directly in shffunc now, see 12/9/2014 notes or idl polsynchemis.pro
-! test unpolarized
-!AC 
-!       jq=0.; jv=0.; aq=0.; av=0.; rhoq=0.; rhov=0.
-! w/o Faraday:
-!      rhoq=0.!; rhov=0
-!      rhov=0.
-! w/o total absorption:
-!      ai=0.
-! w/o coupled absorption:
-!      aq=0.; av=0.
 
       if(any(isnan(jq))) then 
          write(6,*) "nan in jq"
@@ -833,12 +771,6 @@
 
       e=reshape((/ji,jq,ju,jv,ai,aq,au,av, &
       rhoq,rhou,rhov/),(/size(ji),11/),order=(/1,2/))
-!      testindx=maxloc(B,1)
-!      write(6,*) 'emis testindx: ',e(testindx,:)
-!      write(6,*) 'emis ang nu: ',theta(testindx),nu(testindx)
-!      write(6,*) 'emis n b t: ',n(testindx),thetae(testindx),b(testindx)
-!      write(6,*) 'ai: ',ai, e(:,5), e(:,1), ji
- !     write(6,*) 'reshape: ',maxval(emis(:,1)), maxval(emis(:,5))
       if(any(isnan(jq))) then
          write(6,*) 'NaN in polsynchemis.f90'
          !write(6,*) 'xm: ',xm
@@ -881,28 +813,13 @@
         shgmfunc=0.43793091*log(1d0+0.00185777*x**1.50316886)
         end function shgmfunc
 
-        function shgfunc(x)
-        ! Fitting function G(X) from Shcherbakov (2008)
-        ! JAD 1/29/2010
-        real(kind=8), intent(in), dimension(:) :: x
-        real(kind=8), dimension(size(x)) :: shgfunc
-        shgfunc=1d0-0.11d0*log(1d0+.035d0*x)
-        end function shgfunc
-        
-        function beselk(x,n)
-        ! Asymptotic bessel functions for small x
-        ! and n=0,2
-        real(kind=8), intent(in), dimension(:) :: x
-        real(kind=8), dimension(size(x)) :: beselk
-        integer, intent(in) :: n
-        if(n.eq.0) then 
-          beselk=-log(x/2d0)-.5772d0 
-        else if(n.eq.1) then
-          beselk=1d0/x
-        else
-          beselk=2d0/x/x
-        endif
-        end function beselk
+!        function shgfunc(x)
+!        ! Fitting function G(X) from Shcherbakov (2008)
+!        ! JAD 1/29/2010
+!        real(kind=8), intent(in), dimension(:) :: x
+!        real(kind=8), dimension(size(x)) :: shgfunc
+!        shgfunc=1d0-0.11d0*log(1d0+.035d0*x)
+!        end function shgfunc
 
         function iqx(x)
         ! Fitting function for polarized synchrotron emissivity function
@@ -989,12 +906,15 @@
       end subroutine synchemisnoabs
 
       subroutine sympolemisth(nu,n,b,t,theta,e)
+        use bessel, only: besselk0,besselk1,besselk
         use phys_constants, ec=>e
 ! Pandya+2016 fitting functions for thermal pol synchrotron
         real(kind=8), intent(in), dimension(:) :: nu,n,t,b,theta
         real(kind=8), intent(out), dimension(size(n),11) :: e
         real(kind=8), dimension(size(n)) :: thetae,nuc,xm,ji, &
              jq,jv,ju,bnutnu
+        real(kind=8), dimension(size(n)) :: xarg,eps11m22,eps12, &
+             tm,tp,targ,omega0,wp2,rhou,rhoq,rhov
         real(kind=8), dimension(size(n)) :: fac,jis,jqs,jvs,x
         real(kind=8) :: nucminval = 1d0
         real(kind=8) :: thetaemin = 1d-10
@@ -1014,7 +934,71 @@
         e(:,5)=ji/bnutnu
         e(:,6)=jq/bnutnu
         e(:,8)=jv/bnutnu
-        
+
+! compute Faraday coefficients:
+      ! Formulae from Shcherbakov (2008):
+        wp2=4d0*pi*n*ec**2/m
+        omega0=ec*B/m/c
+        xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1d3*omega0/2d0/pi/nu))
+
+! UPDATING to fix NaNs for small temperatures thetae <~ 10^-2 by setting bessel ratios there = 1
+        where(thetae.gt.1d-2)
+           eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+              (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
+              sin(theta)**2
+           eps12=wp2*omega0/(2d0*pi*nu)**3* &
+                (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+        elsewhere
+           eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
+              (1d0+6d0*thetae)*sin(theta)**2
+           eps12=wp2*omega0/(2d0*pi*nu)**3*cos(theta)
+        end where
+
+        rhov=2d0*pi*nu/c*eps12
+        rhoq=2d0*pi*nu/2d0/c*eps11m22
+        e(:,9)=rhoq; e(:,11)=rhov
+
+        contains 
+
+          function shffunc(x)
+        ! Fitting function F(X) from Shcherbakov (2008)
+        ! JAD 1/29/2010
+            real(kind=8), intent(in), dimension(:) :: x
+            real(kind=8), dimension(size(x)) :: shffunc
+            shffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)*&
+              dexp(-x**(1.2d0)/2.73d0)&
+              -.011d0*dexp(-x/47.2d0)
+          end function shffunc
+
+          function jffunc(x)
+          ! Fitting function F(X) from Shcherbakov (2008), modified to match Jones & Hardee small \nu/\nu_c limit. See 12/9/2014 notes.
+            real(kind=8), intent(in), dimension(:) :: x
+            real(kind=8), dimension(size(x)) :: jffunc,extraterm
+            extraterm=(.011d0*exp(-x/47.2d0)-2d0**(-1d0/3d0)/3d0**(23d0/6d0)*pi*1d4*&
+            (X+1d-16)**(-8d0/3d0))*(0.5d0+0.5d0*tanh((log(x)-log(120d0))/0.1d0))
+            jffunc=2.011d0*dexp(-x**(1.035d0)/4.7d0)-cos(x/2d0)* &
+              dexp(-x**(1.2d0)/2.73d0) &
+              -.011d0*dexp(-x/47.2d0)+extraterm
+! Some concern about sign here. Should check again but looks okay.
+          end function jffunc
+
+          function shgmfunc(x)
+        ! modified version of function G(X) from Shcherbakov (2008)
+        ! with better fit for all temperatures, low \nu / \nu_c
+        ! JAD 8/14/2015
+            real(kind=8), intent(in), dimension(:) :: x
+            real(kind=8), dimension(size(x)) :: shgmfunc
+            shgmfunc=0.43793091*log(1d0+0.00185777*x**1.50316886)
+          end function shgmfunc
+
+!        function shgfunc(x)
+!        ! Fitting function G(X) from Shcherbakov (2008)
+!        ! JAD 1/29/2010
+!        real(kind=8), intent(in), dimension(:) :: x
+!        real(kind=8), dimension(size(x)) :: shgfunc
+!        shgfunc=1d0-0.11d0*log(1d0+.035d0*x)
+!        end function shgfunc
+
       end subroutine sympolemisth
 
       function bnu(T,nu)
