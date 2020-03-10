@@ -704,7 +704,7 @@
       real(kind=8), intent(in), dimension(:) :: nu,n,t,b,theta
       real(kind=8), intent(out), dimension(size(n),11) :: e
       real(kind=8), dimension(size(n)) :: thetae,nuc,xm,ji, &
-      jq,jv,ju,bnutnu
+      jq,jv,ju,bnutnu,step
       real(kind=8), dimension(size(n)) :: ai,aq,av,au,rhou, &
       rhoq,rhov,xarg,eps11m22,eps12
       real(kind=8), dimension(size(n)) :: tm,tp,targ, &
@@ -737,13 +737,16 @@
       omega0=ec*B/m/c
       xarg=thetae*sqrt(sqrt(2d0)*sin(theta)*(1d3*omega0/2d0/pi/nu))
 
-! UPDATING to fix NaNs for small temperatures thetae <~ 10^-2 by setting bessel ratios there = 1
+! changes from grtrans paper
+! i) for thetae < 1e-2 just enforce non-relativistic limit
+! ii) change \rho_V expression to turn off \Delta J_5 correction smoothly as thetae < 1 since for smallish thetae since it can ruin the approach to the NR limit
       where(thetae.gt.1d-2)
          eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
               (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
       sin(theta)**2
+         step=0.5d0+0.5d0*tanh((thetae-1d0)/0.05d0)
          eps12=wp2*omega0/(2d0*pi*nu)**3* &
-              (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+              (besselk0(1d0/thetae)-step*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
       elsewhere
          eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
               (1d0+6d0*thetae)*sin(theta)**2

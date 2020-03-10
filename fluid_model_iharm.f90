@@ -79,8 +79,14 @@
         real(kind=8), intent(in), dimension(:) :: args
         real(kind=8) :: h, theta, diff
         h=args(2); theta=args(1)
-        diff=theta-(pi/2.*(1.+x2)+((1.-h)/2.)*sin(pi*(1.+x2)))
+        diff=theta-(pi/2.*(1.+x2)+((1.-hslope)/2.)*sin(pi*(1.+x2)))
         end function findx2iharm
+
+        function calcthmksh(x2) result(th)
+          real(kind=8), intent(in), dimension(:) :: x2
+          real(kind=8), dimension(size(x2)) :: th
+          th=pi/2.*(1.+x2)+((1.-hslope)/2.)*sin(pi*(1.+x2))
+        end function calcthmksh
 
         function findx2iharm_array(x2,args) result(diff)
         real(kind=8), intent(in), dimension(:) :: x2
@@ -401,8 +407,11 @@
              enddo
           enddo
           r_arr=exp(x1_arr)
-          ph_arr=x3_arr
-          th_arr=calcthmmks(x2_arr,x1_arr)
+! the 2*pi factor is from my conversion choice from HDF5
+          ph_arr=x3_arr*2.*pi
+!          th_arr=calcthmmks(x2_arr,x1_arr)
+! CHANGING FOR REGULAR MKS
+          th_arr=real(calcthmksh(dble(x2_arr)))
           write(6,*) 'iharm grid: ',maxval(x1_arr),maxval(x2_arr),minval(th_arr)
         end subroutine read_iharm_grid_file
 
@@ -518,11 +527,12 @@
           write(6,*) 'read harm transform coords u ',minval(u%data(1)),minval(u%data(2))
           write(6,*) 'read harm transform coords u size ',size(u),hslope
 !          if(BL.eq.3) then
-          uks = ummks2uks(u,dble(x1_arr),dble(x2_arr))
-          bks = ummks2uks(b,dble(x1_arr),dble(x2_arr))
+! FOR GRRT POL COMPARISON CHANGING TO USE REGULAR MKS
+!          uks = ummks2uks(u,dble(x1_arr),dble(x2_arr))
+!          bks = ummks2uks(b,dble(x1_arr),dble(x2_arr))
 !          else
-!             uks = umksh2uks(u,x1_arr,x2_arr)
-!             bks = umksh2uks(b,x1_arr,x2_arr)
+          uks = umksh2uks(u,x1_arr,x2_arr)
+          bks = umksh2uks(b,x1_arr,x2_arr)
 !          end if
           write(6,*) 'after uks ',minval(uks%data(1))
           u = uks2ubl(uks,dble(r_arr),dble(asim))
