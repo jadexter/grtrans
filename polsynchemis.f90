@@ -917,7 +917,7 @@
         real(kind=8), dimension(size(n)) :: thetae,nuc,xm,ji, &
              jq,jv,ju,bnutnu
         real(kind=8), dimension(size(n)) :: xarg,eps11m22,eps12, &
-             tm,tp,targ,omega0,wp2,rhou,rhoq,rhov
+             tm,tp,targ,omega0,wp2,rhou,rhoq,rhov,step
         real(kind=8), dimension(size(n)) :: fac,jis,jqs,jvs,x
         real(kind=8) :: nucminval = 1d0
         real(kind=8) :: thetaemin = 1d-10
@@ -949,8 +949,11 @@
            eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
               (besselk1(1d0/thetae)/besselk(2,1d0/thetae)+6d0*thetae)* &
               sin(theta)**2
+           step=0.5d0+0.5d0*tanh((thetae-1d0)/0.05d0)
            eps12=wp2*omega0/(2d0*pi*nu)**3* &
-                (besselk0(1d0/thetae)-(sign(1d0,thetae+1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+              (besselk0(1d0/thetae)-step*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
+!           eps12=wp2*omega0/(2d0*pi*nu)**3* &
+!                (besselk0(1d0/thetae)-(sign(1d0,thetae-1d0)-1d0)/2d0*shgmfunc(xarg))/besselk(2,1d0/thetae)*cos(theta)
         elsewhere
            eps11m22=jffunc(xarg)*wp2*omega0**2/(2d0*pi*nu)**4* &
               (1d0+6d0*thetae)*sin(theta)**2

@@ -170,6 +170,8 @@
         elseif (iflag==2) then
            if(nequations==4) then
               call radtrans_integrate_formal(s,jj,KK(:,1:4),KK(:,5:7),OO)
+! then contribution vectors are essentially going backwards:
+! from grtrans paper C_i \Pi^i-1_m=0 O_m,m+1 j_i
            else
               call radtrans_integrate_quadrature(s,jj(:,1),KK(:,1))
            endif
