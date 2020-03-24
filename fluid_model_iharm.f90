@@ -422,6 +422,7 @@
 !        write(6,*) 'harm vals rhoi: ',rhoi(minloc(p),:)
         end subroutine iharm_vals
 
+! this is unchanged for plain text / binary version as long as you provide the right header file name
         subroutine read_iharm_data_header()
 !          integer, intent(in) :: nhead
           integer :: n,nheadmax=200,status
@@ -532,19 +533,12 @@
 !          write(6,*) 'iharm data file: ',data_file
 ! reversing this for my iharm format from np.savetxt
           allocate(data(dlen,nx1*nx2*nx3))
-!          open(unit=8,file=data_file,form='unformatted',access='stream',status='old',action='read')
-          open(unit=8,file=data_file,form='formatted',status='old',action='read')
-!          nheader_bytes=1
-!          read(8) header_byte
-!          do while(header_byte.ne.char(10)) 
-!             read(8) header_byte
-!             nheader_bytes=nheader_bytes+1
-!          end do
-!          write(6,*) 'read header: ',nheader_bytes,dlen
-          read(8,*) header
-          read(8,*) data
+          open(unit=8,file=data_file,form='unformatted',access='stream',status='old',action='read')
+!          open(unit=8,file=data_file,form='formatted',status='old',action='read')
+!          read(8,*) header
+!          read(8,*) data
+          read(8) data
           close(8)
-          write(6,*) 'iharm header: ',header
           write(6,*) 'iharm data: ',data(:,1)
           deallocate(header)
           if(SDUMP.eq.0) then
@@ -736,7 +730,8 @@
         endif
         write(6,*) 'grid: ',SDUMP,nt
 ! now loop over and load data files
-        ending='.out'
+!        ending='.out'
+        ending='.bin'
         do k=1,nt
            write(append, fmt='(I5.3)') indf-(k-1)
            data_file = trim(dfile) // trim(adjustl(append)) // trim(ending)
