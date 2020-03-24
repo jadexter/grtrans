@@ -1403,10 +1403,12 @@
            vpl_arr((k-1)*n+1:k*n)=real(vpl)
 !           write(6,*) 'after vpl', vtl(1), vtl(n), vtl
            vtl_arr((k-1)*n+1:k*n)=real(vtl)
-           kela_arr((k-1)*n+1:k*n)=kela
-           kelb_arr((k-1)*n+1:k*n)=kelb
-           kelc_arr((k-1)*n+1:k*n)=kelc
-           keld_arr((k-1)*n+1:k*n)=keld
+           if(eHEAT.eq.1.or.eCOND.eq.1) then
+              kela_arr((k-1)*n+1:k*n)=kela
+              kelb_arr((k-1)*n+1:k*n)=kelb
+              kelc_arr((k-1)*n+1:k*n)=kelc
+              keld_arr((k-1)*n+1:k*n)=keld
+           endif
 !           write(6,*) 'after vtl'
 !           write(6,*) 'assign'
         end do

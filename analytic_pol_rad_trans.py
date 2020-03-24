@@ -239,7 +239,9 @@ def intensity_var_backwards(x=np.array([1.]),j=np.array([1.,0.,0.,0.]),a=np.arra
     ocum[0,:,:]=np.identity(4)
     for k in np.arange(len(x)-1)+1:
         o[k,:,:],M1,M2,M3,M4 = calc_O(a[k-1,:],rho[k-1,:],x[k]-x[k-1])
-        ocum[k,:,:]=ocum[k-1,:,:].dot(o[k,:,:])
+# JAD 3/22 is this really a dot? I guess it is a matrix multiplication
+#        ocum[k,:,:]=ocum[k-1,:,:].dot(o[k,:,:])
+        ocum[k,:,:]=np.matmul(ocum[k-1,:,:],o[k,:,:],out=ocum[k,:,:])
         jj = j[k,:]
         integrand[k,:] = ocum[k,:,:].dot(jj)
 

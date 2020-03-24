@@ -48,7 +48,7 @@
 
       type fluid
         integer :: model, nfreq, nrelbin
-        real :: rin,bingammamin,bingammamax,sigcut
+        real :: rin,bingammamin,bingammamax,sigcut,gamma
         real, dimension(:), allocatable :: rho,p,bmag,rho2, &
              kela,kelb,kelc,keld,Be
         real, dimension(:,:), allocatable :: fnu
@@ -320,6 +320,7 @@
                  allocate(f%keld(nup))
               elseif(fname=='IHARM') then
                  f%model=IHARM
+                 allocate(f%kela(nup))
               elseif(fname=='THICKDISK') then
                  f%model=THICKDISK
               elseif(fname=='MB09') then
@@ -440,6 +441,9 @@
            if(f%model==HARMPI) then
               deallocate(f%kela); deallocate(f%kelb)
               deallocate(f%kelc); deallocate(f%keld)
+           endif
+           if(f%model==IHARM) then
+              deallocate(f%kela)
            endif
         endif
         f%model=-1
@@ -715,10 +719,9 @@
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         type (fluid), intent(inout) :: f
-        ! Computes properties of jet solution from Broderick & Loeb (2009)
-        ! JAD 4/23/2010, fortran 3/30/2011
-        call iharm_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag)
-!        write(6,*) 'harm u: ',f%u*f%u, f%b*f%b
+        ! JAD adding f%gamma here to have both internal energy
+        ! and pressure for monika_e, and T_e
+        call iharm_vals(x0,a,f%rho,f%p,f%b,f%u,f%bmag,f%kela,f%gamma)
         end subroutine get_iharm_fluidvars
 
         subroutine get_thickdisk_fluidvars(x0,a,f)
@@ -790,7 +793,7 @@
           real(kind=8), dimension(:), intent(inout) :: bcgs,rhocgs,tempcgs,ncgs
           real(kind=8), intent(in) :: sigcut
           real(kind=8), dimension(size(bcgs)) :: sigmacgs
-          sigmacgs = (bcgs*bcgs) / (rhocgs*8.988e20*4*pi)
+          sigmacgs = (bcgs*bcgs) / (rhocgs*8.988d20*4d0*pi)
           if(any(sigmacgs.ge.sigcut)) then
 !             write(6,*) 'sigcut: ',maxval(sigmacgs),minval(sigmacgs),sigcut
             !ANDREW sigma cutoff
@@ -991,17 +994,33 @@
         type (fluid), intent(in) :: f
         type (source_params), intent(in) :: sp
         real(kind=8), dimension(size(f%rho)), intent(out) :: ncgs,ncgsnth,bcgs,tempcgs
-        real(kind=8), dimension(size(f%rho)) :: trat
+        real(kind=8), dimension(size(f%rho)) :: trat,rhocgs
         real(kind=8) :: mdot,beta_trans
         mdot=GC*sp%mbh*msun/c**3; beta_trans=1d0
         call scale_sim_units(sp%mbh,sp%mdot,mdot,f%rho,f%p,f%bmag,ncgs, &
              bcgs,tempcgs)
-!        write(6,*) 'tempcgs: ',minval(tempcgs),maxval(tempcgs),minval(f%p/f%rho),maxval(f%p/f%rho)
-        call monika_e(f%rho,f%p,f%bmag,beta_trans,1d0/sp%muval-1d0, &
+        rhocgs=ncgs*mp
+        ! here f%p = u while monika_e expects pressure to convert
+        ! to beta. workaround for now assigning f%gamma and using here
+        if(sp%gminval.ge.1d0) then
+           call monika_e(f%rho,f%p*(f%gamma-1.),f%bmag,beta_trans,1d0/sp%muval-1d0, &
              sp%gminval*(1d0/sp%muval-1d0),trat)
-        tempcgs = tempcgs/(1d0+trat)
+! NOTE THAT TEMPCGS here = m_p u / k rho
+! since f%p is storing internal energy u
+! this is the Illinois version in the EHT GRRT formula list
+! for example if trat=3, T_e = 2 m_p u / 15 k rho in pol GRRT test
+           tempcgs = 2d0*tempcgs/3d0/(2d0+trat)
+        else if(sp%gminval.lt.0d0) then
+!          gmin=-1 for kela only iharm T_e
+           if(sp%gminval.eq.-1d0) then
+              call ressler_e(f%rho,f%kela,tempcgs)
+           endif
+        endif
+!        tempcgs = tempcgs/(1d0+trat)
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
+! sigma cut seems far too important here: some problem with bcgs?
+        call andrew_sigcut(bcgs,rhocgs,tempcgs,ncgs,dble(sp%sigcut))
         end subroutine convert_fluidvars_iharm
         
         subroutine convert_fluidvars_harmpi(f,ncgs,ncgsnth,bcgs,tempcgs,sp)

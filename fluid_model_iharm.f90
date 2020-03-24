@@ -12,23 +12,19 @@
       character(len=100) :: dfile, hfile, gfile
       integer :: n, ndumps, nt, indf, dlen, nhead
       integer :: ndim=3
+      integer :: IS_MMKS=1
       integer, dimension(:), allocatable :: dumps
-      real(kind=8) :: tstep=20d0, & !h, dx1, dx2, dx3, gam, startx1, startx2, startx3, &
+      real(kind=8) :: tstep=20d0, &
            toffset=0d0,tcur,dx1,dx2, &
            dx3,a,gam,Rin,Rout,hslope,R0,ti,tj,tk,startx1, startx2,rdump_cnt,rdump01_cnt, &
-           startx3, x10, x20, game, cour,dt,DTd,DTi,DTl,DTr,DTr01,dump_cnt,failed,xbr,&
-           image_cnt,lim,game4, game5, tf, &
-           fractheta,fracphi,rbr,npow2,cpow2,global_x10,global_x20,global_fracdisk, &
-           global_fracjet,global_r0disk,global_rdiskend,global_r0jet,global_rjetend, &
-           global_jetnu1, global_jetnu2, global_disknu1, global_disknu2,global_rsjet, &
-           global_r0grid,BL,DOQDOTAVG, tavgstart,SMALL=1e-20, poly_xt, poly_alpha, mks_smooth
-      integer :: SDUMP,eHEAT,eCOND,DONUCLEAR,DOFLR,DOCYLINDRIFYCOORDS,EVOLVEVPOT,N1,N2,N3,N1G, &
-           N2G,N3G,nx1,nx2,nx3,nstep,starti,startj,startk,DOKTOT,NPR,DOPARTICLES,myNp,NPTOT
+           startx3,game,lim,game4, game5, tf, &
+           tavgstart,SMALL=1e-20, poly_xt, poly_alpha, mks_smooth, Lunit, Munit
+      integer :: SDUMP,eHEAT,eCOND,nx1,nx2,nx3,metric,n_prim,eRAD,BL
       real :: asim
       real, dimension(:), allocatable :: t
       real, dimension(:), allocatable :: x1_arr, x2_arr, x3_arr, r_arr, th_arr, ph_arr
       real, dimension(:), allocatable :: rho_arr, p_arr, u0_arr, vrl_arr, &
-        vpl_arr, vtl_arr, temp_arr
+        vpl_arr, vtl_arr, temp_arr, kela_arr
 ! global variables for BL3 but should have these read in from header files rather than hard-coded
       real, dimension(:), allocatable :: b0_arr, br_arr, bth_arr, bph_arr, gdet
       real, dimension(:,:), allocatable :: drdx,metric_cov,metric_con
@@ -117,10 +113,10 @@
           A=mks_smooth
           B=poly_xt
           C=poly_alpha
+          D=pi/(2.+2./(B**C*(1+C)))
           thetag=pi*x2+(1.-hslope)/2.*sin(2.*pi*x2)
           thetaj=D*(2.*x2-1.)*(1.+((2.*x2-1.)/B)**C/(1.+C))+pi/2.
-          D=pi/(2.+2./(B**C+C*B**C))
-          theta=thetag+exp(-A*D*x1)
+          theta=thetag+exp(-A*(x1-startx1))*(thetaj-thetag)
         end function calcthmmks
 
         function findx2mmks(x2,args) result(diff)
@@ -172,14 +168,14 @@
           type (four_vector), dimension(:), intent(in) :: fum
 !          real(kind=8), intent(in) :: xbr
           type (four_vector), dimension(size(fum)) :: uks
-          real(kind=8), dimension(size(x1)) :: r,dr,dx2,dx1,drdx1,dthdx1,dthdx2
+          real(kind=8), dimension(size(x1)) :: r,dx2,dx1,drdx1,dthdx1,dthdx2
           ! Convert four-vectors from MMKS to KS numerically using central differences.
           r=exp(x1)
-          dr=1d-4*r; dx2=1d-6*x2; dx1=1d-4*x1
+          dx2=1d-6*x2; dx1=1d-4*x1
           drdx1=r
-          dthdx1=(calcthmmks(real(x2),real(exp(x1+.5*dx1)))- &
-               calcthmmks(real(x2),real(exp(x1-.5*dx1))))/dx1
-          dthdx2=(calcthmmks(real(x2+.5*dx2),real(r))-calcthmmks(real(x2-.5*dx2),real(r)))/dx2
+          dthdx1=(calcthmmks(real(x2),real(x1+.5*dx1))- &
+               calcthmmks(real(x2),real(x1-.5*dx1)))/dx1
+          dthdx2=(calcthmmks(real(x2+.5*dx2),real(x1))-calcthmmks(real(x2-.5*dx2),real(x1)))/dx2
           uks%data(2)=drdx1*fum%data(2)
           uks%data(3)=dthdx1*fum%data(2)+dthdx2*fum%data(3)
           ! phi doesn't change
@@ -224,7 +220,7 @@
           write(6,*) 'done with umksh2uks'
         end function umksh2uks
 
-        subroutine iharm_vals(x0,a,rho,p,b,u,bmag)
+        subroutine iharm_vals(x0,a,rho,p,b,u,bmag,kela,gamma)
         type (four_Vector), intent(in), dimension(:) :: x0
         real, intent(in) :: a
         real(kind=8), dimension(size(x0)) :: done,pfac,nfac
@@ -235,14 +231,15 @@
         real, dimension(nx2) :: uniqx2,uniqth
         real, dimension(nx3) :: uniqx3,uniqph
         real, dimension(size(x0),2**(ndim+1)) :: ppi,rhoi,vrli,vtli, &
-         vpli,bri,bthi,bphi,b0i,u0i,ri,thi,phii
+         vpli,bri,bthi,bphi,b0i,u0i,ri,thi,phii,kelai
 !        integer, dimension(size(x0)*(2**ndim)) :: sindx
         real, dimension(size(x0)) :: dth, minph
         integer, dimension(size(x0)*2*(2**ndim)) :: indx
         integer, dimension(size(x0)) :: lx1,lx2, lx3, ux1,ux2,ux3,x1l,x1u,x2l,x2u,x3l,x3u, &
          umax,one,tindx
         integer :: npts,i,maxtindx
-        real, dimension(size(x0)), intent(out) :: rho,p,bmag
+        real, dimension(size(x0)), intent(out) :: rho,p,bmag,kela
+        real, intent(out) :: gamma
         type (four_Vector), intent(out), dimension(size(x0)) :: u,b
         ! Interpolates HARM data to input coordinates
         ! JAD 3/20/2009, fortran 11/12/2012
@@ -272,9 +269,9 @@
         endwhere
 !        write(6,*) 'iharm vals transform'
 !        if(BL.eq.3) then
-! FOR NOW HARD CODING AS MKS
-!        call transformbl2mmks(zr,theta,zphi,x1,x2,x3)
-        call transformbl2mksh(zr,theta,zphi,x1,x2,x3)
+! FOR NOW HARD CODING MKS or MMKS
+        call transformbl2mmks(zr,theta,zphi,x1,x2,x3)
+!        call transformbl2mksh(zr,theta,zphi,x1,x2,x3)
 !        write(6,*) 'transform r: ',maxval(zr), minval(zr), maxval(x1), minval(x1)
 !        write(6,*) 'transform th: ',maxval(theta), minval(theta), minval(x2), maxval(x2)
 !        write(6,*) 'transform phi: ',maxval(zphi), minval(zphi), minval(x3), maxval(x3)
@@ -360,6 +357,9 @@
         bthi=reshape(bth_arr(indx),(/npts,2**(ndim+1)/))
         bphi=reshape(bph_arr(indx),(/npts,2**(ndim+1)/))
         u0i=reshape(u0_arr(indx),(/npts,2**(ndim+1)/))
+        if(eHEAT.eq.1) then
+           kelai=reshape(kela_arr(indx),(/npts,2**(ndim+1)/))
+        endif
 ! coordinates for debugging
         ri=reshape(r_arr(indx),(/npts,2**(ndim+1)/))
         thi=reshape(th_arr(indx),(/npts,2**(ndim+1)/))
@@ -367,6 +367,9 @@
         rttd=0.
         rho=merge(interp(rhoi,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))*nfac
         p=merge(interp(ppi,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
+        if(eHEAT.eq.1) then
+           kela=merge(interp(kelai,rttd,pd,rd,td),fone,x1.gt.uniqx1(1))*pfac
+        endif
 !        write(6,*) 'rho: ', rho, p
         vrl0=merge(interp(vrli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
         vtl0=merge(interp(vtli,rttd,pd,rd,td),dzero,x1.gt.uniqx1(1))
@@ -394,6 +397,8 @@
         u%data(4)=u%data(1)*dble(vph0)
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
+! ASSIGNING EOS GAMMA as output to have enough information for both p, u
+        gamma=gam
 !        write(6,*) 'min vals u: ', minval(u%data(1)), maxval(abs(u*u+1))
 !        write(6,*) 'min vals p: ',minval(rhoi),minval(ppi)
 !        write(6,*) 'harm vals r: ',zr
@@ -421,7 +426,7 @@
 !          integer, intent(in) :: nhead
           integer :: n,nheadmax=200,status
           real(kind=8), dimension(:), allocatable :: header
-          character(len=100) :: metric
+!          character(len=100) :: metric
           allocate(header(nheadmax)); header(:)=-1d20
           write(6,*) 'read iharm header: ',hfile
           open(unit=8,file=hfile)
@@ -437,12 +442,28 @@
           nx3=int(header(4))
           asim=header(5)
           hslope=header(6)
+          gam=header(7)
+          mks_smooth=header(8)
+          poly_xt=header(9)
+          poly_alpha=header(10)
+          startx1=header(11)
+          metric=header(12)
+          eHEAT=header(13)
+          eRAD=header(14)
+          n_prim=header(15)
+          Rin=header(16)
+          Rout=header(17)
+! for radiation, get Lunit and Munit to compare with M_BH, Mdot
+          if(eRAD.eq.1) then
+             Lunit=header(18)
+             Munit=header(19)
+          endif
 ! TEMPORARY set so that grid information is read from same file
           SDUMP=0
-!          metric=header(7)
 ! HARD-CODED FOR IHARM
-          gam=13d0/9d0
-          write(6,*) 'done reading header'
+!          gam=13d0/9d0
+          write(6,*) 'done reading header: ',gam,mks_smooth, &
+               poly_xt,poly_alpha,startx1
         end subroutine read_iharm_data_header
 
         subroutine read_iharm_inputs(ifile)
@@ -473,24 +494,24 @@
           r_arr=exp(x1_arr)
 ! the 2*pi factor is from my conversion choice from HDF5
           ph_arr=x3_arr*2.*pi
-!          th_arr=calcthmmks(x2_arr,x1_arr)
+          th_arr=calcthmmks(x2_arr,x1_arr)
 ! CHANGING FOR REGULAR MKS
-          th_arr=real(calcthmksh(dble(x2_arr)))
+!          th_arr=real(calcthmksh(dble(x2_arr)))
           write(6,*) 'iharm grid: ',maxval(x1_arr),maxval(x2_arr),minval(th_arr)
         end subroutine read_iharm_grid_file
 
-        subroutine read_iharm_data_file(data_file,rho,p,u,b,mdot)
+        subroutine read_iharm_data_file(data_file,rho,p,u,b,kela,mdot)
           character(len=100), intent(in) :: data_file
 !          character(len=100) :: data_file_app
           character :: header_byte
           real(8), dimension(:), allocatable :: header
           integer :: nhead,nheader_bytes
-          integer :: rhopos,ppos,vpos,bpos,gdetpos
+          integer :: rhopos,ppos,vpos,bpos,gdetpos,kelapos
 !          logical, intent(in), optional :: gridonly
           integer, intent(in), optional :: mdot
 !          logical :: gridread
 !          real(8), intent(out) :: tcur
-          real(8), dimension(:), allocatable, intent(out) :: p,rho
+          real(8), dimension(:), allocatable, intent(out) :: p,rho,kela
           real(8), dimension(:), allocatable :: udotu,bdotu,bdotb,pmin
           real(8), dimension(:), allocatable :: alpha,gamma,zero
           type (four_vector), dimension(:), allocatable, intent(out) :: u,b
@@ -499,11 +520,12 @@
           real(4), dimension(:,:), allocatable :: data
           integer :: i,j, nelem, nelem2
           rhopos=4; ppos=5; vpos=6; bpos=10
+          kelapos=14;
           nhead=6
           allocate(header(nhead))
 !          end if
 ! FOR IHARM FORMAT FROM CONVERT_HARM_EBHLIGHT_HDF5_TO_GRTRANS.ipynb
-          dlen=13; SDUMP=0
+          dlen=13+eHEAT; SDUMP=0
           write(6,*) 'rhopos: ',rhopos,ppos,vpos,bpos
           write(6,*) 'data file: ',data_file
           write(6,*) 'iharm data size: ',dlen,nx1,nx2,nx3
@@ -539,9 +561,9 @@
           endif
           r_arr=exp(x1_arr)
           ph_arr=x3_arr
-!          th_arr=calcthmmks(x2_arr,x1_arr)
-! CHANGING FOR REGULAR MKS
-          th_arr=real(calcthmksh(dble(x2_arr)))
+! HARD-CODED MKS or MMKS
+          th_arr=calcthmmks(x2_arr,x1_arr)
+!          th_arr=real(calcthmksh(dble(x2_arr)))
           allocate(p(nx1*nx2*nx3))
           allocate(rho(nx1*nx2*nx3)); allocate(pmin(nx1*nx2*nx3))
           allocate(u(nx1*nx2*nx3)); allocate(b(nx1*nx2*nx3))
@@ -549,6 +571,10 @@
           allocate(uks(nx1*nx2*nx3)); allocate(bks(nx1*nx2*nx3))
           rho=data(rhopos,:)
           p=data(ppos,:)
+          if(eHEAT.eq.1) then
+             allocate(kela(nx1*nx2*nx3))
+             kela=data(kelapos,:)
+          endif
 ! for small dumps these are 3-vector velocities that need to be converted using metric from gdump
 !          allocate(alpha(nx1*nx2*nx3))
 !          allocate(beta(nx1*nx2*nx3))
@@ -606,12 +632,12 @@
           write(6,*) 'read harm transform coords u ',minval(u%data(1)),minval(u%data(2))
           write(6,*) 'read harm transform coords u size ',size(u),hslope
 !          if(BL.eq.3) then
-! FOR GRRT POL COMPARISON CHANGING TO USE REGULAR MKS
-!          uks = ummks2uks(u,dble(x1_arr),dble(x2_arr))
-!          bks = ummks2uks(b,dble(x1_arr),dble(x2_arr))
+! HARD-CODED MMKS OR MKS
+          uks = ummks2uks(u,dble(x1_arr),dble(x2_arr))
+          bks = ummks2uks(b,dble(x1_arr),dble(x2_arr))
 !          else
-          uks = umksh2uks(u,r_arr,x2_arr)
-          bks = umksh2uks(b,r_arr,x2_arr)
+!          uks = umksh2uks(u,r_arr,x2_arr)
+!          bks = umksh2uks(b,r_arr,x2_arr)
 !          end if
           write(6,*) 'after uks ',minval(uks%data(1))
           u = uks2ubl(uks,dble(r_arr),dble(asim))
@@ -640,6 +666,7 @@
           write(6,*) 'bdotb: ',bdotb(30*nx1*nx2+50:30*nx1*nx2+60)
           write(6,*) 'bdotu: ',bdotu(30*nx1*nx2+50:30*nx1*nx2+60)
           write(6,*) 'x1: ',x1_arr(30*nx1*nx2+50),x2_arr(30*nx1*nx2+60)
+!          write(6,*) 'bmag: ',bmag(123),bmag(244)
           deallocate(udotu); deallocate(bdotu); deallocate(bdotb)
           deallocate(uks); deallocate(bks); deallocate(pmin)
         end subroutine read_iharm_data_file
@@ -684,17 +711,20 @@
         end subroutine initialize_iharm_model
 
         subroutine load_iharm_data(nt)
-        real(8), dimension(:), allocatable :: rho,p
+        real(8), dimension(:), allocatable :: rho,p,kela
         real, dimension(:), allocatable :: vrl, vtl, vpl
         type (four_vector), dimension(:), allocatable :: u, b
         integer, intent(in) :: nt
         character(len=20) :: append,ending
         character(len=100) :: data_file
         integer :: k
-        real(8) :: tcur, tstep_test
+        real(8) :: tstep_test
         allocate(rho(n)); allocate(p(n))
         allocate(vrl(n)); allocate(vtl(n)); allocate(vpl(n))
         allocate(u(n)); allocate(b(n))
+        if(eHEAT.eq.1) then
+           allocate(kela(n))
+        endif
 ! if we're using small dumps then get grid and metric from a regular dump file
         write(6,*) 'eHEAT: ',eHEAT
 ! my current scheme saves grid and data together. probably should 
@@ -711,7 +741,7 @@
            write(append, fmt='(I5.3)') indf-(k-1)
            data_file = trim(dfile) // trim(adjustl(append)) // trim(ending)
            write(6,*) 'data_file: ',indf-(k-1),append,data_file
-           call read_iharm_data_file(data_file,rho,p,u,b)
+           call read_iharm_data_file(data_file,rho,p,u,b,kela)
            t(k)=tcur
            write(6,*) 'after iharm data: ',tcur
            call lnrf_frame(real(u%data(2)/u%data(1)),real(u%data(3)/u%data(1)), & 
@@ -721,7 +751,10 @@
            ! now assign to data arrays
            rho_arr((k-1)*n+1:k*n)=rho
 ! conversion between internal energy and pressure
-           p_arr((k-1)*n+1:k*n)=p*(real(gam)-1.)
+! REMOVING THIS TO USE INTERNAL ENERGY IN CALCULATING T_E FOR IHARM!
+! f%p will be UU!
+!           p_arr((k-1)*n+1:k*n)=p*(real(gam)-1.)
+           p_arr((k-1)*n+1:k*n)=p
            b0_arr((k-1)*n+1:k*n)=b%data(1)
            br_arr((k-1)*n+1:k*n)=b%data(2)
            bth_arr((k-1)*n+1:k*n)=b%data(3)
@@ -734,6 +767,9 @@
            vpl_arr((k-1)*n+1:k*n)=real(vpl)
 !           write(6,*) 'after vpl', vtl(1), vtl(n), vtl
            vtl_arr((k-1)*n+1:k*n)=real(vtl)
+           if(eHEAT.eq.1) then
+              kela_arr((k-1)*n+1:k*n)=kela
+           endif
         end do
 !        tstep=10.
 ! Need to be able to do light curves even when nload (nt) = 1... Maybe read headers for first two files.
@@ -750,6 +786,9 @@
         deallocate(rho); deallocate(p)
         deallocate(vrl); deallocate(vtl); deallocate(vpl)
         deallocate(u); deallocate(b)
+        if(eHEAT.eq.1) then
+           deallocate(kela)
+        endif
 !        write(6,*) 'read data file', a
         write(6,*) maxval(vrl_arr**2.+vtl_arr**2.+vpl_arr**2.)
 !        write(6,*) 'maxmin temp: ',minval(p_arr/rho_arr*1.67e-24*9e20/1.38e-16), &
@@ -789,6 +828,9 @@
            vrl_arr(nshift:n*nt)=vrl_arr(1:n*nt-nshift)
            vtl_arr(nshift:n*nt)=vtl_arr(1:n*nt-nshift)
            vpl_arr(nshift:n*nt)=vpl_arr(1:n*nt-nshift)
+           if(eHEAT.eq.1) then
+              kela_arr(nshift:n*nt)=kela_arr(1:n*nt-nshift)
+           endif
            call load_iharm_data(nupdate)
         endif
         end subroutine update_iharm_data
@@ -802,6 +844,7 @@
         allocate(x1_arr(nx)); allocate(x2_arr(nx)); allocate(r_arr(nx))
         allocate(th_arr(nx)); allocate(t(nt)); allocate(x3_arr(nx))
         allocate(ph_arr(nx))
+        if(eHEAT.eq.1) allocate(kela_arr(n))
         end subroutine init_iharm_data
 
         subroutine del_iharm_data()
@@ -812,6 +855,7 @@
         deallocate(r_arr); deallocate(th_arr); deallocate(t)
         deallocate(x3_arr)
         deallocate(ph_arr)
+        if(eHEAT.eq.1) deallocate(kela_arr)
         end subroutine del_iharm_data
 
         subroutine init_iharm_grid_data(nx)
