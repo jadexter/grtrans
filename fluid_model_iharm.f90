@@ -11,8 +11,7 @@
 
       character(len=100) :: dfile, hfile, gfile
       integer :: n, ndumps, nt, indf, dlen, nhead
-      integer :: ndim=3
-      integer :: IS_MMKS=1
+      integer :: ndim=3, IS_MMKS
       integer, dimension(:), allocatable :: dumps
       real(kind=8) :: tstep=20d0, &
            toffset=0d0,tcur,dx1,dx2, &
@@ -269,9 +268,11 @@
         endwhere
 !        write(6,*) 'iharm vals transform'
 !        if(BL.eq.3) then
-! FOR NOW HARD CODING MKS or MMKS
-        call transformbl2mmks(zr,theta,zphi,x1,x2,x3)
-!        call transformbl2mksh(zr,theta,zphi,x1,x2,x3)
+        if(IS_MMKS.eq.1) then
+           call transformbl2mmks(zr,theta,zphi,x1,x2,x3)
+        else
+           call transformbl2mksh(zr,theta,zphi,x1,x2,x3)
+        endif
 !        write(6,*) 'transform r: ',maxval(zr), minval(zr), maxval(x1), minval(x1)
 !        write(6,*) 'transform th: ',maxval(theta), minval(theta), minval(x2), maxval(x2)
 !        write(6,*) 'transform phi: ',maxval(zphi), minval(zphi), minval(x3), maxval(x3)
@@ -449,6 +450,8 @@
           poly_alpha=header(10)
           startx1=header(11)
           metric=header(12)
+! flag for MMKS: metric=0 for MKS, metric=1 for MMKS (=FMKS)
+          IS_MMKS=metric
           eHEAT=header(13)
           eRAD=header(14)
           n_prim=header(15)
@@ -461,8 +464,6 @@
           endif
 ! TEMPORARY set so that grid information is read from same file
           SDUMP=0
-! HARD-CODED FOR IHARM
-!          gam=13d0/9d0
           write(6,*) 'done reading header: ',gam,mks_smooth, &
                poly_xt,poly_alpha,startx1
         end subroutine read_iharm_data_header
@@ -495,9 +496,11 @@
           r_arr=exp(x1_arr)
 ! the 2*pi factor is from my conversion choice from HDF5
           ph_arr=x3_arr*2.*pi
-          th_arr=calcthmmks(x2_arr,x1_arr)
-! CHANGING FOR REGULAR MKS
-!          th_arr=real(calcthmksh(dble(x2_arr)))
+          if(IS_MMKS.eq.1) then
+             th_arr=calcthmmks(x2_arr,x1_arr)
+          else
+             th_arr=real(calcthmksh(dble(x2_arr)))
+          endif
           write(6,*) 'iharm grid: ',maxval(x1_arr),maxval(x2_arr),minval(th_arr)
         end subroutine read_iharm_grid_file
 
@@ -555,9 +558,11 @@
           endif
           r_arr=exp(x1_arr)
           ph_arr=x3_arr
-! HARD-CODED MKS or MMKS
-          th_arr=calcthmmks(x2_arr,x1_arr)
-!          th_arr=real(calcthmksh(dble(x2_arr)))
+          if(IS_MMKS.eq.1) then
+             th_arr=calcthmmks(x2_arr,x1_arr)
+          else
+             th_arr=real(calcthmksh(dble(x2_arr)))
+          endif
           allocate(p(nx1*nx2*nx3))
           allocate(rho(nx1*nx2*nx3)); allocate(pmin(nx1*nx2*nx3))
           allocate(u(nx1*nx2*nx3)); allocate(b(nx1*nx2*nx3))
@@ -626,13 +631,13 @@
           write(6,*) 'read harm transform coords u ',minval(u%data(1)),minval(u%data(2))
           write(6,*) 'read harm transform coords u size ',size(u),hslope
 !          if(BL.eq.3) then
-! HARD-CODED MMKS OR MKS
-          uks = ummks2uks(u,dble(x1_arr),dble(x2_arr))
-          bks = ummks2uks(b,dble(x1_arr),dble(x2_arr))
-!          else
-!          uks = umksh2uks(u,r_arr,x2_arr)
-!          bks = umksh2uks(b,r_arr,x2_arr)
-!          end if
+          if(IS_MMKS.eq.1) then
+             uks = ummks2uks(u,dble(x1_arr),dble(x2_arr))
+             bks = ummks2uks(b,dble(x1_arr),dble(x2_arr))
+          else
+             uks = umksh2uks(u,r_arr,x2_arr)
+             bks = umksh2uks(b,r_arr,x2_arr)
+          end if
           write(6,*) 'after uks ',minval(uks%data(1))
           u = uks2ubl(uks,dble(r_arr),dble(asim))
           write(6,*) 'read harm transform coords b', minval(u%data(3)),maxval(u%data(2)),&
