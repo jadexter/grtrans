@@ -743,7 +743,7 @@
            write(6,*) 'data_file: ',indf-(k-1),append,data_file
            call read_iharm_data_file(data_file,rho,p,u,b,kela)
            t(k)=tcur
-           write(6,*) 'after iharm data: ',tcur
+           write(6,*) 'after iharm data: ',tcur,IS_MMKS
            call lnrf_frame(real(u%data(2)/u%data(1)),real(u%data(3)/u%data(1)), & 
                 real(u%data(4)/u%data(1)),r_arr,asim,th_arr,vrl,vtl,vpl)
 !           write(6,*) 'lnrf transform', size(b0_arr), size(b%data(1)), size(b0_arr((k-1)*n+1:k*n))

@@ -474,6 +474,7 @@
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)
               call polsynchpl(nu,e%ncgsnth,e%bcgs,e%incang,e%p,e%gmin, &
                e%gmax,Kpl)
+!              write(6,*) 'case ehybridthpl max Kpl: ',maxval(Kpl(:,1))
               K = Kth + Kpl
            case(ehybridth)
               call polsynchth(nu,e%ncgs,e%bcgs,e%tcgs,e%incang,Kth)

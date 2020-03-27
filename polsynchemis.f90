@@ -574,7 +574,8 @@
       nui=gmin*gmin*nubperp
       kstaralphaq=1d0
       kstaralphav=2d0*(alpha+3d0/2d0)/(alpha+1)
-      kstarq=-kstaralphaq*kperp*(nubperp/nu)**3d0*gmin**(-2d0*alpha+1d0)* &
+! JAD changing sign here after Monika flagged the inconsistency with thermal case
+      kstarq=kstaralphaq*kperp*(nubperp/nu)**3d0*gmin**(-2d0*alpha+1d0)* &
       (1d0-(nui/nu)**(alpha-1d0/2d0))*(alpha-1d0/2d0)**(-1d0)!*gapfac
 !      kstarq=merge(kstarq,zero,nu.gt.nui)
       kstarv=kstaralphav*kperp*(nubperp/nu)**2d0*log(gmin)* &

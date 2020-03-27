@@ -802,7 +802,9 @@
              rhocgs = 0d0
              ncgs = 0d0
              tempcgs = 1d9
-             bcgs = 1d-4
+! testing relaxing this cut on bcgs to have sigcut=1
+! also in non-thermal high sigma models which use bcgs
+!             bcgs = 1d-4
           end where
          end if
         end subroutine andrew_sigcut
@@ -1019,7 +1021,7 @@
 !        tempcgs = tempcgs/(1d0+trat)
         call nonthermale_b2(sp%jetalphaval,sp%gminval,sp%p1,sp%p2, &
              f%bmag**2d0/f%rho,bcgs,ncgsnth)
-! sigma cut seems far too important here: some problem with bcgs?
+!        write(6,*) 'iharm convert nonthermal: ',sp%jetalphaval,sp%gminval,sp%p1,maxval(ncgsnth)
         call andrew_sigcut(bcgs,rhocgs,tempcgs,ncgs,dble(sp%sigcut))
         end subroutine convert_fluidvars_iharm
         
