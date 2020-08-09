@@ -180,12 +180,13 @@
                      call initialize_geo_tabs(gargs,i)
                   enddo
                   !$omp end parallel do
-                  write(6,*) 'grtrans after init geo tabs',minval(gargs%t0),maxval(gargs%t0)
+! JD 4/1/2020 MODIFYING TO BE CORRECT WHEN T0=0
                   where(gargs%t0.gt.0.)
-                     gargs%t0=gargs%t0-minval(gargs%t0)
+                     gargs%t0=gargs%t0-maxval(gargs%t0)
                   elsewhere
                      gargs%t0=0.
                   endwhere
+                  gargs%t0=gargs%t0-minval(gargs%t0)
                   gargs%nup=nup
                   write(6,*) 'grtrans after init geo tabs',minval(gargs%t0),maxval(gargs%t0)
                else
@@ -199,7 +200,7 @@
                   do i=i1,i2
 !                     write(6,*) 'i: ',i,iname,ename
 !                  do i=15501,15999
-                     !                 write(6,*) 'i: ',i
+!                     write(6,*) 'i: ',i
 !                write(6,*) 'after loop spin: ',mdots(1),mbh
                      call grtrans_driver(gargs,gunit,c,i,(j-1)*nt+l,iname,ename,fname, &
                      sparams,eparams,nfreq,nparams,freqs,nup,extra,debug)

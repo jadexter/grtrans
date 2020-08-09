@@ -12,6 +12,7 @@ ifeq ($(DEBUG),1)
 OTHERFLAGS = -g -extend-source 132 -heap-arrays -fp-model strict -fPIC
 else
 OTHERFLAGS = $(OMP) -extend-source 132 -fast -fp-model source -fPIC #-mkl
+#OTHERFLAGS = $(OMP) -extend-source 132 -ipo -O2 -static -no-prec-div -fp-model source -fPIC -xHost
 endif
 endif
 

@@ -13,7 +13,7 @@
       integer :: n, ndumps, nt, indf, dlen, nhead
       integer :: ndim=3
       integer, dimension(:), allocatable :: dumps
-      real(kind=8) :: tstep=20d0, & !h, dx1, dx2, dx3, gam, startx1, startx2, startx3, &
+      real(kind=8) :: tstep=1d0, & !h, dx1, dx2, dx3, gam, startx1, startx2, startx3, &
            toffset=0d0,tcur,dx1,dx2, &
            dx3,a,gam,Rin,Rout,hslope,R0,ti,tj,tk,startx1, startx2,rdump_cnt,rdump01_cnt, &
            startx3, x10, x20, game, cour,dt,DTd,DTi,DTl,DTr,DTr01,dump_cnt,failed,xbr,&
@@ -1420,6 +1420,9 @@
               write(6,*) 'WARNING -- Time step changes over dumps!'
            endif
         endif
+! HARD CODING FOR NOW SMALL CHANGES BETWEEN DUMPS CAN CHANGE THINGS           
+        tstep=1d0
+        write(6,*) 'tstep slow slight: ',tstep,tstep_test
 !        write(6,*) 'after loop', maxval(abs(u*u+1.))
         if(SDUMP.eq.1) call del_harmpi_grid_data()
         deallocate(rho); deallocate(p)

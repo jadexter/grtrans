@@ -140,19 +140,19 @@
         s0=sinput; s=sinput; ss=sinput; intensity=0d0
         tau = tauin
         jj=ej; KK=eK
-        if(any(isnan(jj))) then
+!        if(any(isnan(jj))) then
            !write(6,*) 'nan in radtrans_integrate j'
 !           write(6,*) 'radtrans_integrate j1: ',jj(:,1)
 !           write(6,*) 'radtrans_integrate j2: ',jj(:,2)
-        endif
-        if(any(isnan(KK))) then
+!        endif
+!        if(any(isnan(KK))) then
            !write(6,*) 'nan in radtrans_integrate K'
 !           write(6,*) 'radtrans_integrate K1: ',KK(:,1)
 !           write(6,*) 'radtrans_integrate K2: ',KK(:,2)
 !           write(6,*) 'radtrans_integrate K4: ',KK(:,4)
 !           write(6,*) 'radtrans_integrate K5: ',KK(:,5)
 !           write(6,*) 'radtrans_integrate K7: ',KK(:,7)
-        endif
+!        endif
 ! spherical stokes case
         if (iflag==0) then
            IS_LINEAR_STOKES=1
@@ -169,7 +169,8 @@
            endif
         elseif (iflag==2) then
            if(nequations==4) then
-              call radtrans_integrate_formal(s,jj,KK(:,1:4),KK(:,5:7),OO)
+!              call radtrans_integrate_formal(s,jj,KK(:,1:4),KK(:,5:7),OO)
+              call radtrans_integrate_formal(s,jj,KK(:,1:4),KK(:,5:7))
            else
               call radtrans_integrate_quadrature(s,jj(:,1),KK(:,1))
            endif
@@ -623,20 +624,48 @@
            theta = lam1**2d0+lam2**2d0
            sig = sign(1d0,ap)
            M1 = identity
-           M2(:,1) = (/0d0,lam2*aq-sig*lam1*rhoq,lam2*au-sig*lam1*rhou,lam2*av-sig*lam1*rhov/)
-           M2(:,2) = (/lam2*aq-sig*lam1*rhoq,0d0,-sig*lam1*av-lam2*rhov,sig*lam1*au+lam2*rhou/)
-           M2(:,3) = (/lam2*au-sig*lam1*rhou,sig*lam1*av+lam2*rhov,0d0,-sig*lam1*aq-lam2*rhoq/)
-           M2(:,4) = (/lam2*av-sig*lam1*rhov,-sig*lam1*au-lam2*rhou,sig*lam1*aq+lam2*rhoq,0d0/)
+! let's try writing these out
+           M2(1,1) = 0d0; M2(2,1)=lam2*aq-sig*lam1*rhoq
+           M2(3,1)=lam2*au-sig*lam1*rhou; M2(4,1)=lam2*av-sig*lam1*rhov
+           M2(1,2)=lam2*aq-sig*lam1*rhoq; M2(2,2)=0d0
+           M2(3,2)=-sig*lam1*av-lam2*rhov; M2(4,2)=sig*lam1*au+lam2*rhou
+           M2(1,3)=lam2*au-sig*lam1*rhou; M2(2,3)=sig*lam1*av+lam2*rhov
+           M2(3,3)=0d0; M2(4,3)=-sig*lam1*aq-lam2*rhoq
+           M2(1,4)=lam2*av-sig*lam1*rhov; M2(2,4)=-sig*lam1*au-lam2*rhou
+           M2(3,4)=sig*lam1*aq+lam2*rhoq; M2(4,4)=0d0
+!           M2(:,1) = (/0d0,lam2*aq-sig*lam1*rhoq,lam2*au-sig*lam1*rhou,lam2*av-sig*lam1*rhov/)
+!           M2(:,2) = (/lam2*aq-sig*lam1*rhoq,0d0,-sig*lam1*av-lam2*rhov,sig*lam1*au+lam2*rhou/)
+!           M2(:,3) = (/lam2*au-sig*lam1*rhou,sig*lam1*av+lam2*rhov,0d0,-sig*lam1*aq-lam2*rhoq/)
+!           M2(:,4) = (/lam2*av-sig*lam1*rhov,-sig*lam1*au-lam2*rhou,sig*lam1*aq+lam2*rhoq,0d0/)
            M2 = 1d0/theta*M2
-           M3(:,1) = (/0d0,lam1*aq+sig*lam2*rhoq,lam1*au+sig*lam2*rhou,lam1*av+sig*lam2*rhov/)
-           M3(:,2) = (/lam1*aq+sig*lam2*rhoq,0d0,sig*lam2*av-lam1*rhov,-sig*lam2*au+lam1*rhou/)
-           M3(:,3) = (/lam1*au+sig*lam2*rhou,-sig*lam2*av+lam1*rhov,0d0,sig*lam2*aq-lam1*rhoq/)
-           M3(:,4) = (/lam1*av+sig*lam2*rhov,sig*lam2*au-lam1*rhou,-sig*lam2*aq+lam1*rhoq,0d0/)
+
+!           M3(:,1) = (/0d0,lam1*aq+sig*lam2*rhoq,lam1*au+sig*lam2*rhou,lam1*av+sig*lam2*rhov/)
+!           M3(:,2) = (/lam1*aq+sig*lam2*rhoq,0d0,sig*lam2*av-lam1*rhov,-sig*lam2*au+lam1*rhou/)
+!           M3(:,3) = (/lam1*au+sig*lam2*rhou,-sig*lam2*av+lam1*rhov,0d0,sig*lam2*aq-lam1*rhoq/)
+!           M3(:,4) = (/lam1*av+sig*lam2*rhov,sig*lam2*au-lam1*rhou,-sig*lam2*aq+lam1*rhoq,0d0/)
+           M3(1,1)=0d0; M3(2,1)=lam1*aq+sig*lam2*rhoq
+           M3(3,1)=lam1*au+sig*lam2*rhou; M3(4,1)=lam1*av+sig*lam2*rhov
+           M3(1,2)=lam1*aq+sig*lam2*rhoq; M3(2,2)=0d0
+           M3(3,2)=sig*lam2*av-lam1*rhov; M3(4,2)=-sig*lam2*au+lam1*rhou
+           M3(1,3)=lam1*au+sig*lam2*rhou; M3(2,3)=-sig*lam2*av+lam1*rhov
+           M3(3,3)=0d0; M3(4,3)=sig*lam2*aq-lam1*rhoq
+           M3(1,4)=lam1*av+sig*lam2*rhov; M3(2,4)=sig*lam2*au-lam1*rhou
+           M3(3,4)=-sig*lam2*aq+lam1*rhoq; M3(4,4)=0d0
            M3=1d0/theta*M3
-           M4(:,1) = (/(a2+p2)/2d0,au*rhov-av*rhou,av*rhoq-aq*rhov,aq*rhou-au*rhoq/)
-           M4(:,2) = (/av*rhou-au*rhov,aq*aq+rhoq*rhoq-(a2+p2)/2d0,aq*au+rhoq*rhou,av*aq+rhov*rhoq/)
-           M4(:,3) = (/aq*rhov-av*rhoq,aq*au+rhoq*rhou,au*au+rhou*rhou-(a2+p2)/2d0,au*av+rhou*rhov/)
-           M4(:,4) = (/au*rhoq-aq*rhou,av*aq+rhov*rhoq,au*av+rhou*rhov,av*av+rhov*rhov-(a2+p2)/2d0/)
+
+           M4(1,1)=(a2+p2)/2d0; M4(2,1)=au*rhov-av*rhou
+           M4(3,1)=av*rhoq-aq*rhov; M4(4,1)=aq*rhou-au*rhoq
+           M4(1,2)=av*rhou-au*rhov; M4(2,2)=aq*aq+rhoq*rhoq-(a2+p2)/2d0
+           M4(3,2)=aq*au+rhoq*rhou; M4(4,2)=av*aq+rhov*rhoq
+           M4(1,3)=aq*rhov-av*rhoq; M4(2,3)=aq*au+rhoq*rhou
+           M4(3,3)=au*au+rhou*rhou-(a2+p2)/2d0; M4(4,3)=au*av+rhou*rhov
+           M4(1,4)=au*rhoq-aq*rhou; M4(2,4)=av*aq+rhov*rhoq
+           M4(3,4)=au*av+rhou*rhov; M4(4,4)=av*av+rhov*rhov-(a2+p2)/2d0
+
+!           M4(:,1) = (/(a2+p2)/2d0,au*rhov-av*rhou,av*rhoq-aq*rhov,aq*rhou-au*rhoq/)
+!           M4(:,2) = (/av*rhou-au*rhov,aq*aq+rhoq*rhoq-(a2+p2)/2d0,aq*au+rhoq*rhou,av*aq+rhov*rhoq/)
+!           M4(:,3) = (/aq*rhov-av*rhoq,aq*au+rhoq*rhou,au*au+rhou*rhou-(a2+p2)/2d0,au*av+rhou*rhov/)
+!           M4(:,4) = (/au*rhoq-aq*rhou,av*aq+rhov*rhoq,au*av+rhou*rhov,av*av+rhov*rhov-(a2+p2)/2d0/)
            M4=2d0/theta*M4
            O = onopol*(1d0/2d0*(cosh(lam1*dx)+cos(lam2*dx))*M1 - sin(lam2*dx)*M2-sinh(lam1*dx)*M3+1d0/2d0 &
                 *(cosh(lam1*dx)-cos(lam2*dx))*M4)
@@ -802,25 +831,34 @@
 !        write(6,*) 'delo intensity P: ',P(:,1)
       end subroutine radtrans_integrate_delo
 
-      subroutine radtrans_integrate_formal(x,j,a,rho,O)
+      subroutine radtrans_integrate_formal(x,j,a,rho)
         real(kind=8), dimension(:), intent(in) :: x
         real(kind=8), dimension(size(x),4), intent(in) :: j,a
         real(kind=8), dimension(size(x),3), intent(in) :: rho
-        real(kind=8), dimension(4,4,size(x)), intent(inout) :: O
+!        real(kind=8), dimension(4,4,size(x)), intent(inout) :: O
         real(kind=8), dimension(size(x)-1) :: dx
-        real(kind=8), dimension(4) :: I0,iprev
+        real(kind=8), dimension(4) :: I0,iprev,inew,at,jt
+        real(kind=8), dimension(3) :: rhot
         real(kind=8), dimension(4,4) :: identity,M1,M2,M3,M4,Ot
-        integer :: k
+        integer :: k,l
         I0=0d0
         identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &
              1d0,0d0,0d0,0d0,0d0,1d0/),(/4,4/))
         dx = x(1:npts-1) - x(2:npts)
         intensity(:,1) = I0; iprev = I0
+        !write(6,*) 'radtrans integrate formal: ',npts,size(a,1),size(rho,1), &
+        !     size(dx,1),size(intensity,2),size(O,3)
         do k=npts-1,1,-1
-           call calc_O(a(k,:),rho(k,:),dx(k),identity,Ot,M1,M2,M3,M4)
-           intensity(:,npts-k+1) = matmul(Ot,j(k,:))*dx(k)+matmul(Ot,iprev)
-           iprev = intensity(:,npts-k+1)
-           O(:,:,k)=Ot
+           l=npts-k+1
+           at=a(k,:); rhot=rho(k,:); jt=j(k,:)
+!           write(6,*) 'radtrans integrate formal loop: ',k,l
+           call calc_O(at,rhot,dx(k),identity,Ot,M1,M2,M3,M4)
+!           inew = matmul(Ot,jt)*dx(k)+matmul(Ot,iprev)
+           inew = matmul(Ot,jt*dx(k)+iprev)
+           iprev = inew
+           intensity(:,l) = inew
+! JD TESTING TURNING OFF ASSIGNMENT TO O
+!           O(:,:,k)=Ot
         end do
         return
       end subroutine radtrans_integrate_formal

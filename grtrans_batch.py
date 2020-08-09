@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 import namelist as nm
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from astropy.io import fits
 # f2py grtrans module
 from pgrtrans import pgrtrans

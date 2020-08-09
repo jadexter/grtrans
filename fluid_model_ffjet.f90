@@ -82,8 +82,8 @@
         lx1=int((x1-uniqx1(1))/(uniqx1(nx1)-uniqx1(1))*(nx1-1))+1
         ux1=lx1+1
         lx2=int((x2-uniqx2(1))/(uniqx2(nx2)-uniqx2(1))*(nx2-1))+1
-!        write(6,*) 'lx1: ',x1,minval(lx1),maxval(lx1),uniqx1(1)
-!        write(6,*) 'lx2: ',x2,zm,minval(lx2),maxval(lx2),size(uniqth)
+        !write(6,*) 'lx1: ',minval(lx1),maxval(lx1),uniqx1(1)
+        !write(6,*) 'lx2: ',minval(lx2),maxval(lx2),size(uniqth)
         lx2=merge(merge(lx2,one,lx2.ge.1),umax,lx2.le.(nx2-1))
         ux2=lx2+1
         td=(theta-uniqth(lx2))/(uniqth(ux2)-uniqth(lx2))
@@ -96,7 +96,7 @@
         x1l=lx1-1 ; x1u=ux1-1
         x2l=(lx2-1)*nx1 ; x2u=(ux2-1)*nx1
         indx=(/(/x1l+x2l+1/),(/x1l+x2u+1/),(/x1u+x2l+1/),(/x1u+x2u+1/)/)
-!  !      write(6,*) 'indx: ',minval(indx),maxval(indx),size(indx), &
+        !write(6,*) 'indx: ',minval(indx),maxval(indx),size(indx), &
 !         size(rho_arr)
 !  !      write(6,*) 'indx: ',rc_arr(x1l(36)+x2l(36)+1),zr(36), &
 !         rc_arr(x1u(36)+x2l(36)+1),rd(36)
@@ -157,7 +157,7 @@
          ,vr0,vth0,vph0,1)
 !        call lnrf_frame(vr_arr,vth_arr,vph_arr,rc_arr,a,thc_arr, &
              
-!         write(6,*) 'lnrf', size(u%data(1)), size(vr0)
+       !  write(6,*) 'lnrf', size(u%data(1)), size(vr0)
         u%data(2)=u%data(1)*dble(vr0)
         u%data(3)=u%data(1)*dble(vth0)
         u%data(4)=u%data(1)*dble(vph0)
@@ -165,7 +165,7 @@
         call assign_metric(u,transpose(kerr_metric(zr,real(x0%data(3)) &
         ,a)))
 !        write(6,*) 'leaving ffjet vals',bmag
-!        write(6,*) 'udotu: ',u*u
+        !write(6,*) 'udotu: ',maxval(abs(u*u+1d0))
  ! Cut off emission from below eq. plane:
 !        rho=merge(rho,rho*0.,zm.ge.0)
         end subroutine ffjet_vals
