@@ -92,7 +92,7 @@
       xspot%data(1)=0d0!tspot
       xspot%data(2)=r0spot
       xspot%data(3)=acos(0d0)
-! put spot at phi=0, geodesic -pi to pi  to avoid phi wrapping problems
+! put spot at phi=0, geodesic -pi to pi to avoid phi wrapping problems
       xspot%data(4)=0d0
 ! phi of spot is at 0 so need to rotate to those coords
       x%data(4) = x%data(4) - (tspot+x%data(1))*omega(1)
