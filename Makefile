@@ -9,9 +9,9 @@ OMP = -qopenmp #-mkl
 OMPLIB = -liomp5 -lpthread
 FCNAME=intelem
 ifeq ($(DEBUG),1)
-OTHERFLAGS = -g -extend-source 132 -heap-arrays -fp-model strict -fPIC
+OTHERFLAGS = $(OMP) -extend-source 132 -fp-model source -O3 -ipo -xHost -fPIC
 else
-OTHERFLAGS = $(OMP) -extend-source 132 -fast -fp-model source -fPIC #-mkl
+OTHERFLAGS = $(OMP) -extend-source 132 -O3 -ipo -xHost -parallel -fp-model source -fPIC #-mkl
 #OTHERFLAGS = $(OMP) -extend-source 132 -ipo -O2 -static -no-prec-div -fp-model source -fPIC -xHost
 endif
 endif

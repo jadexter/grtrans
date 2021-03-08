@@ -189,7 +189,7 @@
          subroutine initialize_geokerr_args(gk,n)
          integer, intent(in) :: n
          type (geokerr_args), intent(inout) :: gk
-!         write(6,*) 'init geokerr args: ',allocated(gk%muf)
+!         write(6,*) 'init geokerr args: ',allocated(gk%muf),allocated(gk%uf)
          allocate(gk%muf(n))
          allocate(gk%uf(n))
          allocate(gk%tpm(n))
@@ -212,7 +212,7 @@
          integer, intent(in), optional :: gunit
          status=1
 !         g%m=pixel
-!         write(6,*) 'initialize_geodesic from init geo', i
+!         write(6,*) 'initialize_geodesic from init geo', i,allocated(g%gk%muf)
          call initialize_geokerr_args(g%gk,1)
          g%gk%mu0=gargs%mu0
          g%gk%phi0=acos(-1.)*gargs%phi0
@@ -323,6 +323,8 @@
          endif
 !         write(6,*) 'i1: ',i1,i2,g%npts
 !         write(6,*) 'uf: ',ufi
+!         write(6,*) 'geokerr_wrapper: ',allocated(g%x),allocated(g%lambda),allocated(g%tpmarr)
+!         write(6,*) 'geokerr_wrapper 2: ',allocated(g%tprarr),allocated(g%k)
          allocate(g%x(g%npts))
          allocate(g%lambda(g%npts))
          allocate(g%tpmarr(g%npts))
@@ -381,13 +383,14 @@
          deallocate(g%lambda)
          deallocate(g%tpmarr)
          deallocate(g%tprarr)
-!         write(6,*) 'del geokerr args'
+!         write(6,*) 'del geokerr args',allocated(g%gk%muf)
          call del_geokerr_args(g%gk)
 !         write(6,*) 'after del geokerr args'
          end subroutine del_geodesic
 
          subroutine del_geokerr_args(gk)
          type (geokerr_args), intent(inout) :: gk
+!         write(6,*) 'del ge
          deallocate(gk%uf)
          deallocate(gk%muf)
          deallocate(gk%sm)

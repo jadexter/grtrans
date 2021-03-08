@@ -1,5 +1,7 @@
   module radtrans_integrate
 
+    use omp_lib
+
     use odepack, only: lsoda_basic
     use interpolate, only: get_weight, locate
     use math, only: tsum
@@ -19,6 +21,7 @@
 
 !$omp threadprivate(ss,tau,s0,jj,KK,intensity,lindx,nptstot,npts,nptsout,s,stats,stokesq,stokesu,stokesv)
 !$omp threadprivate(ortol,oatol,hmax,thin,MAX_TAU,QQ,PP,imm,OO,IS_LINEAR_STOKES,sphtolfac)
+!$omp threadprivate(nequations,iflag)
 
     interface integrate
        module procedure integrate
@@ -99,6 +102,13 @@
         else
            maxsteps = 100000
         endif
+
+!        write(6,*) 'init radtrans integrate: ',allocated(tau),allocated(s0)
+!        write(6,*) 'init radtrans integrate 2: ',allocated(jj),allocated(KK)
+!        write(6,*) 'init radtrans integrate 3: ',allocated(intensity),allocated(s), &
+!             allocated(ss)
+!        write(6,*) 'init radtrans integrate 4: ',riflag,allocated(OO)
+
         allocate(tau(npts))
         allocate(s0(npts))
         allocate(jj(npts,nequations))
@@ -117,8 +127,8 @@
            allocate(imm(npts,nequations,nequations))
            QQ = 0d0; PP = 0d0; imm = 0d0
         elseif(iflag==2) then
-           allocate(OO(nequations,nequations,npts))
-           OO = 0d0
+!           allocate(OO(nequations,nequations,npts))
+!           OO = 0d0
         elseif(iflag==3) then
            allocate(stokesq(npts))
            allocate(stokesu(npts))
@@ -842,8 +852,10 @@
         real(kind=8), dimension(4,4) :: identity,M1,M2,M3,M4,Ot
         integer :: k,l
         I0=0d0
-        identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &
-             1d0,0d0,0d0,0d0,0d0,1d0/),(/4,4/))
+!        identity = reshape((/1d0,0d0,0d0,0d0,0d0,1d0,0d0,0d0,0d0,0d0, &
+!             1d0,0d0,0d0,0d0,0d0,1d0/),(/4,4/))
+        identity(:,:)=0d0
+        identity(1,1)=1d0; identity(2,2)=1d0; identity(3,3)=1d0; identity(4,4)=1d0
         dx = x(1:npts-1) - x(2:npts)
         intensity(:,1) = I0; iprev = I0
         !write(6,*) 'radtrans integrate formal: ',npts,size(a,1),size(rho,1), &
@@ -876,7 +888,7 @@
         if(iflag==1) then
            deallocate(PP); deallocate(QQ); deallocate(imm)
         elseif(iflag==2) then
-           deallocate(OO)
+!           deallocate(OO)
         elseif(iflag==3) then
            deallocate(stokesq);deallocate(stokesu);deallocate(stokesv)
         endif

@@ -1,6 +1,8 @@
 
        module grtrans
 
+       use omp_lib
+
        use fluid_model, only: initialize_fluid_model, del_fluid_model, &
         get_fluid_vars, fluid, source_params, convert_fluid_vars, &
         initialize_source_params,del_source_params
@@ -24,19 +26,19 @@
 ! grtrans object is made up of fluid, geodesic, emissivity, and rad trans objects
 
 !        integer, parameter :: IS_LINEAR_STOKES=1
-        integer :: EXTRA_QUANTS=0, WRITE_GEO=0
+       integer :: EXTRA_QUANTS=0, WRITE_GEO=0
 !        integer, dimension(3) :: stats
 !        real(kind=8), parameter :: MAX_TAU = 10d0
-        real(kind=8) :: LBH, MBH
+       real(kind=8) :: LBH, MBH
 !        real(kind=8) :: ortol=1.d-6, oatol=1.d-8, hmax
 !        real(kind=8), dimension(:), allocatable :: ss
-         type (fluid) :: f
-         type (rad_trans) :: r
-         type (geo) :: g
-         type (emis) :: e
+       type (fluid) :: f
+       type (rad_trans) :: r
+       type (geo) :: g
+       type (emis) :: e
 !         type (emis_params) :: eparams
 !         type (source_params) :: sparams
-!$omp threadprivate(f,r,g,e,EXTRA_QUANTS,WRITE_GEO)
+!$omp threadprivate(f,r,g,e,EXTRA_QUANTS,WRITE_GEO,LBH,MBH)
 
 !       interface grtrans_driver_jac_form
 !         module procedure grtrans_driver_jac_form

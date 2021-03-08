@@ -1,5 +1,8 @@
 
       module polsynchemis
+
+      use omp_lib
+
       implicit none
 
       real(kind=8), dimension(:), allocatable :: gxvals, xvals
